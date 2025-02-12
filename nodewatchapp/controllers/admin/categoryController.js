@@ -99,21 +99,7 @@ const editCategory=async(req,res)=>{
   }
 }
 
-// const deleteCategory=async(req,res)=>{
-// try{
-//   const categoryId=req.params.id
-//   const result=await Category.findByIdAndDelete(categoryId)
-//   if(!result){
-//     return res.status(400).json({error:"Category not found"})
-//   }
-//   res.json({sucess:true,message:"Category deleted successfully"})
 
-// }catch(error){
-// console.log(error,"Error deleting Category")
-// res.status(500).json({error:"failed to delete category"})
-// }
-
-// }
 
 
 

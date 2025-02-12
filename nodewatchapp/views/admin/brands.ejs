@@ -138,6 +138,7 @@
     border: none;
     cursor: pointer;
     transition: all 0.2s;
+    margin-right: 0.5rem;
   }
 
   .btn-primary {
@@ -153,6 +154,11 @@
   .btn-success {
     background-color: #198754;
     color: white;
+  }
+
+  .btn-warning {
+    background-color: #ffc107;
+    color: #000;
   }
 
   .text-white {
@@ -214,7 +220,7 @@
                   <th>Brand</th>
                   <th>Logo</th>
                   <th>Status</th>
-                  <th>Block/Unblock/Delete</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -224,9 +230,11 @@
                   <td class="text-start">
                     <div class="d-flex align-items-center justify-content-center"
                       style="width: 40px; height: 40px; border-radius: 50%; overflow: hidden;">
-                      <img src="/uploads/re-image/<%=brand.brandImage[0]%>" alt="<%=brand.brandName%>" class="img-fluid rounded-circle" style="width: 100%; height: auto" />
+                      <img src="<%= brand.brandImage %>" alt="<%= brand.name %>" 
+                        class="img-fluid rounded-circle" style="width: 100%; height: auto" />
                     </div>
                   </td>
+                  
                   <td class="text-start">
                     <%if(brand.isBlocked===true){%>
                     <span class="badge rounded-pill alert-danger" style="width: 60px">Blocked</span>
@@ -236,16 +244,16 @@
                   </td>
                   <td class="text-start">
                     <%if(brand.isBlocked===false){%>
-                    <button class="btn btn-danger" style="width: 90px">
+                    <button class="btn btn-danger">
                       <a href="/admin/blockBrand?id=<%=brand._id%>" class="text-white">Block</a>
                     </button>
                     <%}else{%>
-                    <button class="btn btn-success" style="width: 90px">
+                    <button class="btn btn-success">
                       <a href="/admin/unblockBrand?id=<%=brand._id%>" class="text-white">Unblock</a>
                     </button>
                     <%}%>
-                    <button class="btn btn-danger" style="width: 90px" onclick="return confirmDelete()">
-                      <a href="/admin/deleteBrand?id=<%=brand._id%>" class="text-white">Delete</a>
+                    <button class="btn btn-warning">
+                      <a href="/admin/editBrand/<%=brand._id%>" class="text-white">Edit</a>
                     </button>
                   </td>
                 </tr>
@@ -258,11 +266,5 @@
     </div>
   </div>
 </section>
-
-<script>
-function confirmDelete() {
-  return confirm("Are you sure you want to delete this brand?");
-}
-</script>
 
 <%- include("../../views/partials/admin/footer") %>

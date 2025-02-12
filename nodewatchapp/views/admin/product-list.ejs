@@ -193,7 +193,7 @@ body {
             <tr>
                 <td><%= ele.productName %></td>
                 <td><%= ele.brand ? ele.brand.name : 'No Brand' %></td>
-                <td><%= ele.category ? ele.category : 'No Category' %></td>
+                <td><%= ele.category ? ele.category.name : 'No Category' %></td>
                 <td>$<%= ele.salePrice.toLocaleString() %></td>
                 <td><%= ele.quantity %></td>
                 <td>
@@ -255,8 +255,7 @@ function editProduct(productId){
 
 
 function blockProduct(productId, isBlocked) {
-    let action = isBlocked ? "Block" : "Unblock"; // Set correct action label
-
+    let action = isBlocked ? "Block" : "Unblock"; 
     Swal.fire({
         title: `Are you sure?`,
         text: `Do you really want to ${action.toLowerCase()} this product?`,
@@ -267,7 +266,6 @@ function blockProduct(productId, isBlocked) {
         confirmButtonText: `Yes, ${action} it!`
     }).then((result) => {
         if (result.isConfirmed) {
-            // Proceed with AJAX request if user confirms
             $.ajax({
                 url: `/admin/blockProduct/${productId}`,
                 method: "PUT",
@@ -282,7 +280,7 @@ function blockProduct(productId, isBlocked) {
                             icon: "success",
                             confirmButtonText: "OK"
                         }).then(() => {
-                            location.reload(); // Reload only after confirmation
+                            location.reload();
                         });
                     } else {
                         Swal.fire("Error!", "Something went wrong.", "error");
