@@ -9,6 +9,12 @@ import HttpStatus from '../../utils/statusCodes.js'
     Login:async(req,res)=>{
        try {
         const {email,password}=req.body
+
+        console.log(req.body)
+
+        console.log("email",email)
+
+        console.log("password",password)
          
         if(!email||!password){
             return res.status(statusCode.UNAUTHORIZED).json({message:"Email and password are required"})
