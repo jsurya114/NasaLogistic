@@ -6,8 +6,8 @@ import adminRoutes from './routes/adminRoutes.js'
 
 dotenv.config()
 
-const PORT = process.env.PORT
- const app = express()
+const PORT = process.env.PORT;
+ const app = express();
 app.use(cors({
   origin: process.env.FRONTEND_URL,
   credentials: true

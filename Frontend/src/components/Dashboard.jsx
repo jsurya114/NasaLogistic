@@ -1,25 +1,14 @@
 import React from "react";
-import logo from "../assets/logo.png"; 
+
+
+import Header from "../reuse/Header.jsx"; 
+import Nav from "../reuse/Nav.jsx";
 export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gray-100 text-gray-900 font-poppins">
       {/* Topbar */}
-      <header className="sticky top-0 z-50 grid grid-cols-[1fr_auto_1fr] items-center h-16 bg-[#462976] text-white px-4 border-b border-white/10">
-        <div className="font-semibold">Dashboard Admin</div>
-        <div className="justify-self-center mt-1">
-          <img src={logo} alt="Logo" className="w-56" />
-        </div>
-        <div className="justify-self-end flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-yellow-400 text-black font-bold grid place-items-center">
-            👤
-          </div>
-          <div className="font-semibold">Nasa Logistic Carriers LLC ▾</div>
-          <button className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-md font-semibold">
-            Logout
-          </button>
-        </div>
-      </header>
-
+    
+   <Header/>
       {/* Container */}
       <main className="max-w-[1450px] mx-auto p-4 pb-40">
         {/* Filters Card */}
@@ -139,28 +128,7 @@ export default function Dashboard() {
       </main>
 
       {/* Bottom Dock */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-[#153a6a] border-t border-white/10">
-        <div className="flex justify-center gap-4 p-3 max-w-5xl mx-auto">
-          {[
-            { href: "index.html", icon: "📊", label: "Dashboard" },
-            { href: "users.html", icon: "👥", label: "Users" },
-            { href: "routes.html", icon: "🧭", label: "Routes" },
-            { href: "index.html", icon: "📦", label: "Jobs" },
-            { href: "double-stop.html", icon: "🔁", label: "Double Stop" },
-          ].map((item, i) => (
-            <a
-              key={i}
-              href={item.href}
-              className="bg-white text-gray-800 rounded-xl shadow-md px-4 py-2 flex flex-col items-center gap-1 hover:scale-105 transition"
-            >
-              <div className="w-10 h-10 bg-gray-100 grid place-items-center rounded-md text-2xl">
-                {item.icon}
-              </div>
-              <small className="font-semibold">{item.label}</small>
-            </a>
-          ))}
-        </div>
-      </nav>
+     <Nav/>
     </div>
   );
 }
