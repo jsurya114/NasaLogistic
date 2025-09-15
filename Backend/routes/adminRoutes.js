@@ -3,7 +3,7 @@ import express from 'express'
 const router = express.Router()
 import adminController from '../controllers/admin/adminController.js'
 
-router.post('/login',adminController.Login)
+router.post('/login',adminController.Login);
 
 // router.post('/dashboard')
 

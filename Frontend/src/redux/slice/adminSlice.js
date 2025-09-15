@@ -15,11 +15,12 @@ export const adminLogin=createAsyncThunk(
                 headers:{"Content-Type":"application/json"},
                 body:JSON.stringify(credentials),
             })
-            const data = await res.json()
+            const data = await res.json();
+            // console.log("Response from server ",data);
             if(!res.ok){
                 return rejectWithValue(data.message||"Login failed")
             }
-              return data.token
+              return data;
         } catch (error) {
             return rejectWithValue(error.message)
         }
@@ -35,6 +36,9 @@ const adminSlice = createSlice({
             state.error=null
             localStorage.removeItem("adminToken")
         },
+        clearError:(state)=>{
+            state.error=null;
+        }
     },
     extraReducers:(builder)=>{
         builder
@@ -44,7 +48,7 @@ const adminSlice = createSlice({
         })
         .addCase(adminLogin.fulfilled,(state,action)=>{
             state.loading=false;
-            state.token=action.payload;
+            state.token=action.payload.token;
             localStorage.setItem("adminToken",action.payload)
         })
         .addCase(adminLogin.rejected,(state,action)=>{
@@ -54,5 +58,5 @@ const adminSlice = createSlice({
     },
 })
 
-export const {logout} = adminSlice.actions
+export const {logout,clearError} = adminSlice.actions
 export default adminSlice.reducer

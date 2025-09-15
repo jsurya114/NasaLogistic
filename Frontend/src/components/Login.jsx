@@ -2,31 +2,33 @@ import React,{useState} from "react";
 import logo from "../assets/logo.png"; // adjust path according to your folder structure
 
 import {useDispatch, useSelector} from 'react-redux'
-import { adminLogin } from "../redux/slice/adminSlice";
+import { adminLogin } from "../redux/slice/adminSlice.js";
+import { clearError } from "../redux/slice/adminSlice.js";
 import { useNavigate } from "react-router-dom";
-
 const Login = () => {
 
 const [email,setEmail]=useState("")
 const [password,setPassword]=useState("")
 
-const dispatch  = useDispatch()
+const dispatch  = useDispatch();
+const navigate = useNavigate();
 
-const navigate = useNavigate()
-const {loading,error,token}=useSelector((state)=>state.admin)
+const {loading,error,token}=useSelector((state)=>state.admin);
 
-const handleSubmit=(e)=>{
-    e.preventDefault()
-    dispatch(adminLogin({email,password}))
-    const resultAction =  dispatch(adminLogin({email,password}))
-
-    if(adminLogin.fulfilled.match(resultAction)){
-      navigate("/dasboard")
-    }
-}
-
-
-    
+const handleSubmit= async(e)=>{
+    e.preventDefault();   
+    try{
+      const result = await dispatch(adminLogin({email,password})).unwrap();
+      if(result.token){
+        navigate("/admin/dashboard");
+      }else{
+        console.log("Error from server ",result.token);
+      }
+    }catch(err){
+      console.log("Error from server ",err)
+    }    
+  dispatch(clearError());  
+}    
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 font-poppins">
       <div className="bg-white rounded-2xl shadow-lg w-full max-w-md">
