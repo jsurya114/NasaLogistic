@@ -4,6 +4,7 @@ import dotenv from 'dotenv'
 import pool from './config/db.js'
 import adminRoutes from './routes/adminRoutes.js'
 
+
 dotenv.config()
 
 const PORT = process.env.PORT;
@@ -14,6 +15,7 @@ app.use(cors({
 }))
  app.use(express.json())
  app.use('/admin',adminRoutes)
+
 
 
  
