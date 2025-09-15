@@ -5,6 +5,7 @@ import adminController from '../controllers/admin/adminController.js'
 
 router.post('/login',adminController.Login);
 
+
 // router.post('/dashboard')
 
 // router.post('/routes')
