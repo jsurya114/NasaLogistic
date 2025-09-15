@@ -1,6 +1,16 @@
 import React from "react";
 import logo from "../assets/logo.png"; 
+import { logout } from "../redux/slice/adminSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 function Header(){
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+    // const {token, error}= useSelector((state)=>state.admin);
+    const handleLogout=()=>{
+      dispatch(logout());
+      navigate('/admin/login');
+    }
 
 
     return(
@@ -15,7 +25,7 @@ function Header(){
             👤
           </div>
           <div className="font-semibold">Nasa Logistic Carriers LLC ▾</div>
-          <button className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-md font-semibold">
+          <button className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-md font-semibold" onClick={handleLogout}>
             Logout
           </button>
         </div>

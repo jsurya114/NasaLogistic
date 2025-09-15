@@ -14,7 +14,7 @@ app.use(cors({
   credentials: true
 }))
  app.use(express.json())
- app.use('/admin',adminRoutes)
+ app.use('/admin',adminRoutes);
 
 
 

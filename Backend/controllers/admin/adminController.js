@@ -5,7 +5,6 @@ import { generateToken } from '../../services/jwtservice.js'
 import HttpStatus from '../../utils/statusCodes.js'
 
  const adminController={
-
     Login:async(req,res)=>{
        try {
         const {email,password}=req.body
@@ -43,7 +42,9 @@ import HttpStatus from '../../utils/statusCodes.js'
         res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Server error" })
 
        }
-    }
+    },
+
+    
 
      
 }
