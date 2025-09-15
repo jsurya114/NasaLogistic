@@ -19,7 +19,7 @@ export const adminLogin=createAsyncThunk(
             if(!res.ok){
                 return rejectWithValue(data.message||"Login failed")
             }
-              return data.result.accessToken
+              return data.token
         } catch (error) {
             return rejectWithValue(error.message)
         }
@@ -43,8 +43,8 @@ const adminSlice = createSlice({
             state.error=null
         })
         .addCase(adminLogin.fulfilled,(state,action)=>{
-            state.loading=false
-            state.token=action.payload
+            state.loading=false;
+            state.token=action.payload;
             localStorage.setItem("adminToken",action.payload)
         })
         .addCase(adminLogin.rejected,(state,action)=>{

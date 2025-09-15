@@ -3,6 +3,7 @@ import logo from "../assets/logo.png"; // adjust path according to your folder s
 
 import {useDispatch, useSelector} from 'react-redux'
 import { adminLogin } from "../redux/slice/adminSlice";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
 
@@ -10,11 +11,18 @@ const [email,setEmail]=useState("")
 const [password,setPassword]=useState("")
 
 const dispatch  = useDispatch()
+
+const navigate = useNavigate()
 const {loading,error,token}=useSelector((state)=>state.admin)
 
 const handleSubmit=(e)=>{
     e.preventDefault()
     dispatch(adminLogin({email,password}))
+    const resultAction =  dispatch(adminLogin({email,password}))
+
+    if(adminLogin.fulfilled.match(resultAction)){
+      navigate("/dasboard")
+    }
 }
 
 
