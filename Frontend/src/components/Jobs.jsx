@@ -9,38 +9,53 @@ function Jobs() {
   const cities = useSelector((state) => state.jobs.cities);
 
   const [form, setForm] = useState({ job: "", city_code: "", enabled: true });
+  const [errors, setErrors] = useState({});
 
-  // Fetch jobs on component mount
   useEffect(() => {
     dispatch(fetchJobs());
   }, [dispatch]);
 
-  // Handle form input changes
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setForm({ ...form, [name]: type === "checkbox" ? checked : value });
+    setErrors({ ...errors, [name]: "" }); // clear error when typing
   };
 
-  // Handle adding a new job
+  const validate = () => {
+    let newErrors = {};
+    if (!form.job.trim()) newErrors.job = "Job name is required";
+    if (!form.city_code.trim()) newErrors.city_code = "City code is required";
+    if (!form.enabled) newErrors.enabled = "City must be enabled to add";
+    return newErrors;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const newErrors = validate();
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
     try {
       const actionResult = await dispatch(
         addJob({ job: form.job, city_code: form.city_code, enabled: form.enabled })
       );
       if (addJob.fulfilled.match(actionResult)) {
-        // Optionally, you can show a success message here
         console.log("Job added:", actionResult.payload);
+        setForm({ job: "", city_code: "", enabled: true });
+        setErrors({});
       }
-      // Reset form
-      setForm({ job: "", city_code: "", enabled: true });
     } catch (err) {
       console.error("Failed to add job:", err);
     }
   };
 
-  // Handle deleting a job
   const handleDelete = async (id) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this job?");
+    if (!confirmDelete) return;
+
     try {
       await dispatch(deleteJob(id));
     } catch (err) {
@@ -48,7 +63,6 @@ function Jobs() {
     }
   };
 
-  // Handle toggling job status
   const handleToggleStatus = async (id) => {
     try {
       await dispatch(jobStatus(id));
@@ -76,9 +90,11 @@ function Jobs() {
                 value={form.job}
                 onChange={handleChange}
                 placeholder="Enter job"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-600"
-                required
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-600 ${
+                  errors.job ? "border-red-500" : "border-gray-300"
+                }`}
               />
+              {errors.job && <p className="text-red-500 text-sm mt-1">{errors.job}</p>}
             </div>
 
             <div>
@@ -89,22 +105,24 @@ function Jobs() {
                 value={form.city_code}
                 onChange={handleChange}
                 placeholder="Enter city code"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-600"
-                required
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-600 ${
+                  errors.city_code ? "border-red-500" : "border-gray-300"
+                }`}
               />
+              {errors.city_code && <p className="text-red-500 text-sm mt-1">{errors.city_code}</p>}
             </div>
 
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                name="enabled"
-                checked={form.enabled}
-                onChange={handleChange}
-                className="w-4 h-4 text-purple-600"
-              />
-              <label className="font-medium">Enabled</label>
-            </div>
-
+         <div className="flex items-center space-x-2">
+    <input
+      type="checkbox"
+      name="enabled"
+      checked={form.enabled}
+      onChange={handleChange}
+      className="w-4 h-4 text-purple-600"
+    />
+    <label className="font-medium">Enabled</label>
+  </div>
+  {errors.enabled && <p className="text-red-500 text-sm mt-1">{errors.enabled}</p>}
             <div className="flex justify-end">
               <button
                 type="submit"
