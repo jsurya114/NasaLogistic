@@ -22,6 +22,16 @@ const jobController={
            console.log(job)
            console.log(city_code)
            console.log(req.body)
+
+           if (!job || job.trim() === "") {
+      return res.status(HttpStatus.BAD_REQUEST).json({ field: "job", message: "Job name is required" });
+    }
+    if (!city_code || city_code.trim() === "") {
+      return res.status(HttpStatus.BAD_REQUEST).json({ field: "city_code", message: "City code is required" });
+    }
+    if (enabled === false) {
+      return res.status(HttpStatus.BAD_REQUEST).json({ field: "enabled", message: "You must enable the city to add it" });
+    }
            const jobs = await jobService.addcity(job,city_code)  
            res.status(HttpStatus.CREATED).json(jobs)
         } catch (error) {
