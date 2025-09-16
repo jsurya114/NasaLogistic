@@ -34,7 +34,7 @@ function Nav(){
     { to: "/admin/dashboard", icon: "📊", label: "Dashboard" },
     // { to: "/admin/create-users", icon: "👥", label: "Users" },
     // { to: "/admin/routes", icon: "🧭", label: "Routes" },
-    // { to: "/admin/addjobs", icon: "📦", label: "Jobs" },
+    { to: "/admin/jobs", icon: "📦", label: "Jobs" },
     // { to: "/admin/double-stop", icon: "🔁", label: "Double Stop" },
   ];
 
