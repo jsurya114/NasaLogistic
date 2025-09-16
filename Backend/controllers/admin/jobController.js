@@ -17,7 +17,7 @@ const jobController={
     },
     addJob:async(req,res)=>{
         try {
-           const {job,city_code} =req.body
+           const {job,city_code,enabled} =req.body
 
            console.log(job)
            console.log(city_code)
@@ -32,7 +32,7 @@ const jobController={
     if (enabled === false) {
       return res.status(HttpStatus.BAD_REQUEST).json({ field: "enabled", message: "You must enable the city to add it" });
     }
-           const jobs = await jobService.addcity(job,city_code)  
+           const jobs = await jobService.addcity(job,city_code,enabled)  
            res.status(HttpStatus.CREATED).json(jobs)
         } catch (error) {
             res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: error.message })
