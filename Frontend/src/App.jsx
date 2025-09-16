@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Login from "./components/Login";
 import Dashboard from "./components/Dashboard";
 import Jobs from "./components/Jobs";
+import RoutesForm from "./components/routes-form.jsx";
 
 function App() {
 
@@ -15,6 +16,7 @@ function App() {
         {/* <Route path="/login" element={<Login />} /> */}
         <Route path="/admin/dashboard" element={<Dashboard/>} />
          <Route path="/admin/jobs" element={<Jobs />} />
+         <Route path="/admin/routes" element={<RoutesForm />} />
          
         
       </Routes>
