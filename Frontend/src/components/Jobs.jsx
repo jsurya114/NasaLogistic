@@ -166,12 +166,12 @@ function Jobs() {
                       >
                         Toggle
                       </button>
-                      <button
+                      {/* <button
                         onClick={() => handleDelete(city.id)}
                         className="px-2 py-1 bg-red-200 rounded hover:bg-red-300"
                       >
                         Delete
-                      </button>
+                      </button> */}
                     </td>
                   </tr>
                 ))
