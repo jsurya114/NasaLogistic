@@ -52,14 +52,27 @@ export const dbService={
   },
 
   changeStatus: async(id)=>{
-    const result = await pool.query(
+   const result = await pool.query(
     `UPDATE drivers 
      SET enabled = NOT enabled 
      WHERE id = $1 
-     RETURNING *`,
+     RETURNING id, driver_code, name, email, city_id, enabled`,
     [id]
   );
-  return result.rows[0];
+
+  const updated = result.rows[0];
+  if (!updated) return null;
+
+  // Now join with city to get job field for only this driver
+  const joined = await pool.query(
+    `SELECT d.id, d.driver_code, d.name, d.email, c.job, d.enabled
+     FROM drivers d
+     JOIN city c ON d.city_id = c.id
+     WHERE d.id = $1`,
+    [updated.id]
+  );
+
+  return joined.rows[0];  
   }
     
 }

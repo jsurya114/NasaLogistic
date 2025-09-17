@@ -28,6 +28,7 @@ router.delete("/routes/:id", deleteRoute);
 //User creation 
 router.post('/create-users',createUsers);
 router.get('/get-users',getUsers);
-router.patch('/admin/toggle-user/:id',changeStatusUser);
+router.patch('/toggle-user/:id',changeStatusUser);
 
+// router.get('/admin/check-for-user',checkforSuperAdminOrNot)
 export default router

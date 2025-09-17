@@ -37,13 +37,24 @@ export const getUsers= async(req,res)=>{
 export const changeStatusUser= async(req,res)=>{
     try{
         const id=req.params.id;
+        console.log("Data from url ",id);
         const checkUser= await dbService.getDriverById(id);
         if(!checkUser)
             return res.status(HttpStatus.NOT_FOUND).json({message:"User does not exists"});
         const data= await dbService.changeStatus(id);
+        // console.log("Data",data)
         return res.status(HttpStatus.OK).json({message:"User updated successfully!!",data});
     }catch(err){
         console.error(err.message);
         res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Server error" });
     }
 }
+
+// export const checkforSuperAdminOrNot= async(req,res)=>{
+//     try{
+//         // const res= await dbService.
+//     }catch(err){
+//         console.error(err.message);
+//         res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Server error" });
+//     }
+// }

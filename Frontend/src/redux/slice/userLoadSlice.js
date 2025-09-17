@@ -1,5 +1,24 @@
 import { createSlice, createAsyncThunk, isAction } from "@reduxjs/toolkit";
 
+export const checkUserOrAdmin=createAsyncThunk("/admin/check-for-user",
+    async(_,{rejectWithValue})=>{
+        try{
+            const res=await fetch('http://localhost:3251/admin/check-for-user',{
+                method:"GET",
+                headers:{"Content-Type":"application/json"},
+            });
+            const data = await res.json();
+            if(!res.ok){
+                return rejectWithValue(err.message||'Failure to get details of Admin')
+            }
+            return data;
+        }catch(err){
+            return rejectWithValue(err.message)
+        }
+    }
+)
+
+
 export const addDriver= createAsyncThunk("/admin/create-users",
     async(formData,{rejectWithValue})=>{
         try {
@@ -10,7 +29,7 @@ export const addDriver= createAsyncThunk("/admin/create-users",
                 body:JSON.stringify(formData),
             })
             const data = await res.json();
-            console.log("Response from server ",data);
+            // console.log("Response from server ",data);
             if(!res.ok){
                 return rejectWithValue(data.message||"User Add failure")
             }
@@ -39,15 +58,16 @@ export const getUsers = createAsyncThunk('/admin/get-users',
     }
 )
 
-export const toggleAvailUser= createAsyncThunk("/admin/toggle-user",async(id,{rejectWithValue})=>{
+export const toggleAvailUser= createAsyncThunk(`/admin/toggle-user`,async(id,{rejectWithValue})=>{
     try{
 
-        console.log("Entered toggle User route ",id);
+        // console.log("Entered toggle User route ",id);
         const res = await fetch(`http://localhost:3251/admin/toggle-user/${id}`,{
-            method:'patch',
+            method:'PATCH',
             headers:{"Content-Type":"application/json"}
         });
         const data= await res.json();
+        // console.log("Data from server in toggle ",data);
         if(!res.ok){
             return rejectWithValue(data.message||"Deletion failure");
         }
@@ -67,10 +87,11 @@ export const addAdmin= createAsyncThunk("http://localhost:3251/admin/create-admi
                 body:JSON.stringify(formData),
             })
             const data = await res.json();
-            console.log("Response from server ",data);
+            // console.log("Response from server ",data);
             if(!res.ok){
                 return rejectWithValue(data.message||"User Add failure")
             }
+
               return data;
         } catch (error) {
             return rejectWithValue(error.message);
@@ -88,7 +109,12 @@ const userLoadSlice=createSlice({
         drivers:[],
         admins:[]
     },
-    reducers:{},
+    reducers:{
+        clearMessages: (state) => {
+    state.error = null;
+    state.success = null;
+  },
+    },
     extraReducers:(builder)=>{
         builder
         .addCase(addDriver.pending,(state)=>{
@@ -106,8 +132,7 @@ const userLoadSlice=createSlice({
         .addCase(getUsers.pending,(state)=>{
             state.loading=true;
         })
-        .addCase(getUsers.fulfilled,(state,action)=>{
-            // console.log("Get users fulfilled",action.payload.data);
+        .addCase(getUsers.fulfilled,(state,action)=>{            
             state.drivers=action.payload.data;
             state.loading=false;
             state.success= null;
@@ -119,10 +144,14 @@ const userLoadSlice=createSlice({
             state.loading=true;
         })
         .addCase(toggleAvailUser.fulfilled,(state,action)=>{
-            const updatDriver= action.payload.data;
-            state.drivers= state.drivers.map(d=>{
-                d.id===updatDriver.id ? updatDriver :d
-            });            
+            // console.log("Get updated",action.payload.data);            
+             const updatedDriver = action.payload.data; // one driver object
+
+             // update the driver inside state.drivers
+            state.drivers = state.drivers.map(d =>
+            d.id === updatedDriver.id ? updatedDriver : d
+            );  
+            // console.log("Updated data from res",JSON.parse(JSON.stringify(state.drivers)))         
             state.loading=false;
             state.success= action.payload.message;
         })
@@ -133,6 +162,6 @@ const userLoadSlice=createSlice({
         })
     }
 })
-
+export const {clearMessages} =userLoadSlice.actions
 export default userLoadSlice.reducer;
 
