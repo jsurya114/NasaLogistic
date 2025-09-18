@@ -5,6 +5,7 @@ import Dashboard from "./components/Dashboard";
 import Jobs from "./components/Jobs";
 import RoutesForm from "./components/routes-form.jsx";
 import AddUsers from "./components/AddUsers.jsx";
+import NotFound from "./components/NotFound.jsx";
 
 function App() {
 
@@ -21,7 +22,8 @@ function App() {
          <Route path="/admin/create-users" element={<AddUsers/>} />
 
          
-        
+        {/*  Page not found error pages */}
+        <Route path ="*" element ={<NotFound/>} />
       </Routes>
     </Router>
     
