@@ -46,7 +46,7 @@ const AddUsers = () => {
             }`}>
             Admins
             </button>
-        )}
+        )} 
         </div>
 
        <div className="text-center mt-4">
