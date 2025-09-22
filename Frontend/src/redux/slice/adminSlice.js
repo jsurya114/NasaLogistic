@@ -1,7 +1,8 @@
 import {createSlice,createAsyncThunk} from "@reduxjs/toolkit"
 
 const initialState={
-    token:null,
+    admin:null,
+    isAuthenticated:null,
     loading:false,
     error:null
 }
@@ -14,6 +15,7 @@ export const adminLogin=createAsyncThunk(
                 method:"POST",
                 headers:{"Content-Type":"application/json"},
                 body:JSON.stringify(credentials),
+                credentials:"include"
             })
             const data = await res.json();
             // console.log("Response from server ",data);
@@ -27,15 +29,57 @@ export const adminLogin=createAsyncThunk(
     }
 )
 
+export const accessAdminUser=createAsyncThunk(
+    "admin/access-admin",
+    async(_ ,{rejectWithValue})=>{
+        try {
+            const res=await fetch("http://localhost:3251/admin/access-admin",{
+                method:"GET",
+                // headers:{"Content-Type":"application/json"},   
+                credentials:"include"             
+            })
+            const data = await res.json();
+            
+            if(!res.ok){
+                return rejectWithValue(data.message||"Unable to get Users")
+            }
+              return data;
+        } catch (error) {
+            return rejectWithValue(error.message)
+        }
+    }
+)
+
+
+export const adminLogout=createAsyncThunk(
+    "admin/logout",
+    async(_ ,{rejectWithValue})=>{
+        try {
+            const res=await fetch("http://localhost:3251/admin/logout",{
+                method:"POST",
+                // headers:{"Content-Type":"application/json"},   
+                credentials:"include"             
+            })
+            const data = await res.json();
+            
+            if(!res.ok){
+                return rejectWithValue(data.message||"Logout Error")
+            }
+              return data;
+        } catch (error) {
+            return rejectWithValue(error.message)
+        }
+    }
+)
+
 const adminSlice = createSlice({
     name:"admin",
     initialState,
     reducers:{
-        logout:(state)=>{
-            state.token=null
-            state.error=null
-            localStorage.removeItem("adminToken")
-        },
+        // logout:(state)=>{
+        //     state.isAuthenticated=null
+        //     state.error=null
+        // },
         clearError:(state)=>{
             state.error=null;
         }
@@ -48,16 +92,42 @@ const adminSlice = createSlice({
         })
         .addCase(adminLogin.fulfilled,(state,action)=>{
             state.loading=false;
-            state.token=action.payload.token;
-            // console.log("TOken ",state.token);
-            localStorage.setItem("adminToken",action.payload)
+            state.isAuthenticated=true;
+            state.admin=action.payload.admin;
         })
         .addCase(adminLogin.rejected,(state,action)=>{
             state.loading=false
             state.error=action.payload
         })
+         .addCase(adminLogout.pending,(state)=>{
+            state.loading=true
+            state.error=null
+        })
+        .addCase(adminLogout.fulfilled,(state)=>{
+            state.loading=false;
+            state.isAuthenticated=false;
+            state.admin=null;
+        })
+        .addCase(adminLogout.rejected,(state,action)=>{
+            state.loading=false;
+            state.error=action.payload;
+        })
+           .addCase(accessAdminUser.pending,(state)=>{
+            state.loading=true
+            state.error=null
+        })
+        .addCase(accessAdminUser.fulfilled,(state,action)=>{
+            state.loading=false;
+            state.isAuthenticated=true;
+            console.log("State Admin",action.payload);
+            state.admin=action.payload.admin;
+        })
+        .addCase(accessAdminUser.rejected,(state,action)=>{
+            state.loading=false;
+            state.error=action.payload;
+        })
     },
 })
 
-export const {logout,clearError} = adminSlice.actions
-export default adminSlice.reducer
+export const {logout,clearError} = adminSlice.actions;
+export default adminSlice.reducer;

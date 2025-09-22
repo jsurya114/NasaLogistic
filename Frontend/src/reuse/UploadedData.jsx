@@ -16,7 +16,7 @@ const dispatch = useDispatch();
       <table className="w-full border-collapse text-sm">
         <thead>
           <tr className="bg-gray-50 text-left">
-            {["SlNo", "Driver","Job","Date","Sequence","Packages", "Deliveries", "DS","No Scanned", "Failed Attempt","Driver Payment","Closed","Paid"].map((head, i) => (
+            {["SlNo", "Driver","Job","Date","Sequence","Packages", "Deliveries", "DS","No Scanned", "Failed Attempt"].map((head, i) => (
               <th key={i} className="px-3 py-2 border-b border-gray-200">
                 {head}
               </th>

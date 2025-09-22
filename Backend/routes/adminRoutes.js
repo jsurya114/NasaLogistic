@@ -31,4 +31,12 @@ router.get('/get-users',getUsers);
 router.patch('/toggle-user/:id',changeStatusUser);
 
 // router.get('/admin/check-for-user',checkforSuperAdminOrNot)
+
+//logout from Admin
+router.post('/logout',adminController.Logout);
+
+//Check for admin User
+router.get('/access-admin',adminController.getUser);
+
+
 export default router;
