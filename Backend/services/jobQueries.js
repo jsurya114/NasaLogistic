@@ -19,7 +19,7 @@ export const jobService={
       return result.rows
   },
 addcity:async(job,city_code)=>{
-const result = await pool.query("INSERT INTO drivers (name, email, password,city_id,enabled) VALUES ($1, $2, true) RETURNING *",
+const result = await pool.query("INSERT INTO city (job,city_code,enabled) VALUES ($1, $2, true) RETURNING *",
     [job, city_code])
     return result.rows[0]
 },
