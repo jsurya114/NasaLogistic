@@ -53,24 +53,34 @@ function DriversList() {
                   )}
                 </td>
                 <td className="px-3 py-2 border-b">
-                  <button
-                        onClick={()=>handleToggleChange(d.id)}
-                        className="px-2 py-1 bg-yellow-200 rounded hover:bg-yellow-300"
-                      >
-                        Toggle
-                      </button>
-                      {/* <button
-                        onClick={()=>console.log("Hello Hi")}
-                        className="px-2 py-1 bg-red-200 rounded hover:bg-red-300"
-                      >
-                        Delete
-                      </button> */}
+                  {/* Toggle Switch */}
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={d.enabled}
+                      onChange={() => handleToggleChange(d.id)}
+                      className="sr-only"
+                    />
+                    <div className={`w-11 h-6 rounded-full transition-colors duration-200 ease-in-out ${
+                      d.enabled ? 'bg-purple-600' : 'bg-gray-300'
+                    }`}>
+                      <div className={`w-5 h-5 bg-white rounded-full shadow-lg transform transition-transform duration-200 ease-in-out ${
+                        d.enabled ? 'translate-x-5' : 'translate-x-0.5'
+                      } mt-0.5`}></div>
+                    </div>
+                  </label>
+                  {/* <button
+                    onClick={()=>console.log("Hello Hi")}
+                    className="px-2 py-1 bg-red-200 rounded hover:bg-red-300"
+                  >
+                    Delete
+                  </button> */}
                 </td>
               </tr>
             ))
           ) : (
             <tr>
-              <td colSpan="6" className="text-center py-4 text-gray-500">
+              <td colSpan="7" className="text-center py-4 text-gray-500">
                 No drivers found
               </td>
             </tr>
@@ -80,4 +90,5 @@ function DriversList() {
     </section>
   );
 }
+
 export default DriversList;

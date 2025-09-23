@@ -28,7 +28,7 @@ const AddUsers = () => {
             <div className="flex border-b border-gray-300">
             <button
             onClick={() => setActiveTab("drivers")}
-            className={`px-6 py-2 font-medium ${
+            className={`px-4 py-2 text-sm font-medium ${
                 activeTab === "drivers"
                 ? "border-b-2 border-purple-600 text-purple-600"
                 : "text-gray-600"
@@ -39,7 +39,7 @@ const AddUsers = () => {
            {isSuperAdmin && (   // ✅ Only show Admins tab for superAdmin
             <button
       onClick={() => setActiveTab("admins")}
-      className={`px-6 py-2 font-medium ${
+      className={`px-4 py-2 text-sm font-medium ${
         activeTab === "admins"
           ? "border-b-2 border-purple-600 text-purple-600"
           : "text-gray-600"
@@ -68,6 +68,7 @@ const AddUsers = () => {
     <>
       <h2 className="text-lg font-bold">Add Drivers</h2>
       <AddDriverForm onSubmit={(form) => dispatch(addDriver(form))} />
+      <div className="mb-6"></div>
          <section className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-x-auto">
          <DriversList/>
          </section>
@@ -76,7 +77,8 @@ const AddUsers = () => {
   ) : (
     <>
       <h2 className="text-lg font-bold">Add Admins</h2>
-      <AddAdminForm onSubmit={(form) => dispatch(addAdmin(form))} />        
+      <AddAdminForm onSubmit={(form) => dispatch(addAdmin(form))} />
+      <div className="mb-6"></div>
          <section className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-x-auto">
            
       <AdminsList />

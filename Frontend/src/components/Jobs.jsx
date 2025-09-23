@@ -159,16 +159,26 @@ function Jobs() {
                         {city.enabled ? "Enabled" : "Disabled"}
                       </span>
                     </td>
-                    <td className="px-3 py-2 border-b border-gray-200 space-x-2">
-                      <button
-                        onClick={() => handleToggleStatus(city.id)}
-                        className="px-2 py-1 bg-yellow-200 rounded hover:bg-yellow-300"
-                      >
-                        Toggle
-                      </button>
+                    <td className="px-3 py-2 border-b border-gray-200">
+                      {/* Toggle Switch */}
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={city.enabled}
+                          onChange={() => handleToggleStatus(city.id)}
+                          className="sr-only"
+                        />
+                        <div className={`w-11 h-6 rounded-full transition-colors duration-200 ease-in-out ${
+                          city.enabled ? 'bg-purple-600' : 'bg-gray-300'
+                        }`}>
+                          <div className={`w-5 h-5 bg-white rounded-full shadow-lg transform transition-transform duration-200 ease-in-out ${
+                            city.enabled ? 'translate-x-5' : 'translate-x-0.5'
+                          } mt-0.5`}></div>
+                        </div>
+                      </label>
                       {/* <button
                         onClick={() => handleDelete(city.id)}
-                        className="px-2 py-1 bg-red-200 rounded hover:bg-red-300"
+                        className="px-2 py-1 bg-red-200 rounded hover:bg-red-300 ml-2"
                       >
                         Delete
                       </button> */}
