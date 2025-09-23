@@ -40,6 +40,19 @@ export default function RoutesForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+ if (!formData.route.trim()) {
+    setSubmitError("Route name is required.");
+    return;
+  }
+  if (!formData.job.trim()) {
+    setSubmitError("Please select a Job.");
+    return;
+  }
+  if (!formData.enabled) {
+    setSubmitError("Route can only be saved if Enabled is checked.");
+    return;
+  }
+
     if (!formData.enabled) {
       setSubmitError("Route can only be saved if Enabled is checked.");
       console.log("Submit blocked: Enabled is false"); // Debug log
@@ -84,6 +97,32 @@ export default function RoutesForm() {
     }
   };
 
+  // Toggle Switch Component
+  const ToggleSwitch = ({ checked, onChange, disabled = false }) => {
+    return (
+      <button
+        type="button"
+        onClick={() => !disabled && onChange(!checked)}
+        disabled={disabled}
+        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 ${
+          disabled 
+            ? 'cursor-not-allowed opacity-50' 
+            : 'cursor-pointer'
+        } ${
+          checked 
+            ? 'bg-purple-600' 
+            : 'bg-gray-300'
+        }`}
+      >
+        <span
+          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+            checked ? 'translate-x-6' : 'translate-x-1'
+          }`}
+        />
+      </button>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 text-gray-900 font-poppins">
       <Header />
@@ -103,7 +142,7 @@ export default function RoutesForm() {
                 value={formData.route}
                 onChange={(e) => handleInputChange("route", e.target.value)}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-600"
-                required
+                
               />
             </div>
 
@@ -114,7 +153,7 @@ export default function RoutesForm() {
                 value={formData.job}
                 onChange={(e) => handleInputChange("job", e.target.value)}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-600 bg-white"
-                required
+                
               >
                 <option value="">Select Job</option>
                 {jobsStatus === "succeeded" && Array.isArray(cities) && cities.length > 0 ? (
@@ -160,7 +199,7 @@ export default function RoutesForm() {
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-600"
                   min="0"
                   step="0.01"
-                  required
+                  
                 />
               </div>
             ))}
@@ -173,7 +212,7 @@ export default function RoutesForm() {
                 onChange={(e) => handleInputChange("enabled", e.target.checked)}
                 className="w-4 h-4 text-purple-600"
               />
-              <label className="font-medium">Enabled (Required to save)</label>
+              <label className="font-medium">Enabled ( to save)</label>
             </div>
 
             {/* Submit Feedback */}
@@ -218,65 +257,63 @@ export default function RoutesForm() {
                 ))}
               </tr>
             </thead>
-            <tbody>
-              {routesStatus === "loading" ? (
-                <tr>
-                  <td colSpan="6" className="text-center py-4 text-gray-500 font-medium">
-                    <div className="flex items-center justify-center">
-                      <svg className="animate-spin h-6 w-6 mr-2 text-purple-600" viewBox="0 0 24 24">
-                        <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                        <path fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
-                      </svg>
-                      Loading routes...
-                    </div>
-                  </td>
-                </tr>
-              ) : routesStatus === "failed" ? (
-                <tr>
-                  <td colSpan="6" className="text-center py-4 text-red-500 font-medium">
-                    Error loading routes: {routesError || "Unknown error"}
-                  </td>
-                </tr>
-              ) : routesStatus === "succeeded" && (!Array.isArray(routes) || routes.length === 0) ? (
-                <tr>
-                  <td colSpan="6" className="text-center py-4 text-gray-500 font-medium">
-                    No routes added yet
-                  </td>
-                </tr>
-              ) : (
-                routes.map((route, index) => (
-                  <tr key={route.id} className={index % 2 === 0 ? "bg-gray-50" : "bg-white"}>
-                    <td className="px-3 py-2 border-b border-gray-200">{route.route}</td>
-                    <td className="px-3 py-2 border-b border-gray-200">{route.job}</td>
-                    <td className="px-3 py-2 border-b border-gray-200">{route.companyRoutePrice}</td>
-                    <td className="px-3 py-2 border-b border-gray-200">{route.driverRoutePrice}</td>
-                    <td className="px-3 py-2 border-b border-gray-200">
-                      <span
-                        className={`px-2 py-1 rounded-full text-sm font-medium ${
-                          route.enabled ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-                        }`}
-                      >
-                        {route.enabled ? "Enabled" : "Disabled"}
-                      </span>
-                    </td>
-                    <td className="px-3 py-2 border-b border-gray-200 space-x-2">
-                      <button
-                        onClick={() => handleToggle(route.id)}
-                        className="px-2 py-1 bg-yellow-200 rounded hover:bg-yellow-300"
-                      >
-                        Toggle
-                      </button>
-                      {/* <button
-                        onClick={() => handleDelete(route.id)}
-                        className="px-2 py-1 bg-red-200 rounded hover:bg-red-300"
-                      >
-                        Delete
-                      </button> */}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
+          <tbody>
+  {routesStatus === "loading" && routes.length === 0 ? (
+    <tr>
+      <td colSpan="6" className="text-center py-4 text-gray-500 font-medium">
+        <div className="flex items-center justify-center">
+          <svg className="animate-spin h-6 w-6 mr-2 text-purple-600" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+            <path fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+          </svg>
+          Loading routes...
+        </div>
+      </td>
+    </tr>
+  ) : routesStatus === "failed" ? (
+    <tr>
+      <td colSpan="6" className="text-center py-4 text-red-500 font-medium">
+        Error loading routes: {routesError || "Unknown error"}
+      </td>
+    </tr>
+  ) : routesStatus === "succeeded" && (!Array.isArray(routes) || routes.length === 0) ? (
+    <tr>
+      <td colSpan="6" className="text-center py-4 text-gray-500 font-medium">
+        No routes added yet
+      </td>
+    </tr>
+  ) : (
+    routes.map((route, index) => (
+      <tr key={route.id} className={index % 2 === 0 ? "bg-gray-50" : "bg-white"}>
+        <td className="px-3 py-2 border-b border-gray-200">{route.route}</td>
+        <td className="px-3 py-2 border-b border-gray-200">{route.job}</td>
+        <td className="px-3 py-2 border-b border-gray-200">{route.companyRoutePrice}</td>
+        <td className="px-3 py-2 border-b border-gray-200">{route.driverRoutePrice}</td>
+        <td className="px-3 py-2 border-b border-gray-200">
+          <span
+            className={`px-2 py-1 rounded-full text-sm font-medium ${
+              route.enabled ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+            }`}
+          >
+            {route.enabled ? "Enabled" : "Disabled"}
+          </span>
+        </td>
+        <td className="px-3 py-2 border-b border-gray-200">
+          <div className="flex items-center space-x-2">
+            <ToggleSwitch
+              checked={route.enabled}
+              onChange={() => handleToggle(route.id)}
+            />
+            <span className="text-sm text-gray-600">
+              {route.enabled ? "Enabled" : "Disabled"}
+            </span>
+          </div>
+        </td>
+      </tr>
+    ))
+  )}
+</tbody>
+
           </table>
         </section>
       </main>
