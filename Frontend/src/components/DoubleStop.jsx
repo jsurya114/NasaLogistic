@@ -1,11 +1,16 @@
 import React,{useState,useEffect} from 'react'
+import { useDispatch,useSelector } from 'react-redux';
+import { excelDailyFileUpload } from '../redux/slice/excelSlice';
 import Header from '../reuse/Header'
 import Nav from '../reuse/Nav';
 import AdminsList from '../reuse/AdminsList';
 import UploadedData from '../reuse/UploadedData';
+import FileUpload from './Excel-InputTag';
 
 const DoubleStop = () => {
-
+    const dispatch  = useDispatch()
+    const {loading,error,success} = useSelector((state)=>state.excel)
+    const [file,setFile] = useState(null)
     const [form, setForm] = useState({
     year: 2025,
     file: null,
@@ -22,19 +27,34 @@ const DoubleStop = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async(e) => {
     e.preventDefault();
 
     // Validation
     let newErrors = {};
     if (!form.year) newErrors.year = "Year is required";
     if (!form.file) newErrors.file = "Excel file is required";
-
+    if (!file) {
+      alert('please select a valid excel file before submitting')
+        return
+    }
     setErrors(newErrors);
+    const formData = new FormData()
+    formData.append('file',file)
+    dispatch(excelDailyFileUpload(formData))
+    // try {
+    //     const res = await fetch('',{
+    //       method:'POST',
+    //       body:formData
+    //     })
+    //     const data = await res.json()
+    //     console.log('upload successful',data)
+    //     alert("File uploaded successfully")
+    // } catch (error) {
+    //   console.error('Error uploading file',error)
+    //   alert('Upload failed')
+    // }
 
-  //   if (Object.keys(newErrors).length === 0) {     
-  //     console.log("Form submitted:", form);
-  //   }
   };
 
   return (
@@ -66,11 +86,13 @@ const DoubleStop = () => {
             </div>
 
             {/* Excel File */}
-            <div>
+            <FileUpload onFileSelect={setFile} />
+            {/* <div >
               <label className="block mb-1 font-medium">Excel File</label>
               <input
                 type="file"
                 name="file"
+                accept='.xls,.xlsx'
                 onChange={handleChange}
                 className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-600 ${
                   errors.file ? "border-red-500" : "border-gray-300"
@@ -79,7 +101,7 @@ const DoubleStop = () => {
               {errors.file && (
                 <p className="text-red-500 text-sm mt-1">{errors.file}</p>
               )}
-            </div>
+            </div> */}
 
             {/* Upload Button */}
             <div className="flex justify-end">
