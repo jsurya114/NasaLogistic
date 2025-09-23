@@ -36,7 +36,7 @@ const AddUsers = () => {
             >
             Drivers
             </button>
-           {isSuperAdmin && (   // Only show Admins tab for superAdmin
+           {/* {isSuperAdmin && (   // Only show Admins tab for superAdmin */}
             <button
       onClick={() => setActiveTab("admins")}
       className={`px-6 py-2 font-medium ${
@@ -46,7 +46,7 @@ const AddUsers = () => {
             }`}>
             Admins
             </button>
-         )}  
+         {/* )}   */}
         </div>
 
        <div className="text-center mt-4">

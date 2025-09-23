@@ -3,6 +3,7 @@ import logo from "../assets/logo.png"; // adjust path according to your folder s
 
 import {useDispatch, useSelector} from 'react-redux'
 import { adminLogin, clearError } from "../redux/slice/adminSlice.js";
+
 import { useNavigate } from "react-router-dom";
 const Login = () => {
 
@@ -23,8 +24,8 @@ const handleSubmit= async(e)=>{
       }
     }catch(err){
       console.log("Error from server ",err)
-    }  
-    dispatch(clearError());  
+    }   
+    dispatch(clearError()); 
 }    
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 font-poppins">
