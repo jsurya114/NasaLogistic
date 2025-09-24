@@ -14,7 +14,7 @@ const mapRoute = (r) => ({
   route: r.name, // Map DB 'name' to frontend 'route'
   job: r.job,
   companyRoutePrice: parseFloat(r.company_route_price),
-  driverRoutePrice: parseFloat(r.company_route_price),
+  driverRoutePrice: parseFloat(r.driver_route_price),
   companyDoubleStopPrice: parseFloat(r.company_doublestop_price),
   driverDoubleStopPrice: parseFloat(r.driver_doublestop_price),
   enabled: r.enabled,
