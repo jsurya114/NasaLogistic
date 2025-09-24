@@ -7,10 +7,13 @@ import RoutesForm from "./components/Admin/routes-form.jsx";
 import AddUsers from "./components/Admin/AddUsers.jsx";
 import NotFound from "./components/Admin/NotFound.jsx";
 import DoubleStop from "./components/Admin/DoubleStop.jsx";
-import ProtectedRoutes from "./routes/ProtectedRoute.jsx";
-import PublicRoutes from "./routes/PublicRoutes.jsx";
+import ProtectedRoutes from "./routes/admin/ProtectedRoute.jsx";
+import PublicRoutes from "./routes/admin/PublicRoutes.jsx";
 import DriverLogin from "./components/Drivers/DriverLogin.jsx";
 import DriverDashboard from "./components/Drivers/DriverDashboard.jsx";
+import DPublicRoutes from "./routes/driver/DPublicRoutes.jsx";
+
+import DProtectRoutes from "./routes/driver/DProtectedRoutes.jsx";
 function App() {
   return (
     <Router>
@@ -35,8 +38,14 @@ function App() {
         {/* Drivers */}
       
         </Route>
-          <Route path="/driver/login" element={<DriverLogin />} />
-                   <Route path="/driver/driver-dashboard" element={ <DriverDashboard/>} />
+        <Route element={<DPublicRoutes/>}>
+         <Route path="/driver/login" element={<DriverLogin />} />
+         </Route>
+         
+         <Route element={<DProtectRoutes/>}>
+          <Route path="/driver/driver-dashboard" element={ <DriverDashboard/>} />
+          </Route>
+                  
 
 
 

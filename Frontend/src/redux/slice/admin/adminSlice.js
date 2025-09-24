@@ -18,13 +18,13 @@ export const adminLogin=createAsyncThunk(
                 credentials:"include"
             })
             const data = await res.json();
-            // console.log("Response from server ",data);
+           
             if(!res.ok){
-                return rejectWithValue(data.message||"Login failed")
+                return rejectWithValue(data)
             }
               return data;
         } catch (error) {
-            return rejectWithValue(error.message)
+            return rejectWithValue({ message: error.message })
         }
     }
 )
@@ -97,7 +97,11 @@ const adminSlice = createSlice({
         })
         .addCase(adminLogin.rejected,(state,action)=>{
             state.loading=false
-            state.error=action.payload
+            if(action.payload?.errors){
+                state.error=null
+            }else{
+                state.error=action.payload?.message||"Login Failed"
+            }
         })
          .addCase(adminLogout.pending,(state)=>{
             state.loading=true
@@ -124,7 +128,12 @@ const adminSlice = createSlice({
         })
         .addCase(accessAdminUser.rejected,(state,action)=>{
             state.loading=false;
-            state.error=action.payload;
+            state.isAuthenticated = false
+        if(action.payload!=="UNAUTHORIZED"){
+            state.error=action.payload||"Access denied"
+        }else{
+            state.error=null
+        }
         })
     },
 })
