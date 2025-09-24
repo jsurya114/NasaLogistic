@@ -1,8 +1,8 @@
 import React,{useState,useEffect} from 'react'
 import { useDispatch,useSelector } from 'react-redux';
-import { excelDailyFileUpload } from '../redux/slice/excelSlice';
-import FileUpload from './Excel-InputTag';
-
+import { excelDailyFileUpload} from '../../../src/redux/slice/excelSlice'
+import FileUpload from '../../../src/components/Excel-InputTag';
+import UploadedData from '../../reuse/UploadedData';
 import Header from '../../reuse/Header'
 import Nav from '../../reuse/Nav';
 import AdminsList from '../../reuse/AdminsList';
