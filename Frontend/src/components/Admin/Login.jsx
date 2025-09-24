@@ -8,6 +8,7 @@ const Login = () => {
 
 const [email,setEmail]=useState("");
 const [password,setPassword]=useState("")
+const [fieldErrors,setFieldErrors]=useState({email:"",password:""})
 
 const dispatch  = useDispatch();
 const navigate = useNavigate();
@@ -22,9 +23,14 @@ const handleSubmit= async(e)=>{
         navigate("/admin/dashboard");
       }
     }catch(err){
-      console.log("Error from server ",err)
+    if(err.errors){
+      setFieldErrors({
+        email:err.errors.email||"",
+        password:err.errors.password||"",
+      })
+    }
     }  
-    dispatch(clearError());  
+  
 }    
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 font-poppins">
@@ -36,33 +42,30 @@ const handleSubmit= async(e)=>{
         <div className="px-10 py-6 text-center">
           <h2 className="text-2xl font-semibold text-blue-900 mb-6">Login</h2>
          <form onSubmit={handleSubmit}>
-  <div className="text-left mb-4">
-    <label htmlFor="email" className="block text-gray-700 mb-1 font-medium">
-      Email Address
-    </label>
-    <input
-      type="email"
-      id="email"
-      name="email"
-      placeholder="Enter your email"
-      onChange={(e) => setEmail(e.target.value)}
-      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
-    />
-  </div>
+<div className="text-left mb-4">
+  <label htmlFor="email">Email Address</label>
+  <input
+    type="email"
+    id="email"
+    value={email}
+    onChange={(e) => setEmail(e.target.value)}
+    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
+  />
+  {fieldErrors.email && <p className="text-red-600 text-sm">{fieldErrors.email}</p>}
+</div>
 
-  <div className="text-left mb-4">
-    <label htmlFor="password" className="block text-gray-700 mb-1 font-medium">
-      Password
-    </label>
-    <input
-      type="password"
-      id="password"
-      name="password"
-      placeholder="Enter your password"
-      onChange={(e) => setPassword(e.target.value)}
-      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
-    />
-  </div>
+<div className="text-left mb-4">
+  <label htmlFor="password">Password</label>
+  <input
+    type="password"
+    id="password"
+    value={password}
+    onChange={(e) => setPassword(e.target.value)}
+    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
+  />
+  {fieldErrors.password && <p className="text-red-600 text-sm">{fieldErrors.password}</p>}
+</div>
+
 
   <button
     type="submit"

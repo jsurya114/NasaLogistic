@@ -4,7 +4,7 @@ const initialState={
     driver:null,
     loading:false,
     error:null,
-    isAuthenticated:false
+    isAuthenticated:null
 }
 export const driverLogin=createAsyncThunk(
     "driver/login",
@@ -15,16 +15,55 @@ export const driverLogin=createAsyncThunk(
                 headers:{"Content-Type":"application/json"},
                 body:JSON.stringify(credentials),
                 credentials:"include"
+                
         })
         const data = await res.json()
+        console.log(data)
+        console.log(credentials)
         if(!res.ok){
-                return rejectWithValue(data.message||"Login failed")
+                return rejectWithValue(data)
             }
             return data
     } catch (error) {
             return rejectWithValue(error.message)
         }
    }
+)
+export const accessDriver=createAsyncThunk(
+    "driver/access-driver",
+    async(__dirname,{rejectWithValue})=>{
+        try {
+            const res = await fetch("http://localhost:3251/driver/access-driver",{
+                method:"GET",
+                credentials:"include"  
+            })
+            const data = await res.json()
+            if(!res.ok){
+                return rejectWithValue(data.message||"Unable to get Driver")
+            }
+            return data
+        } catch (error) {
+               return rejectWithValue(error.message)
+        }
+    }
+)
+export const driverLogout=createAsyncThunk(
+    "driver/logout",
+    async(_,{rejectWithValue})=>{
+        try {
+            const res=await fetch("http://localhost:3251/driver/logout",{
+                method:"POST",
+                credentials:"include"
+            })
+            const data = await res.json()
+            if(!res.ok){
+                return rejectWithValue(data.message||"Logout Error")
+            }
+            return data
+        } catch (error) {
+             return rejectWithValue(error.message)
+        }
+    }
 )
 const driverSlice = createSlice({
     name:"driver",
@@ -51,8 +90,43 @@ const driverSlice = createSlice({
      })
      .addCase(driverLogin.rejected,(state,action)=>{
         state.loading=false
-        state.error=action.payload||"Login Failed"
+       if(action.payload?.errors){
+        state.error=null
+       }else{
+         state.error=action.payload?.message||"Login Failed"
+       }
         state.isAuthenticated=false
+     })
+     .addCase(driverLogout.pending,(state)=>{
+        state.loading=true
+        state.error=null
+     })
+     .addCase(driverLogout.fulfilled,(state)=>{
+        state.loading=false
+        state.isAuthenticated=false
+        state.driver=null
+     })
+     .addCase(driverLogout.rejected,(state,action)=>{
+        state.loading=false
+        state.error=action.payload
+     })
+     .addCase(accessDriver.pending,(state)=>{
+        state.loading=true
+        state.error=null
+     })
+     .addCase(accessDriver.fulfilled,(state,action)=>{
+        state.loading=false
+        state.isAuthenticated=true
+        state.driver=action.payload.driver
+     })
+     .addCase(accessDriver.rejected,(state,action)=>{
+        state.loading=false
+        state.isAuthenticated = false
+        if(action.payload!=="UNAUTHORIZED"){
+            state.error=action.payload||"Access denied"
+        }else{
+            state.error=null
+        }
      })
     }
 })
