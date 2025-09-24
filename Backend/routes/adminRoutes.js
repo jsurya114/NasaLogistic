@@ -39,4 +39,12 @@ router.post('/doubleStop/fileUpload',upload.single('file'),DailyExcelUpload)
 
 
 // router.get('/admin/check-for-user',checkforSuperAdminOrNot)
+
+//logout from Admin
+router.post('/logout',adminController.Logout);
+
+//Check for admin User
+router.get('/access-admin',adminController.getUser);
+
+
 export default router;

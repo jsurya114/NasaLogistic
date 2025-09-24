@@ -6,6 +6,7 @@ import {
   deleteRouteQuery,
   toggleRouteStatusQuery,
 } from "../../services/routeQueries.js";
+import HttpStatus from "../../utils/statusCodes.js";
 
 
 const mapRoute = (r) => ({
@@ -24,6 +25,15 @@ export const createRoute = async (req, res) => {
   try {
     const { route, job, companyRoutePrice, driverRoutePrice, companyDoubleStopPrice, driverDoubleStopPrice, enabled } = req.body;
     console.log("Creating route with data:", req.body); // Debug log
+
+
+if (!route || route.trim() === "") {
+      return res.status(HttpStatus.BAD_REQUEST).json({ error: "Route name is required" });
+    }
+    if (!job || job.trim() === "") {
+      return res.status(HttpStatus.BAD_REQUEST).json({ error: "Job is required" });
+    }
+
 
     // Convert price fields to numbers
     const routeData = {
@@ -50,11 +60,11 @@ export const createRoute = async (req, res) => {
 
     const newRouteDb = await insertRoute(routeData);
     const newRoute = mapRoute(newRouteDb);
-    console.log("Created route:", newRoute); // Debug log
-    res.status(201).json(newRoute);
+    res.status(HttpStatus.CREATED).json(newRoute);
+
   } catch (err) {
-    console.error("❌ createRoute error:", err.message); // Debug log
-    res.status(400).json({ error: `Failed to create route: ${err.message}` });
+    console.error("❌ createRoute error:", err.message);
+    res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: `Failed to create route: ${err.message}` });
   }
 };
 
@@ -68,7 +78,7 @@ export const getRoutes = async (req, res) => {
     res.json(routes);
   } catch (err) {
     console.error("❌ getRoutes error:", err.message); // Debug log
-    res.status(500).json({ error: `Failed to fetch routes: ${err.message}` });
+    res.status(HttpStatus.INTERNAL_SERVER_ERROR).json( {err:message});
   }
 };
 
@@ -86,7 +96,7 @@ export const getRouteById = async (req, res) => {
     res.json(route);
   } catch (err) {
     console.error("❌ getRouteById error:", err.message); // Debug log
-    res.status(500).json({ error: `Failed to fetch route: ${err.message}` });
+    res.status(HttpStatus.INTERNAL_SERVER_ERROR).json( {err:message});
   }
 };
 
