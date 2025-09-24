@@ -5,7 +5,7 @@ import {
   updateRouteQuery,
   deleteRouteQuery,
   toggleRouteStatusQuery,
-} from "../../services/routeQueries.js";
+} from "../../services/admin/routeQueries.js";
 import HttpStatus from "../../utils/statusCodes.js";
 
 

@@ -1,6 +1,6 @@
 import express from 'express';
 import HttpStatus from '../../utils/statusCodes.js';
-import { dbService } from '../../services/dbQueries.js';
+import { dbService } from '../../services/admin/dbQueries.js';
 
 export const createUsers=async(req,res)=>{
     try{

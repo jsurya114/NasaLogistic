@@ -1,4 +1,4 @@
-import pool from "../config/db.js";
+import pool from "../../config/db.js";
 
 // Insert route with job and price validation
 export const insertRoute = async (data) => {
