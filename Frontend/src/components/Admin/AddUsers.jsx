@@ -6,16 +6,24 @@ import AddDriverForm from '../../reuse/AddDriverForm';
 import AdminsList from '../../reuse/AdminsList';
 import DriversList from '../../reuse/DriversList';
 import { useDispatch, useSelector } from 'react-redux';
+<<<<<<< HEAD:Frontend/src/components/AddUsers.jsx
+import { addDriver,addAdmin } from '../redux/slice/userLoadSlice';
+import { clearMessages } from '../redux/slice/userLoadSlice';
+import { accessAdminUser } from '../redux/slice/adminSlice';
+=======
 import { addDriver,addAdmin } from '../../redux/slice/admin/userLoadSlice';
 import { clearMessages } from '../../redux/slice/admin/userLoadSlice';
+>>>>>>> main:Frontend/src/components/Admin/AddUsers.jsx
 
 const AddUsers = () => {
     const dispatch= useDispatch();
-    const {error,success,isSuperAdmin}= useSelector((state)=>state.users);
-
+    const {error,success}= useSelector((state)=>state.users);
+    const {isSuperAdmin}= useSelector((state)=>state.admin)
     const [activeTab, setActiveTab] = useState("drivers");
 
     useEffect(()=>{
+        dispatch(accessAdminUser());
+        console.log("isSuperAdmin is ",isSuperAdmin);        
         if (error || success) {
       const timer = setTimeout(() => {
         dispatch(clearMessages());
