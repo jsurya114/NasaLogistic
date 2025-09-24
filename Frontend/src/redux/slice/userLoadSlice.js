@@ -105,7 +105,7 @@ const userLoadSlice=createSlice({
         loading:false,
         error:null,
         success:null,
-        isSuperAdmin:false,
+        // isSuperAdmin:false,
         drivers:[],
         admins:[]
     },

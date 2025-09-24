@@ -4,7 +4,8 @@ const initialState={
     admin:null,
     isAuthenticated:null,
     loading:false,
-    error:null
+    error:null,
+    isSuperAdmin:false,
 }
 
 export const adminLogin=createAsyncThunk(
@@ -93,7 +94,8 @@ const adminSlice = createSlice({
         .addCase(adminLogin.fulfilled,(state,action)=>{
             state.loading=false;
             state.isAuthenticated=true;
-            state.admin=action.payload.admin;
+            state.admin=action.payload.admin;          
+            
         })
         .addCase(adminLogin.rejected,(state,action)=>{
             state.loading=false
@@ -119,8 +121,11 @@ const adminSlice = createSlice({
         .addCase(accessAdminUser.fulfilled,(state,action)=>{
             state.loading=false;
             state.isAuthenticated=true;
-            console.log("State Admin",action.payload);
             state.admin=action.payload.admin;
+            if(action.payload.admin.role==='superadmin'){
+                state.isSuperAdmin= true;
+            }else
+                state.isSuperAdmin= false;
         })
         .addCase(accessAdminUser.rejected,(state,action)=>{
             state.loading=false;
