@@ -1,18 +1,11 @@
 import React,{useState,useEffect} from 'react'
-<<<<<<< HEAD:Frontend/src/components/DoubleStop.jsx
 import { useDispatch,useSelector } from 'react-redux';
 import { excelDailyFileUpload } from '../redux/slice/excelSlice';
-import Header from '../reuse/Header'
-import Nav from '../reuse/Nav';
-import AdminsList from '../reuse/AdminsList';
-import UploadedData from '../reuse/UploadedData';
 import FileUpload from './Excel-InputTag';
-=======
+
 import Header from '../../reuse/Header'
 import Nav from '../../reuse/Nav';
 import AdminsList from '../../reuse/AdminsList';
-import UploadedData from '../../reuse/UploadedData';
->>>>>>> origin/main:Frontend/src/components/Admin/DoubleStop.jsx
 
 const DoubleStop = () => {
   const dispatch = useDispatch()
