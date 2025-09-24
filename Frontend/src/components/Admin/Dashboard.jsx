@@ -1,8 +1,8 @@
 import React from "react";
 
 
-import Header from "../reuse/Header.jsx"; 
-import Nav from "../reuse/Nav.jsx";
+import Header from "../../reuse/Header.jsx"; 
+import Nav from "../../reuse/Nav.jsx";
 export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gray-100 text-gray-900 font-poppins">

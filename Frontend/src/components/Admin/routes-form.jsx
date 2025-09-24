@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import Header from "../reuse/Header";
-import Nav from "../reuse/Nav";
-import { fetchRoutes, addRoute, toggleRouteStatus, deleteRoute } from "../redux/slice/routeSlice";
-import { fetchJobs } from "../redux/slice/jobSlice";
+import Header from "../../reuse/Header";
+import Nav from "../../reuse/Nav";
+import { fetchRoutes, addRoute, toggleRouteStatus, deleteRoute } from "../../redux/slice/admin/routeSlice";
+import { fetchJobs } from "../../redux/slice/admin/jobSlice";
 
 export default function RoutesForm() {
   const dispatch = useDispatch();

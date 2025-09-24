@@ -1,8 +1,8 @@
 import React,{useState,useEffect} from 'react'
-import Header from '../reuse/Header'
-import Nav from '../reuse/Nav';
-import AdminsList from '../reuse/AdminsList';
-import UploadedData from '../reuse/UploadedData';
+import Header from '../../reuse/Header'
+import Nav from '../../reuse/Nav';
+import AdminsList from '../../reuse/AdminsList';
+import UploadedData from '../../reuse/UploadedData';
 
 const DoubleStop = () => {
   const [activeView, setActiveView] = useState("weekly");

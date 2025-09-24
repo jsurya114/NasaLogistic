@@ -1,24 +1,21 @@
 import React,{useState,useEffect} from 'react';
-import Header from '../reuse/Header';
-import Nav from '../reuse/Nav';
-import AddAdminForm from '../reuse/AddAdminForm';
-import AddDriverForm from '../reuse/AddDriverForm';
-import AdminsList from '../reuse/AdminsList';
-import DriversList from '../reuse/DriversList';
+import Header from '../../reuse/Header';
+import Nav from '../../reuse/Nav';
+import AddAdminForm from '../../reuse/AddAdminForm';
+import AddDriverForm from '../../reuse/AddDriverForm';
+import AdminsList from '../../reuse/AdminsList';
+import DriversList from '../../reuse/DriversList';
 import { useDispatch, useSelector } from 'react-redux';
-import { addDriver,addAdmin } from '../redux/slice/userLoadSlice';
-import { clearMessages } from '../redux/slice/userLoadSlice';
-import { accessAdminUser } from '../redux/slice/adminSlice';
+import { addDriver,addAdmin } from '../../redux/slice/admin/userLoadSlice';
+import { clearMessages } from '../../redux/slice/admin/userLoadSlice';
 
 const AddUsers = () => {
     const dispatch= useDispatch();
-    const {error,success}= useSelector((state)=>state.users);
-    const {isSuperAdmin}= useSelector((state)=>state.admin)
+    const {error,success,isSuperAdmin}= useSelector((state)=>state.users);
+
     const [activeTab, setActiveTab] = useState("drivers");
 
     useEffect(()=>{
-        dispatch(accessAdminUser());
-        console.log("isSuperAdmin is ",isSuperAdmin);        
         if (error || success) {
       const timer = setTimeout(() => {
         dispatch(clearMessages());
