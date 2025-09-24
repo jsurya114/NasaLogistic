@@ -1,6 +1,7 @@
 import { configureStore } from "@reduxjs/toolkit"
 import adminReducer from './slice/adminSlice'
 import excelReducer from './slice/excelSlice.js'
+
 import JobReducer from './slice/jobSlice'
 import RoutesReducer from './slice/routeSlice';
 import userAdminReducer from './slice/userLoadSlice.js';
@@ -10,6 +11,7 @@ export const store = configureStore({
         routes: RoutesReducer,
         jobs: JobReducer,
         users:userAdminReducer,
-        excel:excelReducer
+        excel:excelReducer,
+         driver:driverReducer
     }
 })

@@ -1,8 +1,8 @@
 import React,{useState} from "react";
-import logo from "../assets/logo.png"; // adjust path according to your folder structure
+import logo from "../../assets/logo.png"; // adjust path according to your folder structure
 
 import {useDispatch, useSelector} from 'react-redux'
-import { adminLogin, clearError } from "../redux/slice/adminSlice.js";
+import { adminLogin, clearError } from "../../redux/slice/admin/adminSlice.js";
 import { useNavigate } from "react-router-dom";
 const Login = () => {
 

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import Header from "../reuse/Header";
-import Nav from "../reuse/Nav";
-import { fetchJobs, addJob, deleteJob, jobStatus } from "../redux/slice/jobSlice";
+import Header from "../../reuse/Header";
+import Nav from "../../reuse/Nav";
+import { fetchJobs, addJob, deleteJob, jobStatus } from "../../redux/slice/admin/jobSlice";
 
 function Jobs() {
   const dispatch = useDispatch();

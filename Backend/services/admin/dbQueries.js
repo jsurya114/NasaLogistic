@@ -1,4 +1,4 @@
-import pool  from "../config/db.js";
+import pool  from "../../config/db.js";
 import bcrypt from "bcrypt";
 import { jobService } from "./jobQueries.js";
 

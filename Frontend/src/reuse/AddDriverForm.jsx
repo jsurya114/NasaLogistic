@@ -1,6 +1,6 @@
 import { useState,useEffect } from "react";
 import { useSelector,useDispatch } from "react-redux";
-import { fetchJobs } from '../redux/slice/jobSlice';
+import { fetchJobs } from '../redux/slice/admin/jobSlice';
 
 function AddDriverForm({ onSubmit }) {
     const cities=useSelector((state)=>state.jobs.cities);

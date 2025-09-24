@@ -1,6 +1,6 @@
 import React,{useEffect} from "react";
 import logo from "../assets/logo.png"; 
-import { accessAdminUser, adminLogout} from "../redux/slice/adminSlice";
+import { accessAdminUser, adminLogout} from "../redux/slice/admin/adminSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 function Header(){

@@ -1,6 +1,6 @@
 import {useState,useEffect} from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { getUsers, toggleAvailUser } from '../redux/slice/userLoadSlice';
+import { getUsers, toggleAvailUser } from '../redux/slice/admin/userLoadSlice';
 
 
 function DriversList() {

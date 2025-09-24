@@ -1,6 +1,6 @@
 import express from 'express'
 import HttpStatus from '../../utils/statusCodes.js'
-import { jobService } from '../../services/jobQueries.js'
+import { jobService } from '../../services/admin/jobQueries.js'
 
 import pool from '../../config/db.js'
 
