@@ -7,31 +7,21 @@ import HttpStatus from '../../utils/statusCodes.js'
  const adminController={
     Login:async(req,res)=>{
        try {
-        const {email,password}=req.body
-
-          const errors = {};
-    if (!email) errors.email = "Email is required";
-    if (!password) errors.password = "Password is required";
-    if (Object.keys(errors).length > 0) {
-      return res.status(HttpStatus.BAD_REQUEST).json({ errors });
-    }
-        
-
+        const {email,password}=req.body;
+         
+        if(!email||!password){
+            return res.status(statusCode.UNAUTHORIZED).json({message:"Email and password are required"})
+        }
         const admin = await dbService.getAdminByEmail(email)
-     if (!admin) {
-      return res
-        .status(HttpStatus.UNAUTHORIZED)
-        .json({ errors: { email: "Invalid email" } });
-       }
+          if (!admin) {
+        return res.status(HttpStatus.UNAUTHORIZED).json({ message: "Invalid credentials" });
+      }
 
       const validPassword = await dbService.checkPassword(password,admin.password)
 
-       if (!validPassword) {
-      return res
-        .status(HttpStatus.UNAUTHORIZED)
-        .json({ errors: { password: "Invalid password" } });
-       }
-      
+      if (!validPassword) {
+        return res.status(HttpStatus.UNAUTHORIZED).json({ message: "Invalid credentials" });
+      }      
 
       let token = generateToken({id:admin.id,email:admin.email,role:admin.role,name:admin.name});
         

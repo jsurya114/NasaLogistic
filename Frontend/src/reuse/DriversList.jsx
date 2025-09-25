@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getUsers, toggleAvailUser } from '../redux/slice/admin/userLoadSlice';
 
 
+
 function DriversList() {
   const dispatch = useDispatch();  
   const {drivers} = useSelector((state) => state.users);   
@@ -20,7 +21,7 @@ function DriversList() {
         }
   }
 
-  // console.log("List of Drivers ",drivers);
+  console.log("List of Drivers ",drivers);
   return (
     <section className="bg-white rounded-xl shadow p-4">
       <h2 className="font-bold text-lg mb-4">Drivers</h2>
