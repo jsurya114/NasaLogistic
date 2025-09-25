@@ -15,9 +15,7 @@ import { accessAdminUser } from '../../redux/slice/admin/adminSlice';
 const AddUsers = () => {
     const dispatch= useDispatch();
     const {error,success}= useSelector((state)=>state.users);
-    const {isSuperAdmin}= useSelector((state)=>state.admin)
-    const {error,success}= useSelector((state)=>state.users);
-    const {isSuperAdmin}= useSelector((state)=>state.admin)
+    const {isSuperAdmin}= useSelector((state)=>state.admin);
     const [activeTab, setActiveTab] = useState("drivers");
 
     useEffect(()=>{
