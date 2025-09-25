@@ -1,13 +1,15 @@
 import { configureStore } from "@reduxjs/toolkit"
-import adminReducer from './slice/adminSlice'
-import JobReducer from './slice/jobSlice'
-import RoutesReducer from './slice/routeSlice';
-import userAdminReducer from './slice/userLoadSlice.js';
+import adminReducer from '../redux/slice/admin/adminSlice.js'
+import JobReducer from '../redux/slice/admin/jobSlice'
+import RoutesReducer from '../redux/slice/admin/routeSlice';
+import userAdminReducer from '../redux/slice/admin/userLoadSlice.js';
+import driverReducer from "../redux/slice/driver/driverSlice.js"
 export const store = configureStore({
     reducer: {
         admin: adminReducer,
         routes: RoutesReducer,
         jobs: JobReducer,
-        users:userAdminReducer
+        users:userAdminReducer,
+        driver:driverReducer
     }
 })

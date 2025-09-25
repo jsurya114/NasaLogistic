@@ -1,8 +1,8 @@
 import React from "react";
 
 
-import Header from "../reuse/Header.jsx"; 
-import Nav from "../reuse/Nav.jsx";
+import Header from "../../reuse/Header.jsx"; 
+import Nav from "../../reuse/Nav.jsx";
 export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gray-100 text-gray-900 font-poppins">
@@ -75,7 +75,7 @@ export default function Dashboard() {
                 <tr className="bg-gray-50 text-left">
                   {[
                     "Driver",
-                    "Phone",
+                    // "Phone",
                     "Job",
                     "Date",
                     "Route",
@@ -101,11 +101,11 @@ export default function Dashboard() {
               </thead>
               <tbody>
                 {[
-                  ["Brian N Adkins", "2144060222", "DALLAS", "04/08/25", "36", "1-88", "88", "2", "0", "1", "86", "Yes", "136.25", "Yes"],
-                  ["Brian N Adkins", "2144060222", "DALLAS", "05/08/25", "37", "66-125", "60", "0", "0", "0", "60", "Yes", "96.00", "No"],
-                  ["Brian N Adkins", "2144060222", "DALLAS", "06/08/25", "40", "76-153", "78", "1", "0", "5", "77", "Yes", "116.45", "Yes"],
-                  ["Brian N Adkins", "2144060222", "DALLAS", "08/08/25", "40", "1-75", "75", "1", "0", "6", "74", "Yes", "110.30", "No"],
-                  ["Brian N Adkins", "2144060222", "DALLAS", "09/08/25", "40", "1-104", "104", "0", "4", "2", "100", "Yes", "157.30", "No"],
+                  ["Brian N Adkins", "DALLAS", "04/08/25", "36", "1-88", "88", "2", "0", "1", "86", "Yes", "136.25", "Yes"],
+                  ["Brian N Adkins", "DALLAS", "05/08/25", "37", "66-125", "60", "0", "0", "0", "60", "Yes", "96.00", "No"],
+                  ["Brian N Adkins", "DALLAS", "06/08/25", "40", "76-153", "78", "1", "0", "5", "77", "Yes", "116.45", "Yes"],
+                  ["Brian N Adkins", "DALLAS", "08/08/25", "40", "1-75", "75", "1", "0", "6", "74", "Yes", "110.30", "No"],
+                  ["Brian N Adkins", "DALLAS", "09/08/25", "40", "1-104", "104", "0", "4", "2", "100", "Yes", "157.30", "No"],
                 ].map((row, i) => (
                   <tr key={i} className="hover:bg-gray-50">
                     {row.map((cell, j) => (

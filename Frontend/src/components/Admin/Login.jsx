@@ -1,33 +1,30 @@
 import React,{useState} from "react";
-import logo from "../assets/logo.png"; // adjust path according to your folder structure
+import logo from "../../assets/logo.png"; // adjust path according to your folder structure
 
 import {useDispatch, useSelector} from 'react-redux'
-import { adminLogin } from "../redux/slice/adminSlice.js";
-import { clearError } from "../redux/slice/adminSlice.js";
+import { adminLogin, clearError } from "../../redux/slice/admin/adminSlice.js";
 import { useNavigate } from "react-router-dom";
 const Login = () => {
 
-const [email,setEmail]=useState("")
+const [email,setEmail]=useState("");
 const [password,setPassword]=useState("")
 
 const dispatch  = useDispatch();
 const navigate = useNavigate();
 
-const {loading,error,token}=useSelector((state)=>state.admin);
+const {loading,error,isAuthenticated}=useSelector((state)=>state.admin);
 
 const handleSubmit= async(e)=>{
     e.preventDefault();   
     try{
       const result = await dispatch(adminLogin({email,password})).unwrap();
-      if(result.token){
+      if(result.admin){
         navigate("/admin/dashboard");
-      }else{
-        console.log("Error from server ",result.token);
       }
     }catch(err){
       console.log("Error from server ",err)
-    }    
-  dispatch(clearError());  
+    }  
+    dispatch(clearError());  
 }    
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 font-poppins">
@@ -75,7 +72,7 @@ const handleSubmit= async(e)=>{
   </button>
 
   {error && <p className="text-red-600 mt-2">{error}</p>}
-  {token && <p className="text-green-600 mt-2">Login successful!</p>}
+  {isAuthenticated && <p className="text-green-600 mt-2">Login successful!</p>}
 </form>
 
           <div className="mt-4 text-sm">

@@ -1,6 +1,6 @@
 import express from 'express'
 import HttpStatus from '../../utils/statusCodes.js'
-import { jobService } from '../../services/jobQueries.js'
+import { jobService } from '../../services/admin/jobQueries.js'
 
 import pool from '../../config/db.js'
 
@@ -32,7 +32,7 @@ const jobController={
     if (enabled === false) {
       return res.status(HttpStatus.BAD_REQUEST).json({ field: "enabled", message: "You must enable the city to add it" });
     }
-           const jobs = await jobService.addcity(job,city_code,enabled)  
+           const jobs = await jobService.addcity(job,city_code);  
            res.status(HttpStatus.CREATED).json(jobs)
         } catch (error) {
             res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: error.message })

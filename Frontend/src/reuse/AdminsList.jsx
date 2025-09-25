@@ -7,7 +7,7 @@ function AdminsList() {
   const {admins} = useSelector((state) => state.users);
 
   useEffect(() => {
-    dispatch(fetchAdmins());
+    // dispatch(fetchAdmins());
   }, [dispatch]);
 
   return (
