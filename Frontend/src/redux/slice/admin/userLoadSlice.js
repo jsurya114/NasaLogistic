@@ -122,6 +122,8 @@ const userLoadSlice=createSlice({
         })
         .addCase(addDriver.fulfilled,(state,action)=>{
             state.loading= false;
+            console.log("Driver added ",action.payload);
+            state.drivers.push(action.payload.insertUser);
             state.success= action.payload.message;
             state.error=null;
         })
@@ -133,7 +135,9 @@ const userLoadSlice=createSlice({
             state.loading=true;
         })
         .addCase(getUsers.fulfilled,(state,action)=>{            
-            state.drivers=action.payload.data;
+        if (JSON.stringify(state.drivers) !== JSON.stringify(action.payload.data)) {
+            state.drivers = action.payload.data;
+            }
             state.loading=false;
             state.success= null;
         })
@@ -146,7 +150,6 @@ const userLoadSlice=createSlice({
         .addCase(toggleAvailUser.fulfilled,(state,action)=>{
             // console.log("Get updated",action.payload.data);            
              const updatedDriver = action.payload.data; // one driver object
-
              // update the driver inside state.drivers
             state.drivers = state.drivers.map(d =>
             d.id === updatedDriver.id ? updatedDriver : d

@@ -15,6 +15,11 @@ function App() {
   return (
     <Router>
       <Routes>
+
+      <Route path="/driver/login" element={<DriverLogin />} />
+                   <Route path="/driver/driver-dashboard" element={ <DriverDashboard/>} />
+
+
         {/* Public Route */}
         <Route element={<PublicRoutes/>}>
         <Route path="/admin/login" element={<Login />} />
@@ -35,8 +40,8 @@ function App() {
         {/* Drivers */}
       
         </Route>
-          <Route path="/driver/login" element={<DriverLogin />} />
-                   <Route path="/driver/driver-dashboard" element={ <DriverDashboard/>} />
+
+          
 
 
 

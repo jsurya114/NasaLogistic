@@ -6,7 +6,7 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 // Fetch all jobs
 export const fetchJobs = createAsyncThunk("jobs/fetchJobs", async () => {
   try {
-    console.log("Fetching jobs from http://localhost:3251/admin/jobs..."); // Debug log
+    // console.log("Fetching jobs from http://localhost:3251/admin/jobs..."); // Debug log
     const res = await fetch("http://localhost:3251/admin/jobs");
     if (!res.ok) {
       const error = await res.json();
