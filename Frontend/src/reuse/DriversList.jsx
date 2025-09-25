@@ -9,7 +9,8 @@ function DriversList() {
 
   useEffect(()=>{
     dispatch(getUsers());
-  },[dispatch,drivers]);
+    
+  },[drivers]);
 
   function handleToggleChange(id){    
      try {

@@ -8,7 +8,7 @@ const ProtectedRoutes=()=>{
 
     useEffect(()=>{
         dispatch(accessAdminUser());
-    },[dispatch]);    
+    },[]);    
 
     return isAuthenticated ? <Outlet/> : <Navigate to="/admin/login" />
 }

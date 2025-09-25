@@ -73,6 +73,18 @@ export const dbService={
   );
 
   return joined.rows[0];  
+  },
+
+  getDashboardData : async ()=>{
+    const result = await pool.query(
+      `SELECT * FROM dashboard_data
+         
+        ;
+        
+      `
+    )
+    console.log('db dash query')
+    return result.rows
   }
     
 }

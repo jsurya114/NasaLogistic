@@ -8,7 +8,7 @@ const PublicRoutes=()=>{
 
     useEffect(()=>{
         dispatch(accessAdminUser());
-    },[dispatch]);
+    },[]);
 
     return isAuthenticated ? <Navigate to="/admin/dashboard" /> : <Outlet/> ; 
 }

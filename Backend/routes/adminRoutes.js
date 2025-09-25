@@ -35,7 +35,7 @@ router.patch('/toggle-user/:id',changeStatusUser);
 //doubleStop and file upload
 // for fileuploads use upload.single('file') as middleware
 router.post('/doubleStop/fileUpload',upload.single('file'),DailyExcelUpload)
-
+router.post('/ds',DailyExcelUpload)
 
 
 // router.get('/admin/check-for-user',checkforSuperAdminOrNot)
