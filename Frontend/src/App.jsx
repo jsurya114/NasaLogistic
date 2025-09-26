@@ -14,6 +14,7 @@ import DriverDashboard from "./components/Drivers/DriverDashboard.jsx";
 import DPublicRoutes from "./routes/driver/DPublicRoutes.jsx";
 
 import DProtectRoutes from "./routes/driver/DProtectedRoutes.jsx";
+import AddAccessCodePage from "./components/Admin/AccessCode.jsx"
 function App() {
   return (
     <Router>
@@ -37,6 +38,8 @@ function App() {
         <Route path="/admin/routes" element={<RoutesForm />} />
         <Route path="/admin/create-users" element={<AddUsers />} />
         <Route path="/admin/double-stop" element={<DoubleStop/>}/>
+       <Route path="/admin/manage-access-codes" element={<AddAccessCodePage/>}/>
+
         {/*  Page not found error pages */}
         <Route path="*" element={<NotFound />} />
 
