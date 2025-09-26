@@ -55,19 +55,12 @@ export const DailyExcelUpload = async (req, res) => {
     }, {});
     console.log(routes, "routes      ");
 
-    function getSeqRange(seq) {
-      const range = seq.split("-").map((val) => Number(val));
-      return range;
-    }
-
+g 
     const dashData = await dbService.getDashboardData();
+    dashData.forEach(item=>item['seqCount'] = item['end_seq']-item['start_seq']+1)
     console.log(dashData, "dashData");
-    let start,end
-    dashData.forEach((val) => {
-         [start,end] = [getSeqRange(val["sequence"]), val["sequence"]]
-        return [start,end]
-    });
-    return res.status(statusCode.OK).json({ message: "code endeddd" });
+    
+    return res.status(statusCode.OK).json({ message: "code endeddd", dashData });
   } catch (error) {}
 };
 
