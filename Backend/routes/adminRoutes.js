@@ -49,5 +49,7 @@ router.get('/access-admin',adminController.getUser);
 
 router.get("/access-codes",getAccessCodeRoutes)
 router.post("/access-codes",createAccessCode)
+router.get("/access-codes/list", getAccessCodes)
+router.put("/access-codes/:id", updateAccessCode)
 
 export default router;

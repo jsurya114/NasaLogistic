@@ -4,6 +4,8 @@ import logo from "../../assets/logo.png"; // adjust path according to your folde
 import {useDispatch, useSelector} from 'react-redux'
 import { adminLogin, clearError } from "../../redux/slice/admin/adminSlice.js";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+
 const Login = () => {
 
 const [email,setEmail]=useState("");
@@ -15,68 +17,88 @@ const navigate = useNavigate();
 
 const {loading,error,isAuthenticated}=useSelector((state)=>state.admin);
 
-const handleSubmit= async(e)=>{
-    e.preventDefault();   
-    try{
-      const result = await dispatch(adminLogin({email,password})).unwrap();
-      if(result.admin){
+const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const result = await dispatch(adminLogin({ email, password })).unwrap();
+      if (result.admin) {
+        toast.success("Login successful!", {
+          position: "bottom-center",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: false,
+          pauseOnHover: true,
+          draggable: false,
+        });
         navigate("/admin/dashboard");
       }
-    }catch(err){
-    if(err.errors){
-      setFieldErrors({
-        email:err.errors.email||"",
-        password:err.errors.password||"",
-      })
+    } catch (err) {
+      if (err.errors) {
+        setFieldErrors({
+          email: err.errors.email || "",
+          password: err.errors.password || "",
+        });
+      }
     }
-    }  
-  
-}    
+  };
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 font-poppins">
       <div className="bg-white rounded-2xl shadow-lg w-full max-w-md">
-<div className="bg-[oklch(0.36_0.13_296.97)] rounded-t-2xl py-6 flex justify-center">
-          <img src={logo} alt="Nasa Logistic Carriers Logo" className="w-44" />
+        <div className="bg-[oklch(0.36_0.13_296.97)] rounded-t-2xl py-6 flex justify-center">
+          <img
+            src={logo}
+            alt="Nasa Logistic Carriers Logo"
+            className="w-44"
+          />
         </div>
 
         <div className="px-10 py-6 text-center">
           <h2 className="text-2xl font-semibold text-blue-900 mb-6">Login</h2>
-         <form onSubmit={handleSubmit}>
-<div className="text-left mb-4">
-  <label htmlFor="email">Email Address</label>
-  <input
-    type="email"
-    id="email"
-    value={email}
-    onChange={(e) => setEmail(e.target.value)}
-    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
-  />
-  {fieldErrors.email && <p className="text-red-600 text-sm">{fieldErrors.email}</p>}
-</div>
+          <form onSubmit={handleSubmit}>
+            <div className="text-left mb-4">
+              <label htmlFor="email">Email Address</label>
+              <input
+                type="email"
+                id="email"
+                value={email}
+                  onChange={(e) => {
+    setEmail(e.target.value);
+    setFieldErrors((prev) => ({ ...prev, email: "" })); // clear email error
+  }}
 
-<div className="text-left mb-4">
-  <label htmlFor="password">Password</label>
-  <input
-    type="password"
-    id="password"
-    value={password}
-    onChange={(e) => setPassword(e.target.value)}
-    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
-  />
-  {fieldErrors.password && <p className="text-red-600 text-sm">{fieldErrors.password}</p>}
-</div>
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
+              />
+              {fieldErrors.email && (
+                <p className="text-red-600 text-sm">{fieldErrors.email}</p>
+              )}
+            </div>
 
+            <div className="text-left mb-4">
+              <label htmlFor="password">Password</label>
+              <input
+                type="password"
+                id="password"
+                value={password}
+                onChange={(e) => {
+    setPassword(e.target.value);
+    setFieldErrors((prev) => ({ ...prev, password: "" })); // clear password error
+  }}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
+              />
+              {fieldErrors.password && (
+                <p className="text-red-600 text-sm">{fieldErrors.password}</p>
+              )}
+            </div>
 
-  <button
-    type="submit"
-    className="w-full bg-[oklch(0.36_0.13_296.97)] hover:bg-purple-900 text-white font-semibold py-3 rounded-lg shadow-md mt-4"
-  >
-    {loading ? "Logging in..." : "Login"}
-  </button>
+            <button
+              type="submit"
+              className="w-full bg-[oklch(0.36_0.13_296.97)] hover:bg-purple-900 text-white font-semibold py-3 rounded-lg shadow-md mt-4"
+            >
+              {loading ? "Logging in..." : "Login"}
+            </button>
 
-  {error && <p className="text-red-600 mt-2">{error}</p>}
-  {isAuthenticated && <p className="text-green-600 mt-2">Login successful!</p>}
-</form>
+            {error && <p className="text-red-600 mt-2">{error}</p>}
+          </form>
 
           <div className="mt-4 text-sm">
             {/* <a href="#" className="text-purple-700 hover:underline">

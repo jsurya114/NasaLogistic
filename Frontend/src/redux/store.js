@@ -7,6 +7,7 @@ import driverReducer from "../redux/slice/driver/driverSlice.js"
 import accessCodeReducer from "../redux/slice/admin/accessCodeSlice.js"
 import excelReducer from './slice/excelSlice.js'
 
+import journeyReducer from "../redux/slice/driver/journeySlice.js"
 export const store = configureStore({
     reducer: {
         admin: adminReducer,
@@ -15,5 +16,8 @@ export const store = configureStore({
         users:userAdminReducer,
         driver:driverReducer,
         accessCodes: accessCodeReducer
+        driver:driverReducer,
+        journey:journeyReducer
+    
     }
 })

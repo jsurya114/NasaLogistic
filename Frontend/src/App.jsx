@@ -10,18 +10,24 @@ import DoubleStop from "./components/Admin/DoubleStop.jsx";
 import ProtectedRoutes from "./routes/admin/ProtectedRoute.jsx";
 import PublicRoutes from "./routes/admin/PublicRoutes.jsx";
 import DriverLogin from "./components/Drivers/DriverLogin.jsx";
-import DriverDashboard from "./components/Drivers/DriverDashboard.jsx";
+import Journey from "./components/Drivers/Journey.jsx";
 import DPublicRoutes from "./routes/driver/DPublicRoutes.jsx";
 
 import DProtectRoutes from "./routes/driver/DProtectedRoutes.jsx";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+
 import AddAccessCodePage from "./components/Admin/AccessCode.jsx"
 function App() {
   return (
+  <>
+  
     <Router>
       <Routes>
 
       <Route path="/driver/login" element={<DriverLogin />} />
-                   <Route path="/driver/driver-dashboard" element={ <DriverDashboard/>} />
+                   <Route path="/driver/driver-dashboard" element={ <Journey/>} />
 
 
         {/* Public Route */}
@@ -41,20 +47,32 @@ function App() {
        <Route path="/admin/manage-access-codes" element={<AddAccessCodePage/>}/>
 
         {/*  Page not found error pages */}
-        <Route path="*" element={<NotFound />} />
+
 
         {/* Drivers */}
       
         </Route>
-
+        <Route element={<DPublicRoutes/>}>
+         <Route path="/driver/login" element={<DriverLogin />} />
+         </Route>
+         
+         <Route element={<DProtectRoutes/>}>
+          <Route path="/driver/driver-dashboard" element={ <Journey/>} />
           
-
+          
+          </Route>
+                  
+    {/* Catch-all 404 route */}
+    <Route path="*" element={<NotFound />} />
 
 
        
 
       </Routes>
+             <ToastContainer />
     </Router>
+      <ToastContainer />
+  </>
    
   );
 }
