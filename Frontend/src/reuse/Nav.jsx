@@ -8,6 +8,7 @@ function Nav() {
     { to: "/admin/routes", icon: "🧭", label: "Routes" },
     { to: "/admin/jobs", icon: "📦", label: "Jobs" },
     { to: "/admin/double-stop", icon: "🔁", label: "Double Stop" },
+    { to: "/admin/manage-access-codes", icon: "🔑", label: "Access Codes" }
   ];
 
   return (

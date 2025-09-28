@@ -18,6 +18,7 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 
+import AddAccessCodePage from "./components/Admin/AccessCode.jsx"
 function App() {
   return (
   <>
@@ -43,6 +44,8 @@ function App() {
         <Route path="/admin/routes" element={<RoutesForm />} />
         <Route path="/admin/create-users" element={<AddUsers />} />
         <Route path="/admin/double-stop" element={<DoubleStop/>}/>
+       <Route path="/admin/manage-access-codes" element={<AddAccessCodePage/>}/>
+
         {/*  Page not found error pages */}
 
 
