@@ -1,9 +1,9 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-
+import { API_BASE_URL } from "../../../config";
 // Fetch all routes
 export const fetchRoutes = createAsyncThunk("routes/fetchRoutes", async () => {
   try {
-    const res = await fetch("http://localhost:3251/admin/routes");
+    const res = await fetch(`${API_BASE_URL}/admin/routes`);
     if (!res.ok) {
       const error = await res.json();
       throw new Error(error.error || "Failed to fetch routes");
@@ -19,7 +19,7 @@ export const fetchTodayJourney = createAsyncThunk(
     "journeys/fetchTodayJourney",
     async(driver_id)=>{
         try {
-            const res = await fetch(`http://localhost:3251/driver/journey/${driver_id}`)
+            const res = await fetch(`${API_BASE_URL}/driver/journey/${driver_id}`)
             if(!res.ok){
                 const error = await res.json()
                 throw new Error(error.message||"Failed to fetch journey")
@@ -36,7 +36,7 @@ export const saveJourney = createAsyncThunk(
      "journeys/saveJourney",
      async(journeyData,{rejectWithValue})=>{
         try {
-            const res = await fetch("http://localhost:3251/driver/journey",{
+            const res = await fetch(`${API_BASE_URL}/driver/journey`,{
                 method:"POST",
                 headers: { "Content-Type": "application/json" },
                 body:JSON.stringify(journeyData)

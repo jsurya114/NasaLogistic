@@ -7,7 +7,7 @@ import { createRoute,getRoutes,getRouteById, updateRoute, deleteRoute,toggleRout
 import { changeStatusUser, createUsers, getUsers } from '../controllers/admin/addUserController.js';
 import { getRoutes as getAccessCodeRoutes, createAccessCode } from '../controllers/admin/accessCodeControllers.js';
 import {DailyExcelUpload} from '../controllers/admin/fileUploadsController.js';
-
+import { getAccessCodes,updateAccessCode, } from '../controllers/admin/accessCodeControllers.js';
 
 router.post('/login',adminController.Login);
 router.get('/jobs', jobController.getJob);
