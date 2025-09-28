@@ -10,12 +10,18 @@ import DoubleStop from "./components/Admin/DoubleStop.jsx";
 import ProtectedRoutes from "./routes/admin/ProtectedRoute.jsx";
 import PublicRoutes from "./routes/admin/PublicRoutes.jsx";
 import DriverLogin from "./components/Drivers/DriverLogin.jsx";
-import DriverDashboard from "./components/Drivers/DriverDashboard.jsx";
+import Journey from "./components/Drivers/Journey.jsx";
 import DPublicRoutes from "./routes/driver/DPublicRoutes.jsx";
 
 import DProtectRoutes from "./routes/driver/DProtectedRoutes.jsx";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+
 function App() {
   return (
+  <>
+  
     <Router>
       <Routes>
         {/* Public Route */}
@@ -33,7 +39,7 @@ function App() {
         <Route path="/admin/create-users" element={<AddUsers />} />
         <Route path="/admin/double-stop" element={<DoubleStop/>}/>
         {/*  Page not found error pages */}
-        <Route path="*" element={<NotFound />} />
+
 
         {/* Drivers */}
       
@@ -43,16 +49,22 @@ function App() {
          </Route>
          
          <Route element={<DProtectRoutes/>}>
-          <Route path="/driver/driver-dashboard" element={ <DriverDashboard/>} />
+          <Route path="/driver/driver-dashboard" element={ <Journey/>} />
+          
+          
           </Route>
                   
-
+    {/* Catch-all 404 route */}
+    <Route path="*" element={<NotFound />} />
 
 
        
 
       </Routes>
+             <ToastContainer />
     </Router>
+      <ToastContainer />
+  </>
    
   );
 }

@@ -4,12 +4,15 @@ import JobReducer from '../redux/slice/admin/jobSlice'
 import RoutesReducer from '../redux/slice/admin/routeSlice';
 import userAdminReducer from '../redux/slice/admin/userLoadSlice.js';
 import driverReducer from "../redux/slice/driver/driverSlice.js"
+import journeyReducer from "../redux/slice/driver/journeySlice.js"
 export const store = configureStore({
     reducer: {
         admin: adminReducer,
         routes: RoutesReducer,
         jobs: JobReducer,
         users:userAdminReducer,
-        driver:driverReducer
+        driver:driverReducer,
+        journey:journeyReducer
+    
     }
 })
