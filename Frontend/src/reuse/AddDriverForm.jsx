@@ -1,6 +1,7 @@
 import { useState,useEffect } from "react";
 import { useSelector,useDispatch } from "react-redux";
 import { fetchJobs } from '../redux/slice/admin/jobSlice';
+import { getUsers } from "../redux/slice/admin/userLoadSlice";
 
 function AddDriverForm({ onSubmit }) {
     const cities=useSelector((state)=>state.jobs.cities);
@@ -8,7 +9,7 @@ function AddDriverForm({ onSubmit }) {
 
     useEffect(()=>{
         dispatch(fetchJobs());        
-        console.log("Cities are ",cities);
+        // console.log("Cities are ",cities);
     },[dispatch]);
 
   const [form, setForm] = useState({
@@ -58,6 +59,7 @@ function AddDriverForm({ onSubmit }) {
       city: "",
       enabled: false,
     });
+    // dispatch(getUsers());
     setErrors({});
   };
 

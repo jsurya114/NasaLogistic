@@ -4,7 +4,7 @@ import { useDispatch,useSelector } from 'react-redux';
 
 const UploadedData = () => {
 const dispatch = useDispatch();
-  const {data} = useSelector((state) => state.users);
+const {data} = useSelector((state) => state.users);
 
   useEffect(() => {
     // dispatch(fetchAdmins());
