@@ -9,7 +9,7 @@ export const saveJourney = async(req,res)=>{
          if (!driver_id) errors.driver_id = "Driver ID is required"; 
         if (!route_id) errors.route_id = "Route is required";
          if (!start_seq || start_seq <= 0) errors.start_seq = "Start sequence must be > 0";
-          if (!end_seq || end_seq > start_seq) errors.end_seq = "End sequence must be >= start sequence"; 
+          if (!end_seq || end_seq < start_seq) errors.end_seq = "End sequence must be >= start sequence"; 
           if (!packages || packages <= 0) errors.packages = "Packages must be > 0"; 
           if (Object.keys(errors).length > 0) { return res.status(HttpStatus.BAD_REQUEST).json({ success: false, errors }); }
 

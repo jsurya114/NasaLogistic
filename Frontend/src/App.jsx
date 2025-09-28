@@ -26,7 +26,7 @@ function App() {
       <Routes>
 
       <Route path="/driver/login" element={<DriverLogin />} />
-                   <Route path="/driver/driver-dashboard" element={ <DriverDashboard/>} />
+                   <Route path="/driver/driver-dashboard" element={ <Journey/>} />
 
 
         {/* Public Route */}
