@@ -1,6 +1,5 @@
 import {createSlice,createAsyncThunk} from "@reduxjs/toolkit"
-
-
+import { API_BASE_URL } from "../../config"
 
 export const excelDailyFileUpload = createAsyncThunk(
     'admin/uploadExcel',
@@ -8,7 +7,7 @@ export const excelDailyFileUpload = createAsyncThunk(
         try {
             // const form = new FormData(fkr)
             // form.append('file',file)
-            const res = await fetch('http://localhost:3251/admin/doubleStop/fileUpload',{
+            const res = await fetch(`${backEndUrl}/admin/doubleStop/fileUpload`,{
                 method:'POST',
                 body:formData,
             })

@@ -28,7 +28,7 @@ import HttpStatus from '../../utils/statusCodes.js'
       if (!token) {
           return res.status(HttpStatus.UNAUTHORIZED).json({ message: "UNAUTHORIZED" });
         }
-
+        admin.password=null
       res.cookie("adminToken", token, {
         httpOnly: true,   // cannot be accessed via JS
         secure: false,    // true in production (HTTPS only)

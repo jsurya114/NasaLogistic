@@ -1,4 +1,5 @@
 import { createSlice,createAsyncThunk } from "@reduxjs/toolkit";
+import { API_BASE_URL } from "../../../config";
 
 const initialState={
     driver:null,
@@ -10,7 +11,7 @@ export const driverLogin=createAsyncThunk(
     "driver/login",
    async(credentials,{rejectWithValue})=>{
     try {
-        const res = await fetch("http://localhost:3251/driver/login",{
+        const res = await fetch(`${API_BASE_URL}/driver/login`,{
                 method:"POST",
                 headers:{"Content-Type":"application/json"},
                 body:JSON.stringify(credentials),
@@ -33,7 +34,7 @@ export const accessDriver=createAsyncThunk(
     "driver/access-driver",
     async(__dirname,{rejectWithValue})=>{
         try {
-            const res = await fetch("http://localhost:3251/driver/access-driver",{
+            const res = await fetch(`${API_BASE_URL}/driver/access-driver`,{
                 method:"GET",
                 credentials:"include"  
             })
@@ -51,7 +52,7 @@ export const driverLogout=createAsyncThunk(
     "driver/logout",
     async(_,{rejectWithValue})=>{
         try {
-            const res=await fetch("http://localhost:3251/driver/logout",{
+            const res=await fetch(`${API_BASE_URL}/driver/logout`,{
                 method:"POST",
                 credentials:"include"
             })

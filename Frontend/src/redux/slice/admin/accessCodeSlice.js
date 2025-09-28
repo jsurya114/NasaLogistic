@@ -1,14 +1,14 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-
+import { API_BASE_URL } from "../../../config";
 // Fetch all routes for access codes
 export const fetchAccessCodeRoutes = createAsyncThunk(
   "accessCodes/fetchAccessCodeRoutes",
   async (_, { rejectWithValue }) => {
     try {
       console.log("🔄 Starting fetchAccessCodeRoutes..."); // Debug log
-      console.log("🌐 Fetching from: http://localhost:3251/admin/access-codes"); // Debug log
+      console.log(`🌐 Fetching from: ${API_BASE_URL}/admin/access-codes1`); // Debug log
       
-      const res = await fetch("http://localhost:3251/admin/access-codes", {
+      const res = await fetch(`${API_BASE_URL}/admin/access-codes`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -52,7 +52,7 @@ export const createAccessCode = createAsyncThunk(
     try {
       console.log("🔄 Creating access code with data:", accessCodeData); // Debug log
       
-      const res = await fetch("http://localhost:3251/admin/access-codes", {
+      const res = await fetch(`${API_BASE_URL}/admin/access-codes`, {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",

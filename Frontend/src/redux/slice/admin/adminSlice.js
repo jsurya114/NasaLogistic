@@ -1,4 +1,5 @@
 import {createSlice,createAsyncThunk} from "@reduxjs/toolkit"
+import { API_BASE_URL } from "../../../config"
 
 const initialState={
     admin:null,
@@ -12,7 +13,7 @@ export const adminLogin=createAsyncThunk(
     "admin/login",
     async(credentials ,{rejectWithValue})=>{
         try {
-            const res=await fetch("http://localhost:3251/admin/login",{
+            const res=await fetch(`${API_BASE_URL}/admin/login`,{
                 method:"POST",
                 headers:{"Content-Type":"application/json"},
                 body:JSON.stringify(credentials),
@@ -34,7 +35,7 @@ export const accessAdminUser=createAsyncThunk(
     "admin/access-admin",
     async(_ ,{rejectWithValue})=>{
         try {
-            const res=await fetch("http://localhost:3251/admin/access-admin",{
+            const res=await fetch(`${API_BASE_URL}/admin/access-admin`,{
                 method:"GET",
                 // headers:{"Content-Type":"application/json"},   
                 credentials:"include"             
@@ -56,7 +57,7 @@ export const adminLogout=createAsyncThunk(
     "admin/logout",
     async(_ ,{rejectWithValue})=>{
         try {
-            const res=await fetch("http://localhost:3251/admin/logout",{
+            const res=await fetch(`${API_BASE_URL}/admin/logout`,{
                 method:"POST",
                 // headers:{"Content-Type":"application/json"},   
                 credentials:"include"             
