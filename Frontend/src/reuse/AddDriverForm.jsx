@@ -123,11 +123,11 @@ function AddDriverForm({ onSubmit }) {
             className="px-3 py-2 border rounded-lg"
             >
             <option value="">-- Select City --</option>
-            {cities.map((city) => (
-                <option key={city.id} value={city.job}>
-                {city.job}
-                </option>
-            ))}
+           {cities && Array.isArray(cities) && cities.map((city) => (
+  <option key={city.id} value={city.job}>
+    {city.job}
+  </option>
+))}
             </select>
       {errors.city && <p className="text-red-500 text-sm">{errors.city}</p>}
 

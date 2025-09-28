@@ -5,6 +5,7 @@ import {
   updateRouteQuery,
   deleteRouteQuery,
   toggleRouteStatusQuery,
+  routePagination
 } from "../../services/admin/routeQueries.js";
 import HttpStatus from "../../utils/statusCodes.js";
 
@@ -67,6 +68,29 @@ if (!route || route.trim() === "") {
     res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: `Failed to create route: ${err.message}` });
   }
 };
+
+
+export const fetchPaginatedRoutes=async(req,res)=>{
+  try {
+    const page = parseInt(req.query.page)||1
+    const limit = parseInt(req.query.limit)||4
+    const {routes,total}=await routePagination(page,limit)
+
+    res.status(HttpStatus.OK).json({
+      success:true,
+      routes:routes.map(mapRoute),
+      total,
+      page,
+      totalPages:Math.ceil(total/limit)
+    })
+  } catch (error) {
+     console.error("❌ fetchPaginatedRoutes error:", error.message);
+    res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: error.message,
+    });
+  }
+}
 
 // Get all routes
 export const getRoutes = async (req, res) => {

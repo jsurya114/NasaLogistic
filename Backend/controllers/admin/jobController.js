@@ -73,6 +73,25 @@ const jobController={
         } catch (error) {
             res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ error: error.message })
         }
+    },
+    fetchPaginatedJobs:async(req,res)=>{
+        try {
+            const page = parseInt(req.query.page)||1
+            const limit = parseInt(req.query.limit)||3
+            const {jobs,total}=await jobService.jobPagination(page,limit)
+            res.status(HttpStatus.OK).json({
+                success:true,
+                jobs,
+                total,
+                page,
+                totalPages:Math.ceil(total/limit)
+            })
+        } catch (error) {
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: error.message,
+    });
+        }
     }
 
 }

@@ -141,3 +141,24 @@ export const deleteRouteQuery = async (id) => {
   console.log("Deleted route:", result.rows[0] || null); // Debug log
   return result.rows[0];
 };
+
+export const routePagination=async(page,limit)=>{
+try {
+  const offset = (page-1)*limit
+const query = `
+        SELECT * FROM routes
+        ORDER BY id ASC
+        LIMIT $1 OFFSET $2
+      `;
+      const routesResult = await pool.query(query,[limit,offset])
+      const countQuery = `SELECT COUNT(*) FROM routes`;
+      const totalResult = await pool.query(countQuery);
+      return {
+        routes:routesResult.rows,
+        total:parseInt(totalResult.rows[0].count)
+      }
+} catch (error) {
+  console.error("routePagination error:", error.message);
+      throw error;
+}
+}

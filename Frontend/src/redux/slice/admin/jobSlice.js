@@ -99,11 +99,26 @@ export const jobStatus = createAsyncThunk("jobs/jobStatus", async (id) => {
     throw error;
   }
 });
+export const fetchPaginatedJobs = createAsyncThunk(
+  "jobs/fetchPaginated",
+  async ({ page, limit }) => {
+    const res = await fetch(`http://localhost:3251/admin/jobs?page=${page}&limit=${limit}`);
+    if(!res.ok){
+      const error = await res.json();
+      throw new Error(error.error || "Failed to fetch jobs");
+    }
+    const data = await res.json();
+    return data;
+  }
+);
 
 const jobSlice = createSlice({
   name: "jobs",
   initialState: {
     cities: [],
+    total:0,
+    totalPages:0,
+    page:1,
     status: "idle", // idle | loading | succeeded | failed
     error: null,
   },
@@ -118,7 +133,7 @@ const jobSlice = createSlice({
       })
       .addCase(fetchJobs.fulfilled, (state, action) => {
         state.status = "succeeded";
-        state.cities = action.payload;
+       state.cities = action.payload.jobs || action.payload || [];
         console.log("fetchJobs: Cities state updated:", action.payload); // Debug log
       })
       .addCase(fetchJobs.rejected, (state, action) => {
@@ -195,7 +210,22 @@ const jobSlice = createSlice({
         state.status = "failed";
         state.error = action.error.message;
         console.error("jobStatus: Failed:", action.error.message); // Debug log
-      });
+      })
+      .addCase(fetchPaginatedJobs.pending,(state)=>{
+        state.status="loading"
+        state.error=null
+      })
+      .addCase(fetchPaginatedJobs.fulfilled,(state,action)=>{
+        state.status="succeeded"
+        state.cities=action.payload.jobs 
+        state.total=action.payload.total
+        state.totalPages=action.payload.totalPages
+        state.page=action.payload.page
+      })
+      .addCase(fetchPaginatedJobs.rejected,(state,action)=>{
+        state.status="failed"
+        state.error=action.error.message
+      })
   },
 });
 

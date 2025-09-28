@@ -1,10 +1,10 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 
 // Fetch all routes
-export const fetchRoutes = createAsyncThunk("routes/fetchRoutes", async () => {
+export const fetchRoutes = createAsyncThunk("routes/fetchRoutes", async ({ page, limit }) => {
   try {
     console.log("Fetching routes from http://localhost:3251/admin/routes..."); // Debug log
-    const res = await fetch("http://localhost:3251/admin/routes");
+    const res = await fetch(`http://localhost:3251/admin/routes?page=${page}&limit=${limit}`);
     if (!res.ok) {
       const error = await res.json();
       throw new Error(error.error || "Failed to fetch routes");
@@ -81,6 +81,10 @@ const routeSlice = createSlice({
     routes: [],
     status: "idle", // idle | loading | succeeded | failed
     error: null,
+    page:1,
+    total:0,
+    totalPages:0,
+    limit:4
   },
   reducers: {},
   extraReducers: (builder) => {
@@ -93,7 +97,10 @@ const routeSlice = createSlice({
       })
       .addCase(fetchRoutes.fulfilled, (state, action) => {
         state.status = "succeeded";
-        state.routes = action.payload;
+        state.routes = action.payload.routes;
+        state.total = action.payload.total;
+        state.page = action.payload.page;
+        state.totalPages = action.payload.totalPages;
         console.log("fetchRoutes: Routes state updated:", action.payload); // Debug log
       })
       .addCase(fetchRoutes.rejected, (state, action) => {

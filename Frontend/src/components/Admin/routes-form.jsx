@@ -4,10 +4,10 @@ import Header from "../../reuse/Header";
 import Nav from "../../reuse/Nav";
 import { fetchRoutes, addRoute, toggleRouteStatus, deleteRoute } from "../../redux/slice/admin/routeSlice";
 import { fetchJobs } from "../../redux/slice/admin/jobSlice";
-
+import Pagination from "../../reuse/Pagination.jsx";
 export default function RoutesForm() {
   const dispatch = useDispatch();
-  const { routes, status: routesStatus, error: routesError } = useSelector((state) => state.routes);
+  const { routes, status: routesStatus, error: routesError,page,totalPages,limit } = useSelector((state) => state.routes);
   const { cities, status: jobsStatus, error: jobsError } = useSelector((state) => state.jobs);
 
   const [formData, setFormData] = useState({
@@ -21,13 +21,18 @@ export default function RoutesForm() {
   });
   const [submitError, setSubmitError] = useState(null);
   const [submitSuccess, setSubmitSuccess] = useState(null);
+  const [currentPage,setCurrentPage]=useState(page||1)
+
 
   useEffect(() => {
-    console.log("RoutesForm - Jobs state:", { cities, jobsStatus, jobsError }); // Debug log
-    console.log("RoutesForm - Routes state:", { routes, routesStatus, routesError }); // Debug log
-    dispatch(fetchRoutes());
+   
     dispatch(fetchJobs());
   }, [dispatch]);
+
+   useEffect(() => {
+    dispatch(fetchRoutes({ page: currentPage, limit }));
+  }, [dispatch, currentPage, limit]);
+
 
   const handleInputChange = (field, value) => {
     console.log(`Updating form field ${field}:`, value); // Debug log
@@ -96,6 +101,11 @@ export default function RoutesForm() {
       setSubmitError(error.message || "Failed to delete route");
     }
   };
+
+ const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
 
   // Toggle Switch Component
   const ToggleSwitch = ({ checked, onChange, disabled = false }) => {
@@ -316,7 +326,10 @@ export default function RoutesForm() {
 
           </table>
         </section>
+                        <Pagination page={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
+
       </main>
+
       <Nav />
     </div>
   );

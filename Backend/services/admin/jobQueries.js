@@ -43,6 +43,27 @@ cityStatus: async (id) => {
     [newStatus, id]
   );
   return result.rows[0];
+},
+jobPagination:async(page,limit)=>{
+  try {
+    const offset = (page-1)*limit
+    const query = `
+    SELECT * FROM city
+    ORDER BY id ASC
+    LIMIT $1 OFFSET $2
+  `;
+
+  const jobs = await pool.query(query,[limit,offset])
+  const countQuery  =`SELECT COUNT(*) FROM city`;
+  const total = await pool.query(countQuery)
+  return {
+    jobs:jobs.rows,
+    total:parseInt(total.rows[0].count)
+  }
+  } catch (error) {
+      console.error("jobPagination error:", error.message);
+   throw error;
+  }
 }
 
 

@@ -2,19 +2,27 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Header from "../../reuse/Header";
 import Nav from "../../reuse/Nav";
-import { fetchJobs, addJob, deleteJob, jobStatus } from "../../redux/slice/admin/jobSlice";
-
+import { fetchJobs, addJob, deleteJob, jobStatus, fetchPaginatedJobs } from "../../redux/slice/admin/jobSlice";
+import Pagination from "../../reuse/Pagination.jsx";
 function Jobs() {
   const dispatch = useDispatch();
-  const cities = useSelector((state) => state.jobs.cities);
+  const { cities, page, totalPages } = useSelector((state) => state.jobs);
 
   const [form, setForm] = useState({ job: "", city_code: "", enabled: true });
   const [errors, setErrors] = useState({});
 
-  useEffect(() => {
-    dispatch(fetchJobs());
-  }, [dispatch]);
+  
+  // useEffect(() => {
+  //   dispatch(fetchJobs());
+  // }, [dispatch]);
 
+  useEffect(()=>{
+    dispatch(fetchPaginatedJobs({page:1,limit:3}))
+  },[dispatch])
+
+  const handlePageChange=(newPage)=>{
+    dispatch(fetchPaginatedJobs({page:newPage,limit:3}))
+  }
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setForm({ ...form, [name]: type === "checkbox" ? checked : value });
@@ -148,7 +156,7 @@ function Jobs() {
               </tr>
             </thead>
             <tbody>
-              {cities.length > 0 ? (
+              {cities&&cities.length > 0 ? (
                 cities.map((city, index) => (
                   <tr key={city.id} className={index % 2 === 0 ? "bg-gray-50" : "bg-white"}>
                     <td className="px-3 py-2 border-b border-gray-200">{city.id}</td>
@@ -195,6 +203,7 @@ function Jobs() {
             </tbody>
           </table>
         </section>
+        <Pagination page={page} totalPages={totalPages} onPageChange={handlePageChange} />
 
       </main>
       <Nav />
