@@ -1,9 +1,10 @@
 import { createSlice, createAsyncThunk, isAction } from "@reduxjs/toolkit";
+import { API_BASE_URL } from "../../../config";
 
 export const checkUserOrAdmin=createAsyncThunk("/admin/check-for-user",
     async(_,{rejectWithValue})=>{
         try{
-            const res=await fetch('http://localhost:3251/admin/check-for-user',{
+            const res=await fetch(`${API_BASE_URL}/admin/check-for-user`,{
                 method:"GET",
                 headers:{"Content-Type":"application/json"},
             });
@@ -23,7 +24,7 @@ export const addDriver= createAsyncThunk("/admin/create-users",
     async(formData,{rejectWithValue})=>{
         try {
             console.log("formdata of driver ",formData);
-            const res=await fetch("http://localhost:3251/admin/create-users",{
+            const res=await fetch(`${API_BASE_URL}/admin/create-users`,{
                 method:"POST",
                 headers:{"Content-Type":"application/json"},
                 body:JSON.stringify(formData),
@@ -43,7 +44,7 @@ export const addDriver= createAsyncThunk("/admin/create-users",
 export const getUsers = createAsyncThunk('/admin/get-users',
     async(_,{rejectWithValue})=>{
         try{
-            const res= await fetch('http://localhost:3251/admin/get-users',{
+            const res= await fetch(`${API_BASE_URL}/admin/get-users`,{
                 method:"GET",
                 headers:{"Content-Type":"application/json"},
             });
@@ -62,7 +63,7 @@ export const toggleAvailUser= createAsyncThunk(`/admin/toggle-user`,async(id,{re
     try{
 
         // console.log("Entered toggle User route ",id);
-        const res = await fetch(`http://localhost:3251/admin/toggle-user/${id}`,{
+        const res = await fetch(`${API_BASE_URL}/admin/toggle-user/${id}`,{
             method:'PATCH',
             headers:{"Content-Type":"application/json"}
         });
@@ -78,7 +79,7 @@ export const toggleAvailUser= createAsyncThunk(`/admin/toggle-user`,async(id,{re
 })
 
 
-export const addAdmin= createAsyncThunk("http://localhost:3251/admin/create-admin",
+export const addAdmin= createAsyncThunk(`${API_BASE_URL}/admin/create-admin`,
     async(formData,{rejectWithValue})=>{
         try {
             const res=await fetch("/admin/create-admin",{

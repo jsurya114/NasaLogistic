@@ -10,7 +10,7 @@ function DPublicRoutes(){
 
     useEffect(()=>{
         dispatch(accessDriver())
-    },[dispatch])
+    },[]);
 
     return isAuthenticated ? <Navigate to ="/driver/driver-dashboard" /> :<Outlet/>
 }

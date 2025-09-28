@@ -115,6 +115,10 @@ setErrors({})
     } catch (err) {
        if (err.errors) {
       setErrors(err.errors); // show inline
+     
+ 
+      if(err.errors['sequenceConflict']) toast.error(err.errors['sequenceConflict'])
+      console.log(errors,'error after form submission')
     } 
     }
   };
@@ -185,13 +189,13 @@ setErrors({})
   name="route"
   value={formData.route}
   onChange={handleChange}
-  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
+  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-300-white"
 >
   <option value="">Select Route</option>
   {routesStatus === "succeeded" &&
     routes.map((r) => (
-      <option key={r.id} value={r.id} className="text-gray-900">
-        {r.name}
+      <option key={r.id} value={r.id} className="text-gray-900 bg-gray-600-400 hover:bg-gray-500">
+        {r.route}
       </option>
     ))}
 </select>

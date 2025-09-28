@@ -8,7 +8,7 @@ function DProtectRoutes(){
     const {isAuthenticated}=useSelector((state)=>state.driver)
     useEffect(()=>{
         dispatch(accessDriver())
-    },[dispatch])
+    },[])
     return isAuthenticated ? <Outlet/>:<Navigate to ="/driver/login"/>
 
 }

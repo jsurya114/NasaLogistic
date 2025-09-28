@@ -2,12 +2,13 @@
 
 
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { API_BASE_URL } from "../../../config";
 
 // Fetch all jobs
 export const fetchJobs = createAsyncThunk("jobs/fetchJobs", async () => {
   try {
     // console.log("Fetching jobs from http://localhost:3251/admin/jobs..."); // Debug log
-    const res = await fetch("http://localhost:3251/admin/jobs");
+    const res = await fetch(`${API_BASE_URL}/admin/jobs`);
     if (!res.ok) {
       const error = await res.json();
       throw new Error(error.error || "Failed to fetch jobs");
@@ -25,7 +26,7 @@ export const fetchJobs = createAsyncThunk("jobs/fetchJobs", async () => {
 export const addJob = createAsyncThunk("jobs/addJob", async ({ job, city_code, enabled }) => {
   try {
     console.log("Adding job:", { job, city_code, enabled }); // Debug log
-    const res = await fetch("http://localhost:3251/admin/addjob", {
+    const res = await fetch(`${API_BASE_URL}/admin/addjob`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ job, city_code, enabled }),
@@ -47,7 +48,7 @@ export const addJob = createAsyncThunk("jobs/addJob", async ({ job, city_code, e
 export const updateJob = createAsyncThunk("jobs/updateJob", async ({ id, job, city_code }) => {
   try {
     console.log(`Updating job id: ${id} with:`, { job, city_code }); // Debug log
-    const res = await fetch(`http://localhost:3251/admin/updatejob/${id}`, {
+    const res = await fetch(`${API_BASE_URL}/admin/updatejob/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ job, city_code }),
@@ -69,7 +70,7 @@ export const updateJob = createAsyncThunk("jobs/updateJob", async ({ id, job, ci
 export const deleteJob = createAsyncThunk("jobs/deleteJob", async (id) => {
   try {
     console.log(`Deleting job id: ${id}`); // Debug log
-    const res = await fetch(`http://localhost:3251/admin/deletejob/${id}`, { method: "DELETE" });
+    const res = await fetch(`${API_BASE_URL}/admin/deletejob/${id}`, { method: "DELETE" });
     if (!res.ok) {
       const error = await res.json();
       throw new Error(error.error || "Failed to delete job");
@@ -86,7 +87,7 @@ export const deleteJob = createAsyncThunk("jobs/deleteJob", async (id) => {
 export const jobStatus = createAsyncThunk("jobs/jobStatus", async (id) => {
   try {
     console.log(`Toggling status for job id: ${id}`); // Debug log
-    const res = await fetch(`http://localhost:3251/admin/${id}/status`, { method: "PATCH" });
+    const res = await fetch(`${API_BASE_URL}/admin/${id}/status`, { method: "PATCH" });
     if (!res.ok) {
       const error = await res.json();
       throw new Error(error.error || "Failed to toggle job status");

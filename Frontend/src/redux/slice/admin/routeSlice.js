@@ -1,10 +1,12 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { API_BASE_URL } from "../../../config";
 
 // Fetch all routes
 export const fetchRoutes = createAsyncThunk("routes/fetchRoutes", async ({ page, limit }) => {
   try {
+    console.log("Fetching routes from ",API_BASE_URL,"/admin/routes..."); // Debug log
+    const res = await fetch(`${API_BASE_URL}/admin/routes?page=${page}&limit=${limit}`);
     console.log("Fetching routes from http://localhost:3251/admin/routes..."); // Debug log
-    const res = await fetch(`http://localhost:3251/admin/routes?page=${page}&limit=${limit}`);
     if (!res.ok) {
       const error = await res.json();
       throw new Error(error.error || "Failed to fetch routes");
@@ -22,7 +24,7 @@ export const fetchRoutes = createAsyncThunk("routes/fetchRoutes", async ({ page,
 export const addRoute = createAsyncThunk("routes/addRoute", async (routeData) => {
   try {
     console.log("Adding route:", routeData); // Debug log
-    const res = await fetch("http://localhost:3251/admin/routes", {
+    const res = await fetch(`${API_BASE_URL}/admin/routes`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(routeData),
@@ -44,7 +46,7 @@ export const addRoute = createAsyncThunk("routes/addRoute", async (routeData) =>
 export const toggleRouteStatus = createAsyncThunk("routes/toggleRouteStatus", async (id) => {
   try {
     console.log(`Toggling status for route id: ${id}`); // Debug log
-    const res = await fetch(`http://localhost:3251/admin/routes/${id}/status`, { method: "PATCH" });
+    const res = await fetch(`${API_BASE_URL}/admin/routes/${id}/status`, { method: "PATCH" });
     if (!res.ok) {
       const error = await res.json();
       throw new Error(error.error || "Failed to toggle route status");
@@ -62,7 +64,7 @@ export const toggleRouteStatus = createAsyncThunk("routes/toggleRouteStatus", as
 export const deleteRoute = createAsyncThunk("routes/deleteRoute", async (id) => {
   try {
     console.log(`Deleting route id: ${id}`); // Debug log
-    const res = await fetch(`http://localhost:3251/admin/routes/${id}`, { method: "DELETE" });
+    const res = await fetch(`${API_BASE_URL}/admin/routes/${id}`, { method: "DELETE" });
     if (!res.ok) {
       const error = await res.json();
       throw new Error(error.error || "Failed to delete route");

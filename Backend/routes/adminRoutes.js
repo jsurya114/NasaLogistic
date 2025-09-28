@@ -1,11 +1,13 @@
 import express from 'express'
-
+import { upload } from '../middlewares/multerConfig.js';
 const router = express.Router()
 import adminController from '../controllers/admin/adminController.js'
 import jobController from '../controllers/admin/jobController.js';
 import { createRoute,getRoutes,getRouteById, updateRoute, deleteRoute,toggleRouteStatus, fetchPaginatedRoutes} from "../controllers/admin/routeController.js"
 import { changeStatusUser, createUsers, getUsers } from '../controllers/admin/addUserController.js';
-
+import { getRoutes as getAccessCodeRoutes, createAccessCode } from '../controllers/admin/accessCodeControllers.js';
+import {DailyExcelUpload} from '../controllers/admin/fileUploadsController.js';
+import { getAccessCodes,updateAccessCode, } from '../controllers/admin/accessCodeControllers.js';
 
 router.post('/login',adminController.Login);
 
@@ -30,6 +32,13 @@ router.post('/create-users',createUsers);
 router.get('/get-users',getUsers);
 router.patch('/toggle-user/:id',changeStatusUser);
 
+
+//doubleStop and file upload
+// for fileuploads use upload.single('file') as middleware
+router.post('/doubleStop/fileUpload',upload.single('file'),DailyExcelUpload)
+router.post('/ds',DailyExcelUpload)
+
+
 // router.get('/admin/check-for-user',checkforSuperAdminOrNot)
 
 //logout from Admin
@@ -38,5 +47,9 @@ router.post('/logout',adminController.Logout);
 //Check for admin User
 router.get('/access-admin',adminController.getUser);
 
+router.get("/access-codes",getAccessCodeRoutes)
+router.post("/access-codes",createAccessCode)
+router.get("/access-codes/list", getAccessCodes)
+router.put("/access-codes/:id", updateAccessCode)
 
 export default router;
