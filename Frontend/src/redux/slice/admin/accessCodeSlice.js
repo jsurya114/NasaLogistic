@@ -45,10 +45,33 @@ export const fetchAccessCodeRoutes = createAsyncThunk(
   }
 );
 
+// Fetch all access codes
+export const fetchAccessCodes = createAsyncThunk(
+  "accessCodes/fetchAccessCodes",
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await fetch("http://localhost:3251/admin/access-codes/list", {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(`HTTP ${res.status}: ${errorText}`);
+      }
+      const data = await res.json();
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
 // Create an access code
 export const createAccessCode = createAsyncThunk(
   "accessCodes/createAccessCode",
-  async (accessCodeData, { rejectWithValue }) => {
+  async (accessCodeData, { rejectWithValue, dispatch }) => {
     try {
       console.log("🔄 Creating access code with data:", accessCodeData); // Debug log
       
@@ -70,9 +93,37 @@ export const createAccessCode = createAsyncThunk(
       
       const data = await res.json();
       console.log("✅ Created access code response:", data); // Debug log
+      dispatch(fetchAccessCodes()); // Refetch to update list
       return data.data; // Return the new access code data
     } catch (error) {
       console.error("💥 createAccessCode error:", error); // Debug log
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+// Update an access code
+export const updateAccessCode = createAsyncThunk(
+  "accessCodes/updateAccessCode",
+  async ({ id, route_id, address, access_code }, { rejectWithValue, dispatch }) => {
+    try {
+      const res = await fetch(`http://localhost:3251/admin/access-codes/${id}`, {
+        method: "PUT",
+        headers: { 
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ route_id, address, access_code }),
+      });
+      
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || `HTTP ${res.status}: Failed to update access code`);
+      }
+      
+      const data = await res.json();
+      dispatch(fetchAccessCodes()); // Refetch to update list
+      return data.data;
+    } catch (error) {
       return rejectWithValue(error.message);
     }
   }
@@ -82,7 +133,7 @@ const accessCodeSlice = createSlice({
   name: "accessCodes",
   initialState: {
     routes: [], // Store the list of routes for the dropdown
-    accessCodes: [], // Store the list of created access codes (if needed)
+    accessCodes: [], // Store the list of created access codes
     status: "idle", // idle | loading | succeeded | failed
     error: null,
   },
@@ -114,6 +165,20 @@ const accessCodeSlice = createSlice({
         state.error = action.payload || action.error.message || "Failed to fetch routes";
         state.routes = [];
       })
+      // Fetch access codes
+      .addCase(fetchAccessCodes.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
+      })
+      .addCase(fetchAccessCodes.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.accessCodes = action.payload || [];
+        state.error = null;
+      })
+      .addCase(fetchAccessCodes.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload || action.error.message || "Failed to fetch access codes";
+      })
       // Create access code
       .addCase(createAccessCode.pending, (state) => {
         console.log("🔄 createAccessCode.pending"); // Debug log
@@ -123,15 +188,25 @@ const accessCodeSlice = createSlice({
       .addCase(createAccessCode.fulfilled, (state, action) => {
         console.log("✅ createAccessCode.fulfilled:", action.payload); // Debug log
         state.status = "succeeded";
-        if (action.payload) {
-          state.accessCodes.push(action.payload); // Add the new access code to the list
-        }
         state.error = null;
       })
       .addCase(createAccessCode.rejected, (state, action) => {
         console.error("❌ createAccessCode.rejected:", action.payload); // Debug log
         state.status = "failed";
         state.error = action.payload || action.error.message || "Failed to create access code";
+      })
+      // Update access code
+      .addCase(updateAccessCode.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
+      })
+      .addCase(updateAccessCode.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.error = null;
+      })
+      .addCase(updateAccessCode.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload || action.error.message || "Failed to update access code";
       });
   },
 });

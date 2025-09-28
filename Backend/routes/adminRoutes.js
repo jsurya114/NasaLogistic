@@ -5,8 +5,7 @@ import adminController from '../controllers/admin/adminController.js'
 import jobController from '../controllers/admin/jobController.js';
 import { createRoute,getRoutes,getRouteById, updateRoute, deleteRoute,toggleRouteStatus} from "../controllers/admin/routeController.js"
 import { changeStatusUser, createUsers, getUsers } from '../controllers/admin/addUserController.js';
-import { getRoutes as getAccessCodeRoutes, createAccessCode } from '../controllers/admin/accessCodeControllers.js';
-
+import { getRoutes as getAccessCodeRoutes, createAccessCode, getAccessCodes, updateAccessCode } from '../controllers/admin/accessCodeControllers.js';
 router.post('/login',adminController.Login);
 router.get('/jobs', jobController.getJob);
 
@@ -40,5 +39,7 @@ router.get('/access-admin',adminController.getUser);
 
 router.get("/access-codes",getAccessCodeRoutes)
 router.post("/access-codes",createAccessCode)
+router.get("/access-codes/list", getAccessCodes)
+router.put("/access-codes/:id", updateAccessCode)
 
 export default router;
