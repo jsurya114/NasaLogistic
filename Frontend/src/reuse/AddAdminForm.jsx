@@ -8,6 +8,7 @@ function AddAdminForm({ onSubmit }) {
     confirmPassword: "",
     role: "admin",
   });
+
   const [errors, setErrors] = useState({});
 
   const handleChange = (e) => {
@@ -95,8 +96,7 @@ function AddAdminForm({ onSubmit }) {
         name="role"
         value={form.role}
         onChange={handleChange}
-        className="px-3 py-2 border rounded-lg"
-      >
+        className="px-3 py-2 border rounded-lg">
         <option value="admin">Admin</option>
         <option value="superadmin">Super Admin</option>
       </select>

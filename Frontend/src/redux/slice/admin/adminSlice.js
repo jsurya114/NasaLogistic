@@ -127,10 +127,12 @@ const adminSlice = createSlice({
             state.loading=false;
             state.isAuthenticated=true;
             state.admin=action.payload.admin;
+            // console.log(state.admin);
             if(action.payload.admin.role==='superadmin'){
                 state.isSuperAdmin= true;
             }else
                 state.isSuperAdmin= false;
+                // console.log("State of SuperAdmin ", state.isSuperAdmin);
         })
         .addCase(accessAdminUser.rejected,(state,action)=>{
             state.loading=false;

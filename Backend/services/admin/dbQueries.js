@@ -30,12 +30,18 @@ export const dbService={
         return result.rows[0];
     },
 
-
-    getAllDrivers :async()=>{
+    getCountOfDrivers:async()=>{
+      const countResult = await pool.query(`SELECT COUNT(*) FROM drivers`);
+      return parseInt(countResult.rows[0].count,10);
+    },
+    getAllDrivers :async(lim,offset)=>{
         let result = await pool.query(`
             select d.id, d.driver_code, d.name,d.email, c.job, d.enabled 
             from drivers d
-            join city c on d.city_id=c.id `);
+            join city c on d.city_id=c.id 
+            order by d.name asc
+            limit $1 offset $2`,
+          [lim,offset]);
         return result.rows;
     },
     getAllAdmins: async () => {
@@ -56,7 +62,7 @@ export const dbService={
     const result = await pool.query(
       `INSERT INTO drivers (name, email, password, city_id, enabled) 
        VALUES ($1, $2, $3, $4, $5) 
-       RETURNING id,name,email,role,is_active`,
+       RETURNING id,name,email,enabled,city_id,driver_code`,
       [data.name, data.email, hashedPwd, city_id, data.enabled]
     );
     return result.rows[0];
@@ -72,7 +78,7 @@ export const dbService={
     const result = await pool.query(
       `INSERT INTO admin (name, email, password, role) 
        VALUES ($1, $2, $3, $4) 
-       RETURNING *`,
+       RETURNING id,name,email,role`,
       [data.name, data.email, hashedPwd, data.role]
     );
     return result.rows[0];
@@ -130,6 +136,7 @@ export const dbService={
   );
   return result.rows[0];
 },
+
   getDashboardData : async ()=>{
     const result = await pool.query(
       `SELECT * FROM dashboard_data
