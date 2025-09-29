@@ -40,7 +40,7 @@ export const changeStatusAdmin= async(req,res)=>{
         console.log("Data from url ",id);
         const checkUser= await dbService.getAdminById(id);
         if(!checkUser)
-            return res.status(HttpStatus.NOT_FOUND).json({message:"Admin does not exists"});
+            return res.status(HttpStatus.NOT_FOUND).json({message:"Admin does not exist!!"});
         const data= await dbService.changeStatusOfAdmin(id);
         // console.log("Data",data)
         return res.status(HttpStatus.OK).json({message:"Admin updated successfully!!",data});

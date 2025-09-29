@@ -5,6 +5,7 @@ import { getUsers } from "../redux/slice/admin/userLoadSlice";
 
 function AddDriverForm({ onSubmit }) {
    const { cities, status: jobsStatus, error: jobsError } = useSelector((state) => state.jobs);
+   const {loading}= useSelector((state)=>state.users);
     const dispatch=useDispatch();
 
     useEffect(()=>{
@@ -170,7 +171,7 @@ function AddDriverForm({ onSubmit }) {
         type="submit"
         className="px-6 py-2 bg-purple-700 text-white rounded-lg shadow hover:bg-purple-800"
       >
-        Add Driver
+        {loading ? 'Adding Driver...' : 'Add Driver' }
       </button>
     </form>
   );

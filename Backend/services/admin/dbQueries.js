@@ -46,7 +46,7 @@ export const dbService={
     },
     getAllAdmins: async () => {
       const result = await pool.query(
-        `SELECT name, email, role
+        `SELECT id,name, email, role,is_active
         FROM admin
         WHERE id != $1`,
         [100]

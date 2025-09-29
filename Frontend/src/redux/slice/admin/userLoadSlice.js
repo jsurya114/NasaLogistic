@@ -156,6 +156,10 @@ const userLoadSlice=createSlice({
     state.error = null;
     state.success = null;
   },
+  clearPaginateTerms:(state)=>{
+    state.page=1;
+    state.totalPages=0;
+  }
     },
     extraReducers:(builder)=>{
         builder
@@ -264,5 +268,5 @@ const userLoadSlice=createSlice({
         })
     }
 })
-export const {clearMessages} =userLoadSlice.actions
+export const {clearMessages,clearPaginateTerms} =userLoadSlice.actions
 export default userLoadSlice.reducer;

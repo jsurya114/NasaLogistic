@@ -36,7 +36,7 @@ router.patch('/toggle-user/:id',changeStatusUser);
 //Admin Creation
 router.post("/create-admin",createAdmins);
 router.get('/get-admins',getAdmins);
-router.patch('/toggle-user/:id',changeStatusAdmin);
+router.patch('/toggle-admin/:id',changeStatusAdmin);
 router.patch('/toggle-admin-role/:id',changeRoleAdmin);
 
 
