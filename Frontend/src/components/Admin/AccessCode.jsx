@@ -248,7 +248,7 @@ export default function AddAccessCodePage() {
                   value={selectedRoute}
                   onChange={(e) => setSelectedRoute(e.target.value)}
                   className="w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 bg-white text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 appearance-none text-base font-medium shadow-sm hover:border-gray-300"
-                  required
+                  
                   disabled={status === "loading"}
                 >
                   <option value="">Choose a route...</option>
@@ -324,7 +324,7 @@ export default function AddAccessCodePage() {
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                   className="w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 text-base font-medium shadow-sm hover:border-gray-300 placeholder-gray-400"
-                  required
+                  
                   disabled={status === "loading"}
                 />
                 <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none">

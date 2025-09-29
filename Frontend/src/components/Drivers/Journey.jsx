@@ -9,7 +9,7 @@ import {
   fetchTodayJourney,
   saveJourney,
   clearJourneyError,
-} from "../../redux/slice/driver/journeySlice";
+} from "../../redux/slice/driver/journeySlice.js";
 
 const Journey = () => {
   const { driver } = useSelector((state) => state.driver);
