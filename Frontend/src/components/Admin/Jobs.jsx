@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import Header from "../../reuse/Header";
 import Nav from "../../reuse/Nav";
 import { fetchJobs, addJob, deleteJob, jobStatus, fetchPaginatedJobs } from "../../redux/slice/admin/jobSlice";
 import Pagination from "../../reuse/Pagination.jsx";
+
 function Jobs() {
   const dispatch = useDispatch();
   const { cities, page, totalPages } = useSelector((state) => state.jobs);
@@ -23,6 +26,7 @@ function Jobs() {
   const handlePageChange=(newPage)=>{
     dispatch(fetchPaginatedJobs({page:newPage,limit:3}))
   }
+  
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setForm({ ...form, [name]: type === "checkbox" ? checked : value });
@@ -54,9 +58,32 @@ function Jobs() {
         console.log("Job added:", actionResult.payload);
         setForm({ job: "", city_code: "", enabled: true });
         setErrors({});
+        
+        // Success toast notification
+        toast.success('Job added successfully!', {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+        
+        // Refresh the current page data
+        dispatch(fetchPaginatedJobs({page: page || 1, limit: 3}));
       }
     } catch (err) {
       console.error("Failed to add job:", err);
+      
+      // Error toast notification
+      toast.error('Failed to add job. Please try again.', {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
     }
   };
 
@@ -66,16 +93,48 @@ function Jobs() {
 
     try {
       await dispatch(deleteJob(id));
+      toast.success('Job deleted successfully!', {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
     } catch (err) {
       console.error("Failed to delete job:", err);
+      toast.error('Failed to delete job. Please try again.', {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
     }
   };
 
   const handleToggleStatus = async (id) => {
     try {
       await dispatch(jobStatus(id));
+      toast.success('Job status updated successfully!', {
+        position: "top-right",
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
     } catch (err) {
       console.error("Failed to toggle status:", err);
+      toast.error('Failed to update job status. Please try again.', {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
     }
   };
 
@@ -207,6 +266,21 @@ function Jobs() {
 
       </main>
       <Nav />
+      
+      {/* Toast Container */}
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+        className="mt-16" // Add margin-top to avoid header overlap
+      />
     </div>
   );
 }

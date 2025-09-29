@@ -12,10 +12,10 @@ function Pagination({ page, totalPages, onPageChange }) {
         disabled={page === 1}
         className={`
           group relative inline-flex items-center px-5 py-2.5 text-sm font-semibold 
-          rounded-lg border transition-all duration-200 ease-out transform
+          rounded-md border transition-all duration-200 ease-out transform
           ${page === 1
             ? "bg-gray-50 text-gray-400 cursor-not-allowed border-gray-200"
-            : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 hover:text-gray-900 hover:border-gray-400 hover:shadow-md hover:scale-[1.02]"
+            : "bg-white text-[#462976] border-[#462976]/30 hover:bg-[#462976] hover:text-white hover:border-[#462976] hover:shadow-lg hover:scale-[1.02]"
           }
         `}
       >
@@ -35,16 +35,16 @@ function Pagination({ page, totalPages, onPageChange }) {
               onClick={() => onPageChange(pg)}
               className={`
                 group relative inline-flex items-center justify-center w-10 h-10 text-sm font-semibold 
-                rounded-lg border transition-all duration-200 ease-out transform
+                rounded-md border transition-all duration-200 ease-out transform
                 ${pg === page
-                  ? "bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-600/25 scale-105"
-                  : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 hover:text-gray-900 hover:border-gray-400 hover:shadow-md hover:scale-[1.02]"
+                  ? "bg-[#462976] text-white border-[#462976] shadow-lg shadow-[#462976]/25 scale-105"
+                  : "bg-white text-[#462976] border-[#462976]/30 hover:bg-[#462976]/10 hover:text-[#462976] hover:border-[#462976] hover:shadow-md hover:scale-[1.02]"
                 }
               `}
             >
               <span className="relative">{pg}</span>
               {pg === page && (
-                <div className="absolute inset-0 bg-white opacity-10 rounded-lg animate-pulse"></div>
+                <div className="absolute inset-0 bg-white opacity-10 rounded-md animate-pulse"></div>
               )}
             </button>
           );
@@ -57,10 +57,10 @@ function Pagination({ page, totalPages, onPageChange }) {
         disabled={page === totalPages}
         className={`
           group relative inline-flex items-center px-5 py-2.5 text-sm font-semibold 
-          rounded-lg border transition-all duration-200 ease-out transform
+          rounded-md border transition-all duration-200 ease-out transform
           ${page === totalPages
             ? "bg-gray-50 text-gray-400 cursor-not-allowed border-gray-200"
-            : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 hover:text-gray-900 hover:border-gray-400 hover:shadow-md hover:scale-[1.02]"
+            : "bg-white text-[#462976] border-[#462976]/30 hover:bg-[#462976] hover:text-white hover:border-[#462976] hover:shadow-lg hover:scale-[1.02]"
           }
         `}
       >
