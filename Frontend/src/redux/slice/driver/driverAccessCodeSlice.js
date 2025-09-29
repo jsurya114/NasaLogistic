@@ -3,10 +3,10 @@ import { API_BASE_URL } from "../../../config";
 
 // Fetch all routes for access codes
 export const fetchAccessCodeRoutes = createAsyncThunk(
-  "accessCodes/fetchAccessCodeRoutes",
+  "driverAccessCodes/fetchAccessCodeRoutes",
   async (_, { rejectWithValue }) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/admin/access-codes`, {
+      const res = await fetch(`${API_BASE_URL}/driver/access-codes`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -33,7 +33,7 @@ export const fetchAccessCodeRoutes = createAsyncThunk(
 
 // Fetch paginated access codes
 export const fetchAccessCodes = createAsyncThunk(
-  "accessCodes/fetchAccessCodes",
+  "driverAccessCodes/fetchAccessCodes",
   async ({ page = 1, limit = 10, search = '', routeFilter = '' } = {}, { rejectWithValue }) => {
     try {
       const params = new URLSearchParams({
@@ -43,7 +43,7 @@ export const fetchAccessCodes = createAsyncThunk(
         ...(routeFilter && { route_id: routeFilter })
       });
 
-      const res = await fetch(`${API_BASE_URL}/admin/access-codes/list?${params}`, {
+      const res = await fetch(`${API_BASE_URL}/driver/access-codes/list?${params}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -65,10 +65,10 @@ export const fetchAccessCodes = createAsyncThunk(
 
 // Create an access code
 export const createAccessCode = createAsyncThunk(
-  "accessCodes/createAccessCode",
+  "driverAccessCodes/createAccessCode",
   async (accessCodeData, { rejectWithValue, dispatch, getState }) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/admin/access-codes`, {
+      const res = await fetch(`${API_BASE_URL}/driver/access-codes`, {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
@@ -84,7 +84,7 @@ export const createAccessCode = createAsyncThunk(
       const data = await res.json();
       
       // Refetch with current pagination settings
-      const { currentPage, pageLimit, searchTerm, routeFilter } = getState().accessCodes;
+      const { currentPage, pageLimit, searchTerm, routeFilter } = getState().driverAccessCodes;
       dispatch(fetchAccessCodes({ 
         page: currentPage, 
         limit: pageLimit, 
@@ -99,77 +99,8 @@ export const createAccessCode = createAsyncThunk(
   }
 );
 
-// Update an access code
-export const updateAccessCode = createAsyncThunk(
-  "accessCodes/updateAccessCode",
-  async ({ id, route_id, address, access_code }, { rejectWithValue, dispatch, getState }) => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/admin/access-codes/${id}`, {
-        method: "PUT",
-        headers: { 
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ route_id, address, access_code }),
-      });
-      
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || `HTTP ${res.status}: Failed to update access code`);
-      }
-      
-      const data = await res.json();
-      
-      // Refetch with current pagination settings
-      const { currentPage, pageLimit, searchTerm, routeFilter } = getState().accessCodes;
-      dispatch(fetchAccessCodes({ 
-        page: currentPage, 
-        limit: pageLimit, 
-        search: searchTerm, 
-        routeFilter 
-      }));
-      
-      return data.data;
-    } catch (error) {
-      return rejectWithValue(error.message);
-    }
-  }
-);
-
-// Delete an access code
-export const deleteAccessCode = createAsyncThunk(
-  "accessCodes/deleteAccessCode",
-  async (id, { rejectWithValue, dispatch, getState }) => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/admin/access-codes/${id}`, {
-        method: "DELETE",
-        headers: { 
-          "Content-Type": "application/json",
-        },
-      });
-      
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || `HTTP ${res.status}: Failed to delete access code`);
-      }
-      
-      // Refetch with current pagination settings
-      const { currentPage, pageLimit, searchTerm, routeFilter } = getState().accessCodes;
-      dispatch(fetchAccessCodes({ 
-        page: currentPage, 
-        limit: pageLimit, 
-        search: searchTerm, 
-        routeFilter 
-      }));
-      
-      return id;
-    } catch (error) {
-      return rejectWithValue(error.message);
-    }
-  }
-);
-
-const accessCodeSlice = createSlice({
-  name: "accessCodes",
+const driverAccessCodeSlice = createSlice({
+  name: "driverAccessCodes",
   initialState: {
     routes: [],
     accessCodes: [],
@@ -252,35 +183,9 @@ const accessCodeSlice = createSlice({
       .addCase(createAccessCode.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.payload || action.error.message || "Failed to create access code";
-      })
-      // Update access code
-      .addCase(updateAccessCode.pending, (state) => {
-        state.status = "loading";
-        state.error = null;
-      })
-      .addCase(updateAccessCode.fulfilled, (state, action) => {
-        state.status = "succeeded";
-        state.error = null;
-      })
-      .addCase(updateAccessCode.rejected, (state, action) => {
-        state.status = "failed";
-        state.error = action.payload || action.error.message || "Failed to update access code";
-      })
-      // Delete access code
-      .addCase(deleteAccessCode.pending, (state) => {
-        state.status = "loading";
-        state.error = null;
-      })
-      .addCase(deleteAccessCode.fulfilled, (state, action) => {
-        state.status = "succeeded";
-        state.error = null;
-      })
-      .addCase(deleteAccessCode.rejected, (state, action) => {
-        state.status = "failed";
-        state.error = action.payload || action.error.message || "Failed to delete access code";
       });
   },
 });
 
-export const { clearError, resetStatus, setPage, setPageLimit, setSearchTerm, setRouteFilter } = accessCodeSlice.actions;
-export default accessCodeSlice.reducer;
+export const { clearError, resetStatus, setPage, setPageLimit, setSearchTerm, setRouteFilter } = driverAccessCodeSlice.actions;
+export default driverAccessCodeSlice.reducer;

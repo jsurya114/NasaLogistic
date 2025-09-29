@@ -6,19 +6,17 @@ import {
   fetchAccessCodeRoutes,
   fetchAccessCodes,
   createAccessCode,
-  updateAccessCode,
   clearError,
   setPage,
   setPageLimit,
   setSearchTerm,
   setRouteFilter,
-} from "../../redux/slice/admin/accessCodeSlice";
-import Header from "../../reuse/Header";
-import Nav from "../../reuse/Nav";
-import Swal from "sweetalert2";
+} from "../../redux/slice/driver/driverAccessCodeSlice";
+import Header from "../../reuse/driver/Header";
+import Nav from "../../reuse/driver/Nav"
 import { toast } from "react-toastify";
 
-export default function AddAccessCodePage() {
+export default function DriverAccessCodePage() {
   const dispatch = useDispatch();
   const {
     routes = [],
@@ -31,7 +29,7 @@ export default function AddAccessCodePage() {
     totalItems,
     searchTerm,
     routeFilter,
-  } = useSelector((state) => state.accessCodes || {});
+  } = useSelector((state) => state.driverAccessCodes || {});
 
   const [address, setAddress] = useState("");
   const [accessCode, setAccessCode] = useState("");
@@ -55,10 +53,11 @@ export default function AddAccessCodePage() {
   }, [routes, selectedRoute]);
 
   useEffect(() => {
-    return () => {
+    if (reduxError) {
+      toast.error(reduxError, { position: "top-right", autoClose: 4000 });
       dispatch(clearError());
-    };
-  }, [dispatch]);
+    }
+  }, [reduxError, dispatch]);
 
   const validateField = (name, value) => {
     let error = "";
@@ -148,88 +147,6 @@ export default function AddAccessCodePage() {
     } catch (err) {
       toast.error(err || "Failed to create access code", { position: "top-right", autoClose: 4000 });
     }
-  };
-
-  const handleEdit = (ac) => {
-    Swal.fire({
-      title: '<div style="color: #1f2937; font-size: 24px; font-weight: 600;">Edit Access Code</div>',
-      html: `
-        <div style="text-align: left; padding: 0 8px;">
-          <div style="margin-bottom: 20px;">
-            <label for="swal-route" style="display: block; font-size: 14px; font-weight: 500; color: #374151; margin-bottom: 8px;">Route</label>
-            <select id="swal-route" style="width: 100%; padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; color: #1f2937; background: white;">
-              ${routes.map((r) => `<option value="${r.id}" ${r.id === ac.route_id ? "selected" : ""}>Route ${r.name}</option>`).join("")}
-            </select>
-          </div>
-          <div style="margin-bottom: 20px;">
-            <label for="swal-address" style="display: block; font-size: 14px; font-weight: 500; color: #374151; margin-bottom: 8px;">Address</label>
-            <input id="swal-address" value="${ac.address}" style="width: 100%; padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; color: #1f2937;" placeholder="Enter address">
-          </div>
-          <div style="margin-bottom: 8px;">
-            <label for="swal-accesscode" style="display: block; font-size: 14px; font-weight: 500; color: #374151; margin-bottom: 8px;">Access Code</label>
-            <input id="swal-accesscode" value="${ac.access_code}" style="width: 100%; padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; color: #1f2937;" placeholder="Enter access code">
-          </div>
-        </div>
-      `,
-      focusConfirm: false,
-      width: "500px",
-      padding: "32px",
-      customClass: {
-        popup: "rounded-xl shadow-2xl",
-        confirmButton: "text-white font-medium py-3 px-6 rounded-lg mr-3",
-        cancelButton: "bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-6 rounded-lg",
-      },
-      buttonsStyling: false,
-      didOpen: () => {
-        const confirmButton = document.querySelector(".swal2-confirm");
-        if (confirmButton) {
-          confirmButton.style.backgroundColor = "#8200db";
-          confirmButton.style.borderColor = "#8200db";
-          confirmButton.addEventListener("mouseenter", () => {
-            confirmButton.style.backgroundColor = "#7300c4";
-          });
-          confirmButton.addEventListener("mouseleave", () => {
-            confirmButton.style.backgroundColor = "#8200db";
-          });
-        }
-      },
-      preConfirm: () => {
-        const routeId = document.getElementById("swal-route").value;
-        const address = document.getElementById("swal-address").value.trim();
-        const accessCode = document.getElementById("swal-accesscode").value.trim();
-
-        if (!routeId || !address || !accessCode) {
-          Swal.showValidationMessage("All fields are required");
-          return;
-        }
-        if (address.length < 5) {
-          Swal.showValidationMessage("Address must be at least 5 characters");
-          return;
-        }
-        if (!/^[a-zA-Z0-9]+$/.test(accessCode)) {
-          Swal.showValidationMessage("Access code must be alphanumeric");
-          return;
-        }
-        if (accessCode.length < 4) {
-          Swal.showValidationMessage("Access code must be at least 4 characters");
-          return;
-        }
-
-        return { id: ac.id, route_id: Number.parseInt(routeId), address, access_code: accessCode };
-      },
-      showCancelButton: true,
-      confirmButtonText: "Save Changes",
-      cancelButtonText: "Cancel",
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        try {
-          await dispatch(updateAccessCode(result.value)).unwrap();
-          toast.success("Access code updated successfully!", { position: "top-right", autoClose: 3000 });
-        } catch (err) {
-          toast.error(err || "Failed to update access code", { position: "top-right", autoClose: 4000 });
-        }
-      }
-    });
   };
 
   const handleSearch = () => {
@@ -541,9 +458,6 @@ export default function AddAccessCodePage() {
                           <th className="px-2 sm:px-4 lg:px-6 py-3 sm:py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider hidden lg:table-cell">
                             Created At
                           </th>
-                          <th className="px-2 sm:px-4 lg:px-6 py-3 sm:py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
-                            Actions
-                          </th>
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-100">
@@ -571,27 +485,6 @@ export default function AddAccessCodePage() {
                               <span className="text-sm text-gray-600">
                                 {new Date(ac.created_at).toLocaleString()}
                               </span>
-                            </td>
-                            <td className="px-2 sm:px-4 lg:px-6 py-3 sm:py-5 whitespace-nowrap">
-                              <button
-                                onClick={() => handleEdit(ac)}
-                                className="inline-flex items-center justify-center px-2 sm:px-3 py-2 bg-[#8200db] text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-[#7300c4] transition-all"
-                              >
-                                <svg
-                                  className="w-3 h-3 sm:w-4 sm:h-4 mr-1"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                                  />
-                                </svg>
-                                <span className="hidden sm:inline">Edit</span>
-                              </button>
                             </td>
                           </tr>
                         ))}

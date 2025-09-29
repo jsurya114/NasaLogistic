@@ -17,8 +17,8 @@ import DProtectRoutes from "./routes/driver/DProtectedRoutes.jsx";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-
 import AddAccessCodePage from "./components/Admin/AccessCode.jsx"
+import DriverAccessCodePage from "./components/Drivers/AccessCode.jsx";
 function App() {
   return (
   <>
@@ -56,6 +56,7 @@ function App() {
          
          <Route element={<DProtectRoutes/>}>
           <Route path="/driver/driver-dashboard" element={ <Journey/>} />
+          <Route path="/driver/access-codes" element={<DriverAccessCodePage />} />
           
           
           </Route>

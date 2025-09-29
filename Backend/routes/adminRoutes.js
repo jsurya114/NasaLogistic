@@ -52,4 +52,5 @@ router.post("/access-codes",createAccessCode)
 router.get("/access-codes/list", getAccessCodes)
 router.put("/access-codes/:id", updateAccessCode)
 
+
 export default router;
