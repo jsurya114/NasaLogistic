@@ -8,6 +8,7 @@ import { changeStatusUser, createUsers, getUsers } from '../controllers/admin/ad
 import { getRoutes as getAccessCodeRoutes, createAccessCode } from '../controllers/admin/accessCodeControllers.js';
 import {DailyExcelUpload} from '../controllers/admin/fileUploadsController.js';
 import { getAccessCodes,updateAccessCode, } from '../controllers/admin/accessCodeControllers.js';
+import { changeRoleAdmin, changeStatusAdmin, createAdmins, getAdmins } from '../controllers/admin/addAdminController.js';
 
 router.post('/login',adminController.Login);
 
@@ -32,16 +33,19 @@ router.post('/create-users',createUsers);
 router.get('/get-users',getUsers);
 router.patch('/toggle-user/:id',changeStatusUser);
 
+//Admin Creation
+router.post("/create-admin",createAdmins);
+router.get('/get-admins',getAdmins);
+router.patch('/toggle-user/:id',changeStatusAdmin);
+router.patch('/toggle-admin-role/:id',changeRoleAdmin);
 
-//doubleStop and file upload
+
+//DoubleStop and file upload
 // for fileuploads use upload.single('file') as middleware
 router.post('/doubleStop/fileUpload',upload.single('file'),DailyExcelUpload)
 router.post('/ds',DailyExcelUpload)
 
-
-// router.get('/admin/check-for-user',checkforSuperAdminOrNot)
-
-//logout from Admin
+//Logout from Admin
 router.post('/logout',adminController.Logout);
 
 //Check for admin User
