@@ -23,7 +23,7 @@ const handleSubmit = async (e) => {
       const result = await dispatch(adminLogin({ email, password })).unwrap();
       if (result.admin) {
         toast.success("Login successful!", {
-          position: "bottom-center",
+          position: "top-right",
           autoClose: 3000,
           hideProgressBar: false,
           closeOnClick: false,

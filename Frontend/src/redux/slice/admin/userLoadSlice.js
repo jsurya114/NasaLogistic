@@ -1,11 +1,11 @@
 import { createSlice, createAsyncThunk, isAction } from "@reduxjs/toolkit";
 import { API_BASE_URL } from "../../../config";
 
-export const checkUserOrAdmin=createAsyncThunk("/admin/check-for-user",
-    async(_,{rejectWithValue})=>{
+export const toggleAdminRole=createAsyncThunk("/admin/toggle-admin-role",
+    async(id,{rejectWithValue})=>{
         try{
-            const res=await fetch(`${API_BASE_URL}/admin/check-for-user`,{
-                method:"GET",
+            const res=await fetch(`${API_BASE_URL}/admin/toggle-admin-role/${id}`,{
+                method:"PATCH",
                 headers:{"Content-Type":"application/json"},
             });
             const data = await res.json();
@@ -42,15 +42,33 @@ export const addDriver= createAsyncThunk("/admin/create-users",
 )
 
 export const getUsers = createAsyncThunk('/admin/get-users',
-    async(_,{rejectWithValue})=>{
+    async({page=1},{rejectWithValue})=>{
         try{
-            const res= await fetch(`${API_BASE_URL}/admin/get-users`,{
+            const res= await fetch(`${API_BASE_URL}/admin/get-users?page=${page}`,{
                 method:"GET",
                 headers:{"Content-Type":"application/json"},
             });
             const data= await res.json();
             if(!res.ok){
                 return rejectWithValue(data.message||"Error while getting users data")
+            }
+            return data;
+        }catch(err){
+            return rejectWithValue(err.message)
+        }
+    }
+)
+
+export const getAdmins = createAsyncThunk('/admin/get-admins',
+    async({page=1},{rejectWithValue})=>{
+        try{
+            const res= await fetch(`${API_BASE_URL}/admin/get-admins?page=${page}`,{
+                method:"GET",
+                headers:{"Content-Type":"application/json"},
+            });
+            const data= await res.json();
+            if(!res.ok){
+                return rejectWithValue(data.message||"Error while getting admins data")
             }
             return data;
         }catch(err){
@@ -78,11 +96,30 @@ export const toggleAvailUser= createAsyncThunk(`/admin/toggle-user`,async(id,{re
     }
 })
 
+export const toggleAvailAdmin= createAsyncThunk(`/admin/toggle-admin`,async(id,{rejectWithValue})=>{
+    try{
+        // console.log("Entered toggle User route ",id);
+        const res = await fetch(`${API_BASE_URL}/admin/toggle-admin/${id}`,{
+            method:'PATCH',
+            headers:{"Content-Type":"application/json"}
+        });
+        const data= await res.json();
+        // console.log("Data from server in toggle ",data);
+        if(!res.ok){
+            return rejectWithValue(data.message||"Disable admin failure");
+        }
+        return data;
+    }catch(err){
+        return rejectWithValue(err.message);
+    }
+})
 
-export const addAdmin= createAsyncThunk(`${API_BASE_URL}/admin/create-admin`,
+
+export const addAdmin= createAsyncThunk(`/admin/create-admin`,
     async(formData,{rejectWithValue})=>{
         try {
-            const res=await fetch("/admin/create-admin",{
+            console.log("Admin data ",formData);
+            const res=await fetch(`${API_BASE_URL}/admin/create-admin`,{
                 method:"POST",
                 headers:{"Content-Type":"application/json"},
                 body:JSON.stringify(formData),
@@ -90,7 +127,7 @@ export const addAdmin= createAsyncThunk(`${API_BASE_URL}/admin/create-admin`,
             const data = await res.json();
             // console.log("Response from server ",data);
             if(!res.ok){
-                return rejectWithValue(data.message||"User Add failure")
+                return rejectWithValue(data.message||"Admin Add failure")
             }
 
               return data;
@@ -100,21 +137,29 @@ export const addAdmin= createAsyncThunk(`${API_BASE_URL}/admin/create-admin`,
     }
 )
 
+
+
+
 const userLoadSlice=createSlice({
     name:"usersCumAdmin",
     initialState:{
         loading:false,
         error:null,
         success:null,
-        // isSuperAdmin:false,
         drivers:[],
-        admins:[]
+        admins:[],
+        page:1,
+        totalPages:0,
     },
     reducers:{
         clearMessages: (state) => {
     state.error = null;
     state.success = null;
   },
+  clearPaginateTerms:(state)=>{
+    state.page=1;
+    state.totalPages=0;
+  }
     },
     extraReducers:(builder)=>{
         builder
@@ -136,13 +181,30 @@ const userLoadSlice=createSlice({
             state.loading=true;
         })
         .addCase(getUsers.fulfilled,(state,action)=>{            
-        if (JSON.stringify(state.drivers) !== JSON.stringify(action.payload.data)) {
-            state.drivers = action.payload.data;
+        if (JSON.stringify(state.drivers) !== JSON.stringify(action.payload.drivers)) {
+            state.drivers = action.payload.drivers;
             }
+            state.page=action.payload.page;
+            state.totalPages=action.payload.totalPages;
             state.loading=false;
             state.success= null;
         })
         .addCase(getUsers.rejected,(state,action)=>{
+            state.error=action.payload.message;
+        })
+        .addCase(getAdmins.pending,(state)=>{
+            state.loading=true;
+        })
+        .addCase(getAdmins.fulfilled,(state,action)=>{            
+        if (JSON.stringify(state.admins) !== JSON.stringify(action.payload.admins)) {
+            state.admins = action.payload.admins;
+            }
+            state.loading=false;
+            state.success= null;
+            state.page=action.payload.page;
+            state.totalPages=action.payload.totalPages;
+        })
+        .addCase(getAdmins.rejected,(state,action)=>{
             state.error=action.payload.message;
         })
          .addCase(toggleAvailUser.pending,(state)=>{
@@ -161,7 +223,52 @@ const userLoadSlice=createSlice({
             state.error = action.payload?.message || "Failed to update driver status"
             state.success = null;
         })
+         .addCase(toggleAvailAdmin.pending,(state)=>{
+            state.loading=true;
+        })
+        .addCase(toggleAvailAdmin.fulfilled,(state,action)=>{          
+             const updatedAdmin = action.payload.data;
+            state.admins = state.admins.map(d =>
+            d.id === updatedAdmin.id ? updatedAdmin : d
+            );        
+            state.loading=false;
+            state.success= action.payload.message;
+        })
+        .addCase(toggleAvailAdmin.rejected,(state,action)=>{
+            state.loading = false;
+            state.error = action.payload?.message || "Failed to update admin status"
+            state.success = null;
+        })
+         .addCase(toggleAdminRole.pending,(state)=>{
+            state.loading=true;
+        })
+        .addCase(toggleAdminRole.fulfilled,(state,action)=>{          
+             const updatedAdmin = action.payload.data;
+            state.admins = state.admins.map(d =>
+            d.id === updatedAdmin.id ? updatedAdmin : d
+            );        
+            state.loading=false;
+            state.success= action.payload.message;
+        })
+        .addCase(toggleAdminRole.rejected,(state,action)=>{
+            state.loading = false;
+            state.error = action.payload?.message || "Failed to update admin status"
+            state.success = null;
+        })
+        .addCase(addAdmin.pending,(state)=>{
+            state.loading=true;
+        })
+        .addCase(addAdmin.fulfilled,(state,action)=>{          
+            state.admins.push(action.payload.insertAdmin)
+            state.loading=false;
+            state.success= action.payload.message;
+        })
+        .addCase(addAdmin.rejected,(state,action)=>{
+            state.loading = false;
+            state.error = action.payload?.message || "Failed to update admin status"
+            state.success = null;
+        })
     }
 })
-export const {clearMessages} =userLoadSlice.actions
+export const {clearMessages,clearPaginateTerms} =userLoadSlice.actions
 export default userLoadSlice.reducer;

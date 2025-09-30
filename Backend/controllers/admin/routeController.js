@@ -5,6 +5,7 @@ import {
   updateRouteQuery,
   deleteRouteQuery,
   toggleRouteStatusQuery,
+  routePagination
 } from "../../services/admin/routeQueries.js";
 import HttpStatus from "../../utils/statusCodes.js";
 
@@ -68,6 +69,30 @@ if (!route || route.trim() === "") {
   }
 };
 
+
+export const fetchPaginatedRoutes=async(req,res)=>{
+  try {
+    const page = parseInt(req.query.page)||1
+    const limit = parseInt(req.query.limit)||4
+    const search  = req.query.search||""
+    const {routes,total}=await routePagination(page,limit,search)
+
+    res.status(HttpStatus.OK).json({
+      success:true,
+      routes:routes.map(mapRoute),
+      total,
+      page,
+      totalPages:Math.ceil(total/limit)
+    })
+  } catch (error) {
+     console.error("❌ fetchPaginatedRoutes error:", error.message);
+    res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: error.message,
+    });
+  }
+}
+
 // Get all routes
 export const getRoutes = async (req, res) => {
   try {
@@ -75,7 +100,7 @@ export const getRoutes = async (req, res) => {
     const routesDb = await getAllRoutes();
     const routes = routesDb.map(mapRoute);
     console.log("Returning routes:", routes); // Debug log
-    res.json(routes);
+    res.json({routes});
   } catch (err) {
     console.error("❌ getRoutes error:", err.message); // Debug log
     res.status(HttpStatus.INTERNAL_SERVER_ERROR).json( {err:message});

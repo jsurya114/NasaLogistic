@@ -1,5 +1,5 @@
 // controllers/admin/accessCodeControllers.js
-import accessCodeQueries from "../../services/admin/accessCodeQueries.js";
+import accessCodeQueries from "../../services/driver/accessCodeQueries";
 
 export const getRoutes = async (req, res) => {
   try {

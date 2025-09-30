@@ -43,8 +43,56 @@ cityStatus: async (id) => {
     [newStatus, id]
   );
   return result.rows[0];
-}
+},
+jobPagination: async (page, limit, search = "") => {
+  try {
+    const offset = (page - 1) * limit;
 
+    let jobsQuery;
+    let countQuery;
+    let values;
+
+    if (search) {
+      jobsQuery = `
+        SELECT * FROM city
+        WHERE job ILIKE $1 OR city_code ILIKE $1
+        ORDER BY id ASC
+        LIMIT $2 OFFSET $3
+      `;
+      values = [`%${search}%`, limit, offset];
+
+      countQuery = `
+        SELECT COUNT(*) FROM city
+        WHERE job ILIKE $1 OR city_code ILIKE $1
+      `;
+    } else {
+      jobsQuery = `
+        SELECT * FROM city
+        ORDER BY id ASC
+        LIMIT $1 OFFSET $2
+      `;
+      values = [limit, offset];
+
+      countQuery = `
+        SELECT COUNT(*) FROM city
+      `;
+    }
+
+    const jobs = await pool.query(jobsQuery, values);
+
+    const total = search
+      ? await pool.query(countQuery, [`%${search}%`])
+      : await pool.query(countQuery);
+
+    return {
+      jobs: jobs.rows,
+      total: parseInt(total.rows[0].count),
+    };
+  } catch (error) {
+    console.error("jobPagination error:", error.message);
+    throw error;
+  }
+},
 
 }
 

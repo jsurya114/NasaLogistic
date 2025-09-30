@@ -9,7 +9,7 @@ import {
   fetchTodayJourney,
   saveJourney,
   clearJourneyError,
-} from "../../redux/slice/driver/journeySlice";
+} from "../../redux/slice/driver/journeySlice.js";
 
 const Journey = () => {
   const { driver } = useSelector((state) => state.driver);
@@ -194,7 +194,9 @@ setErrors({})
 >
   <option value="">Select Route</option>
   {routesStatus === "succeeded" &&
-    routes.map((r) => (
+    routes
+    .filter((route)=>route.enabled)
+    .map((r) => (
       <option key={r.id} value={r.id} className="text-gray-900 bg-gray-600-400 hover:bg-gray-500">
         {r.route}
       </option>
