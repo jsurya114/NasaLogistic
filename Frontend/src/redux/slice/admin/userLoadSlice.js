@@ -60,9 +60,9 @@ export const getUsers = createAsyncThunk('/admin/get-users',
 )
 
 export const getAdmins = createAsyncThunk('/admin/get-admins',
-    async(_,{rejectWithValue})=>{
+    async({page=1},{rejectWithValue})=>{
         try{
-            const res= await fetch(`${API_BASE_URL}/admin/get-admins`,{
+            const res= await fetch(`${API_BASE_URL}/admin/get-admins?page=${page}`,{
                 method:"GET",
                 headers:{"Content-Type":"application/json"},
             });
@@ -196,11 +196,13 @@ const userLoadSlice=createSlice({
             state.loading=true;
         })
         .addCase(getAdmins.fulfilled,(state,action)=>{            
-        if (JSON.stringify(state.admins) !== JSON.stringify(action.payload.data)) {
-            state.admins = action.payload.data;
+        if (JSON.stringify(state.admins) !== JSON.stringify(action.payload.admins)) {
+            state.admins = action.payload.admins;
             }
             state.loading=false;
             state.success= null;
+            state.page=action.payload.page;
+            state.totalPages=action.payload.totalPages;
         })
         .addCase(getAdmins.rejected,(state,action)=>{
             state.error=action.payload.message;

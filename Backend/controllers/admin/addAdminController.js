@@ -25,9 +25,15 @@ export const createAdmins=async(req,res)=>{
 export const getAdmins= async(req,res)=>{
     try{
         // console.log("Entered by Get admins route");
-        const data =await dbService.getAllAdmins();
-        console.log("List of Data ",data);
-        return res.status(HttpStatus.OK).json({data});
+        let page= req.query.page;
+        let limit=5;
+        let offset= (page-1)*limit;
+
+        const data =await dbService.getAllAdmins(limit,offset);
+        const totalCount = await dbService.getCountOfAdmins();
+        const totalPages= Math.ceil(totalCount/limit); 
+        // console.log("List of Data ",data);
+        return res.status(HttpStatus.OK).json({admins:data,page,totalPages});
     }catch(err){
         console.error(err.message);
         res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Server error" })

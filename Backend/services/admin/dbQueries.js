@@ -34,6 +34,11 @@ export const dbService={
       const countResult = await pool.query(`SELECT COUNT(*) FROM drivers`);
       return parseInt(countResult.rows[0].count,10);
     },
+
+    getCountOfAdmins:async()=>{
+      const countResult = await pool.query(`SELECT COUNT(*) FROM admin`);
+      return parseInt(countResult.rows[0].count,10);
+    },
     getAllDrivers :async(lim,offset)=>{
         let result = await pool.query(`
             select d.id, d.driver_code, d.name,d.email, c.job, d.enabled 
@@ -44,12 +49,13 @@ export const dbService={
           [lim,offset]);
         return result.rows;
     },
-    getAllAdmins: async () => {
+    getAllAdmins: async (limit,offset) => {
       const result = await pool.query(
         `SELECT id,name, email, role,is_active
         FROM admin
-        WHERE id != $1`,
-        [100]
+        WHERE id != $1
+        LIMIT $2 OFFSET $3`,
+        [100,limit,offset]
       );
       return result.rows;
     },

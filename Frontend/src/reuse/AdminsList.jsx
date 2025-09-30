@@ -4,15 +4,9 @@ import { clearPaginateTerms, getAdmins,toggleAvailAdmin,toggleAdminRole} from ".
 import Pagination from "./Pagination";
 import { toast } from "react-toastify";
 
-
-
-
-
 function AdminsList() {
   const dispatch = useDispatch();
-  const { admins, loading: adminsLoad, error: adminsError, page, totalPages } = useSelector(
-    (state) => state.users
-  );
+  const { admins, loading: adminsLoad, error: adminsError, page, totalPages } = useSelector((state) => state.users);
 
   const { isSuperAdmin } = useSelector((state) => state.admin);
 
@@ -163,15 +157,25 @@ function AdminsList() {
                     <td className="px-3 py-2 border-b">
                       {a.role === "admin" ? (
                         <button
-                          onClick={() => openConfirmToast(a.id, a.role)}
-                          className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-xs"
+                          onClick={() => a.is_active && openConfirmToast(a.id, a.role)}
+                          disabled={!a.is_active}
+                          className={`px-3 py-1 rounded text-xs text-white ${
+                            a.is_active
+                              ? "bg-green-500 hover:bg-green-600"
+                              : "bg-gray-400 cursor-not-allowed"
+                          }`}
                         >
                           ⏫ Promote
                         </button>
                       ) : (
                         <button
-                          onClick={() => openConfirmToast(a.id, a.role)}
-                          className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-xs"
+                          onClick={() => a.is_active && openConfirmToast(a.id, a.role)}
+                          disabled={!a.is_active}
+                          className={`px-3 py-1 rounded text-xs text-white ${
+                            a.is_active
+                              ? "bg-red-500 hover:bg-red-600"
+                              : "bg-gray-400 cursor-not-allowed"
+                          }`}
                         >
                           ⏬ Demote
                         </button>
