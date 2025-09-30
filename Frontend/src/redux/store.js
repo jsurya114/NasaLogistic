@@ -5,7 +5,7 @@ import RoutesReducer from '../redux/slice/admin/routeSlice';
 import userAdminReducer from '../redux/slice/admin/userLoadSlice.js';
 import driverReducer from "../redux/slice/driver/driverSlice.js"
 import accessCodeReducer from "../redux/slice/admin/accessCodeSlice.js"
-import excelReducer from './slice/excelSlice.js'
+import excelReducer from './slice/admin/excelSlice.js'
 
 import journeyReducer from "../redux/slice/driver/journeySlice.js"
 export const store = configureStore({

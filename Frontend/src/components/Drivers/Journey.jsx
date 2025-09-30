@@ -21,13 +21,14 @@ const [isJourneySaved, setIsJourneySaved] = useState(false);
   const { routes, routesStatus, routesError } = useSelector(
     (state) => state.journey
   );
+  // const journeys=[]
   const { journeys, journeyStatus, journeyError } = useSelector(
     (state) => state.journey
   );
-
+  console.log(journeys,'journeerrfe')
   // Get current date in YYYY-MM-DD format
-  const currentDate = new Date().toISOString().split("T")[0];
-
+  // const currentDate = new Date().toISOString().split("T")[0];
+  const currentDate = '2025-07-20'
   const [formData, setFormData] = useState({
     journey_date: currentDate,
     start_sequence: "",
@@ -252,7 +253,7 @@ setErrors({})
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {journeyStatus === "succeeded" &&
+                {journeyStatus === "succeeded" && Array.isArray(journeys)  &&
                   journeys.map((row, idx) => (
                     <tr key={idx} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
