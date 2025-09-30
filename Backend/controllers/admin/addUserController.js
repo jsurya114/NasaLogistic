@@ -24,10 +24,17 @@ export const createUsers=async(req,res)=>{
 
 export const getUsers= async(req,res)=>{
     try{
-        console.log("Entered by Get users route");
-        const data =await dbService.getAllDrivers();
-        console.log("List of Data ",data);
-        return res.status(HttpStatus.OK).json({data});
+       console.log("Page Number ",req.query.page);
+       let page = parseInt(req.query.page);
+       let limit=10;
+
+       let offset = (page-1) * limit;
+
+        const data =await dbService.getAllDrivers(limit,offset);
+        const totalCount = await dbService.getCountOfDrivers();
+        const totalPages= Math.ceil(totalCount/limit); 
+        
+        return res.status(HttpStatus.OK).json({drivers:data,page,totalPages,totalCount});
     }catch(err){
         console.error(err.message);
         res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Server error" })
@@ -37,7 +44,7 @@ export const getUsers= async(req,res)=>{
 export const changeStatusUser= async(req,res)=>{
     try{
         const id=req.params.id;
-        console.log("Data from url ",id);
+        // console.log("Data from url ",id);
         const checkUser= await dbService.getDriverById(id);
         if(!checkUser)
             return res.status(HttpStatus.NOT_FOUND).json({message:"User does not exists"});
@@ -49,12 +56,3 @@ export const changeStatusUser= async(req,res)=>{
         res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Server error" });
     }
 }
-
-// export const checkforSuperAdminOrNot= async(req,res)=>{
-//     try{
-//         // const res= await dbService.
-//     }catch(err){
-//         console.error(err.message);
-//         res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Server error" });
-//     }
-// }

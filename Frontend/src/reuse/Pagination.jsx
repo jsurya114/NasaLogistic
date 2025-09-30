@@ -4,8 +4,7 @@ import React from "react";
 function Pagination({ page, totalPages, onPageChange }) {
   if (totalPages <= 1) return null; // don't show pagination if only 1 page
 
-  return (
-    <div className="flex justify-center items-center gap-2 mt-8 mb-4">
+  return (    <div className="flex justify-center items-center gap-2 mt-4">
       {/* Previous Button */}
       <button
         onClick={() => onPageChange(page - 1)}

@@ -91,7 +91,7 @@ const journeySlice = createSlice({
       })
       .addCase(fetchRoutes.fulfilled, (state, action) => {
         state.routesStatus = "succeeded";
-        state.routes = action.payload.routes||[]
+        state.routes = action.payload.routes||[];
       })
       .addCase(fetchRoutes.rejected, (state, action) => {
         state.routesStatus = "failed";
