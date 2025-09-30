@@ -142,20 +142,39 @@ export const deleteRouteQuery = async (id) => {
   return result.rows[0];
 };
 
-export const routePagination=async(page,limit)=>{
+export const routePagination=async(page,limit,search="")=>{
 try {
   const offset = (page-1)*limit
-const query = `
-        SELECT * FROM routes
-        ORDER BY id ASC
-        LIMIT $1 OFFSET $2
-      `;
-      const routesResult = await pool.query(query,[limit,offset])
-      const countQuery = `SELECT COUNT(*) FROM routes`;
-      const totalResult = await pool.query(countQuery);
+  let routeQuery
+  let countQuery
+  let values
+if(search){
+  routeQuery=`
+  SELECT * FROM routes
+  WHERE job ILIKE $1 OR name ILIKE $1
+  ORDER BY id ASC
+  LIMIT $2 OFFSET $3`;
+  values = [`%${search}%`,limit,offset]
+  countQuery =`
+  SELECT COUNT(*) FROM routes
+  WHERE job ILIKE $1 OR name ILIKE $1`;
+}else{
+  routeQuery =`
+  SELECT * FROM routes
+  ORDER BY id ASC
+  LIMIT $1 OFFSET $2`;
+  values = [limit,offset]
+  countQuery = `
+  SELECT COUNT(*) FROM routes`;
+}
+const routes = await pool.query(routeQuery,values)
+    const total = search
+      ? await pool.query(countQuery, [`%${search}%`])
+      : await pool.query(countQuery);
+
       return {
-        routes:routesResult.rows,
-        total:parseInt(totalResult.rows[0].count)
+        routes:routes.rows,
+        total:parseInt(total.rows[0].count)
       }
 } catch (error) {
   console.error("routePagination error:", error.message);

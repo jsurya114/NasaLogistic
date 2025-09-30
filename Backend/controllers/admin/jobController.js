@@ -78,7 +78,8 @@ const jobController={
         try {
             const page = parseInt(req.query.page)||1
             const limit = parseInt(req.query.limit)||3
-            const {jobs,total}=await jobService.jobPagination(page,limit)
+            const search = req.query.search||""
+            const {jobs,total}=await jobService.jobPagination(page,limit,search)
             res.status(HttpStatus.OK).json({
                 success:true,
                 jobs,
