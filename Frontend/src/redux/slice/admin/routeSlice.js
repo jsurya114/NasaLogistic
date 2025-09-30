@@ -2,10 +2,10 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { API_BASE_URL } from "../../../config";
 
 // Fetch all routes
-export const fetchRoutes = createAsyncThunk("routes/fetchRoutes", async ({ page, limit }) => {
+export const fetchRoutes = createAsyncThunk("routes/fetchRoutes", async ({ page, limit,search="" }) => {
   try {
     console.log("Fetching routes from ",API_BASE_URL,"/admin/routes..."); // Debug log
-    const res = await fetch(`${API_BASE_URL}/admin/routes?page=${page}&limit=${limit}`);
+    const res = await fetch(`${API_BASE_URL}/admin/routes?page=${page}&limit=${limit}&search=${search}`);
     console.log("Fetching routes from http://localhost:3251/admin/routes..."); // Debug log
     if (!res.ok) {
       const error = await res.json();

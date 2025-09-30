@@ -215,7 +215,9 @@ export default function DriverAccessCodePage() {
                 disabled={status === "loading"}
               >
                 <option value="">Choose a route...</option>
-                {routes.map((route) => (
+                {routes
+                .filter((route)=>!route.enabled)
+                .map((route) => (
                   <option key={route.id} value={route.id}>
                     Route {route.name}
                   </option>

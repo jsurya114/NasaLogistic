@@ -4,6 +4,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Header from "../../reuse/Header";
 import Nav from "../../reuse/Nav";
+import SearchBar from "../../reuse/Search.jsx";
 import { fetchJobs, addJob, deleteJob, jobStatus, fetchPaginatedJobs } from "../../redux/slice/admin/jobSlice";
 import Pagination from "../../reuse/Pagination.jsx";
 
@@ -14,23 +15,27 @@ function Jobs() {
   const [form, setForm] = useState({ job: "", city_code: "", enabled: true });
   const [errors, setErrors] = useState({});
 
+  const [searchTerm, setSearchTerm] = useState("")
+  
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      dispatch(fetchPaginatedJobs({ page: 1, limit: 3, search: searchTerm }))
+    }, 400)
+    return () => clearTimeout(timer)
+  }, [searchTerm, dispatch])
   
   // useEffect(() => {
-  //   dispatch(fetchJobs());
-  // }, [dispatch]);
+  //   dispatch(fetchPaginatedJobs({ page: 1, limit: 3, search: "" }))
+  // }, [dispatch])
 
-  useEffect(()=>{
-    dispatch(fetchPaginatedJobs({page:1,limit:3}))
-  },[dispatch])
-
-  const handlePageChange=(newPage)=>{
-    dispatch(fetchPaginatedJobs({page:newPage,limit:3}))
+  const handlePageChange = (newPage) => {
+    dispatch(fetchPaginatedJobs({ page: newPage, limit: 3, search: searchTerm }))
   }
   
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setForm({ ...form, [name]: type === "checkbox" ? checked : value });
-    setErrors({ ...errors, [name]: "" }); // clear error when typing
+    setErrors({ ...errors, [name]: "" });
   };
 
   const validate = () => {
@@ -59,7 +64,6 @@ function Jobs() {
         setForm({ job: "", city_code: "", enabled: true });
         setErrors({});
         
-        // Success toast notification
         toast.success('Job added successfully!', {
           position: "top-right",
           autoClose: 3000,
@@ -69,13 +73,11 @@ function Jobs() {
           draggable: true,
         });
         
-        // Refresh the current page data
-        dispatch(fetchPaginatedJobs({page: page || 1, limit: 3}));
+        dispatch(fetchPaginatedJobs({ page: page || 1, limit: 3 }));
       }
     } catch (err) {
       console.error("Failed to add job:", err);
       
-      // Error toast notification
       toast.error('Failed to add job. Please try again.', {
         position: "top-right",
         autoClose: 3000,
@@ -179,17 +181,18 @@ function Jobs() {
               {errors.city_code && <p className="text-red-500 text-sm mt-1">{errors.city_code}</p>}
             </div>
 
-         <div className="flex items-center space-x-2">
-    <input
-      type="checkbox"
-      name="enabled"
-      checked={form.enabled}
-      onChange={handleChange}
-      className="w-4 h-4 text-purple-600"
-    />
-    <label className="font-medium">Enabled</label>
-  </div>
-  {errors.enabled && <p className="text-red-500 text-sm mt-1">{errors.enabled}</p>}
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                name="enabled"
+                checked={form.enabled}
+                onChange={handleChange}
+                className="w-4 h-4 text-purple-600"
+              />
+              <label className="font-medium">Enabled</label>
+            </div>
+            {errors.enabled && <p className="text-red-500 text-sm mt-1">{errors.enabled}</p>}
+            
             <div className="flex justify-end">
               <button
                 type="submit"
@@ -206,6 +209,13 @@ function Jobs() {
           <h2 className="font-bold text-gray-900 bg-gray-50 border-b border-gray-200 px-4 py-3 rounded-t-xl">
             Job List
           </h2>
+          
+          <SearchBar
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search jobs..."
+          />
+          
           <table className="w-full border-collapse text-sm">
             <thead>
               <tr className="bg-gray-50 text-left">
@@ -215,7 +225,7 @@ function Jobs() {
               </tr>
             </thead>
             <tbody>
-              {cities&&cities.length > 0 ? (
+              {cities && cities.length > 0 ? (
                 cities.map((city, index) => (
                   <tr key={city.id} className={index % 2 === 0 ? "bg-gray-50" : "bg-white"}>
                     <td className="px-3 py-2 border-b border-gray-200">{city.id}</td>
@@ -227,7 +237,6 @@ function Jobs() {
                       </span>
                     </td>
                     <td className="px-3 py-2 border-b border-gray-200">
-                      {/* Toggle Switch */}
                       <label className="relative inline-flex items-center cursor-pointer">
                         <input
                           type="checkbox"
@@ -243,12 +252,6 @@ function Jobs() {
                           } mt-0.5`}></div>
                         </div>
                       </label>
-                      {/* <button
-                        onClick={() => handleDelete(city.id)}
-                        className="px-2 py-1 bg-red-200 rounded hover:bg-red-300 ml-2"
-                      >
-                        Delete
-                      </button> */}
                     </td>
                   </tr>
                 ))
@@ -262,12 +265,12 @@ function Jobs() {
             </tbody>
           </table>
         </section>
+        
         <Pagination page={page} totalPages={totalPages} onPageChange={handlePageChange} />
 
       </main>
       <Nav />
       
-      {/* Toast Container */}
       <ToastContainer
         position="top-right"
         autoClose={3000}
@@ -279,7 +282,7 @@ function Jobs() {
         draggable
         pauseOnHover
         theme="light"
-        className="mt-16" // Add margin-top to avoid header overlap
+        className="mt-16"
       />
     </div>
   );
