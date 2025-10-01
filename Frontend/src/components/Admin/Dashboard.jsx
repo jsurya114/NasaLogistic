@@ -1,9 +1,24 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 
 import Header from "../../reuse/Header.jsx"; 
 import Nav from "../../reuse/Nav.jsx";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchJobs } from "../../redux/slice/admin/jobSlice.js";
+import { getUsers } from "../../redux/slice/admin/userLoadSlice.js";
+import { fetchRoutes } from "../../redux/slice/admin/routeSlice.js";
 export default function Dashboard() {
+  const dispatch=useDispatch();
+  const {cities}=useSelector((state)=>state.jobs);
+  const {drivers}=useSelector((state)=>state.users);
+  const {routes}=useSelector((state)=>state.routes);
+
+  useEffect(()=>{
+    dispatch(fetchJobs());
+    dispatch(getUsers());
+    dispatch(fetchRoutes());
+  },[dispatch])
+
   return (
     <div className="min-h-screen bg-gray-100 text-gray-900 font-poppins">
       {/* Topbar */}
@@ -18,9 +33,9 @@ export default function Dashboard() {
           </div>
           <div className="divide-y">
             {[
-              { label: "Job", type: "select", options: ["All", "Pickup", "Delivery"] },
-              { label: "Driver", type: "select", options: ["All", "Driver 1", "Driver 2"] },
-              { label: "Route", type: "select", options: ["All", "Route A", "Route B"] },
+              { label: "Job", type: "select", options: ["All", ...cities.map(city => city.job)] },
+              { label: "Driver", type: "select", options: ["All", ...drivers.map(driver => driver.name)] },
+              { label: "Route", type: "select", options: ["All", ...routes.map(route => route.name)] },
               { label: "Start Date", type: "date" },
               { label: "End Date", type: "date" },
               { label: "Payment status", type: "select", options: ["All", "Paid", "Pending"] },
