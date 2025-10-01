@@ -74,7 +74,8 @@ export const fetchPaginatedRoutes=async(req,res)=>{
   try {
     const page = parseInt(req.query.page)||1
     const limit = parseInt(req.query.limit)||4
-    const {routes,total}=await routePagination(page,limit)
+    const search  = req.query.search||""
+    const {routes,total}=await routePagination(page,limit,search)
 
     res.status(HttpStatus.OK).json({
       success:true,
@@ -99,7 +100,7 @@ export const getRoutes = async (req, res) => {
     const routesDb = await getAllRoutes();
     const routes = routesDb.map(mapRoute);
     console.log("Returning routes:", routes); // Debug log
-    res.json(routes);
+    res.json({routes});
   } catch (err) {
     console.error("❌ getRoutes error:", err.message); // Debug log
     res.status(HttpStatus.INTERNAL_SERVER_ERROR).json( {err:message});

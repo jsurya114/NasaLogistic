@@ -3,7 +3,7 @@ import { API_BASE_URL } from "../../../config";
 // Fetch all routes
 export const fetchRoutes = createAsyncThunk("routes/fetchRoutes", async () => {
   try {
-    const res = await fetch(`${API_BASE_URL}/admin/routes`);
+    const res = await fetch(`${API_BASE_URL}/driver/routes-list`);
     if (!res.ok) {
       const error = await res.json();
       throw new Error(error.error || "Failed to fetch routes");

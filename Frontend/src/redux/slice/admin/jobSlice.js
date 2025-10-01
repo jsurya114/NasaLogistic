@@ -103,7 +103,9 @@ export const jobStatus = createAsyncThunk("jobs/jobStatus", async (id) => {
 export const fetchPaginatedJobs = createAsyncThunk(
   "jobs/fetchPaginated",
   async ({ page, limit }) => {
-    const res = await fetch(`http://localhost:3251/admin/jobs?page=${page}&limit=${limit}`);    
+
+  async ({ page, limit ,search =""}) => {
+    const res = await fetch(`http://localhost:3251/admin/jobs?page=${page}&limit=${limit}&search=${search}`);
     if(!res.ok){
       const error = await res.json();
       throw new Error(error.error || "Failed to fetch jobs");
@@ -111,7 +113,7 @@ export const fetchPaginatedJobs = createAsyncThunk(
     const data = await res.json();
     return data;
   }
-);
+});
 
 const jobSlice = createSlice({
   name: "jobs",
