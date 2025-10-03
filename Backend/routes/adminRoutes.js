@@ -9,7 +9,7 @@ import { getRoutes as getAccessCodeRoutes, createAccessCode } from '../controlle
 import {DailyExcelUpload, getUpdatedTempDashboardData} from '../controllers/admin/fileUploadsController.js';
 import { getAccessCodes,updateAccessCode, } from '../controllers/admin/accessCodeControllers.js';
 import { changeRoleAdmin, changeStatusAdmin, createAdmins, getAdmins } from '../controllers/admin/addAdminController.js';
-import { getPaymentDashboardData } from '../controllers/admin/dashboardController.js';
+import { getPaymentDashboardData, updatePaymentData } from '../controllers/admin/dashboardController.js';
 
 router.post('/login',adminController.Login);
 
@@ -58,7 +58,7 @@ router.post('/doubleStop/weekly-upload',upload.single('file'),(req,res)=>{
 })
 
 router.get('/doubleStop/tempDashboardData',getUpdatedTempDashboardData)
-
+router.get('/doubleStop/calculatePayment',updatePaymentData)
 
 // router.get('/admin/check-for-user',checkforSuperAdminOrNot)
 

@@ -4,9 +4,27 @@ export const AdminDashboardQueries = {
 
     updatePaymentTable : async ()=>{
         try {
-            console.log('update dashboard table here')
+
+            const queryStr = `
+            UPDATE payment_dashboard pd
+SET 
+    no_scanned = dd.no_scanned,
+    failed_attempt = dd.failed_attempt,
+    ds = dd.ds,
+    fs = dd.first_stop,
+    delivered = dd.ds + dd.first_stop,
+    driver_payment = (dd.ds * r.driver_doublestop_price) + (dd.first_stop * r.company_route_price)
+FROM dashboard_data dd
+JOIN routes r ON dd.route_id = r.id
+WHERE pd.dashboard_data_id = dd.id;
+
+
+            `
+            await pool.query(queryStr)
+            
         } catch (error) {
             console.error(error)
+            
         }
     },
      PaymentDashboardTable : async()=>{

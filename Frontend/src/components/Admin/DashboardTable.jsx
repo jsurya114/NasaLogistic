@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 //   fetchPaymentDashboard,
 //   clearPaymentDashboard,
 // } from "../features/paymentDashboard/paymentDashboardSlice";
+import { HoverCardDemo } from "./ui/HoverCardDemo";
 import { fetchPaymentDashboard,clearPaymentDashboard } from "../../redux/slice/admin/paymentDashboardSlice";
 export default function PaymentDashboardTable() {
   const dispatch = useDispatch();
@@ -74,6 +75,7 @@ export default function PaymentDashboardTable() {
                 <td className="px-3 py-2 border-b border-gray-200">{row.route_id}</td>
                 <td className="px-3 py-2 border-b border-gray-200">
                   {row.start_seq}-{row.end_seq}
+                  
                 </td>
                 <td className="px-3 py-2 border-b border-gray-200">{row.packages}</td>
                 <td className="px-3 py-2 border-b border-gray-200">{row.no_scanned}</td>
@@ -90,9 +92,25 @@ export default function PaymentDashboardTable() {
                 >
                   {row.closed ? "Yes" : "No"}
                 </td>
-                <td className="px-3 py-2 border-b border-gray-200">
-                  {row.driver_payment ?? "-"}
-                </td>
+               <td className="px-3 py-2 border-b border-gray-200 relative group">
+  {row.driver_payment ? (
+    <span className="cursor-pointer">
+      {row.driver_payment}
+      {/* Tooltip */}
+      <span className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 z-50
+                       w-max max-w-xs rounded-md bg-gray-800 text-white text-xs px-2 py-1
+                       opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+        <p>
+          full amount displayed here
+          </p>
+          
+      </span>
+    </span>
+  ) : (
+    "-"
+  )}
+</td>
+
                 <td
                   className={`px-3 py-2 border-b border-gray-200 ${
                     row.paid ? "text-green-600 font-semibold" : "text-red-600 font-semibold"

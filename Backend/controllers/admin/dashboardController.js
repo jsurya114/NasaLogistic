@@ -12,3 +12,13 @@ export const getPaymentDashboardData = async (req,res)=>{
         console.error(error)
     }
 }
+
+export const updatePaymentData = async (req,res)=>{
+    try {
+        await AdminDashboardQueries.updatePaymentTable()
+        res.status(HttpStatus.OK).json({success:true})
+    } catch (error) {
+        console.error(error)
+        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({success:false})
+    }
+}
