@@ -52,17 +52,17 @@ export const insertRoute = async (data) => {
 
 // Get all routes
 export const getAllRoutes = async () => {
-  console.log("Fetching all routes..."); // Debug log
+  // console.log("Fetching all routes..."); // Debug log
   const result = await pool.query("SELECT * FROM routes ORDER BY id ASC");
-  console.log("Fetched routes:", result.rows); // Debug log
+  // console.log("Fetched routes:", result.rows); // Debug log
   return result.rows;
 };
 
 // Get route by ID
 export const getRouteByIdQuery = async (id) => {
-  console.log(`Fetching route with id: ${id}`); // Debug log
+  // console.log(`Fetching route with id: ${id}`); // Debug log
   const result = await pool.query("SELECT * FROM routes WHERE id = $1", [id]);
-  console.log("Fetched route:", result.rows[0] || null); // Debug log
+  // console.log("Fetched route:", result.rows[0] || null); // Debug log
   return result.rows[0];
 };
 
