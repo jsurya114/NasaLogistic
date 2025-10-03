@@ -1,23 +1,25 @@
 import React,{useEffect} from 'react';
 import { useDispatch,useSelector } from 'react-redux';
-import { fetchDashboardData } from '../redux/slice/admin/doublestopSlice';
+import { clearData, fetchDashboardData } from '../redux/slice/admin/doublestopSlice';
 
-const UploadedData = ({viewType}) => {
+const UploadedData = ({viewType,loadData}) => {
 
   console.log(viewType)
 const dispatch = useDispatch();
 const {data,loading,error} = useSelector((state) => state.dashboard);
 
   useEffect(() => {
-    dispatch(fetchDashboardData());
-  }, [dispatch]);
+    dispatch(clearData());
+    if(loadData)
+    loadData();
+  }, [loadData]);
 
   return (
       <section className="bg-white rounded-xl shadow p-4">
       <div className="flex justify-between items-center mb-4">
         <h2 className="font-bold text-lg">Dashboard Data</h2>
         <button
-          onClick={() => dispatch(fetchDashboardData())}
+          onClick={loadData}
           className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
         >
           Refresh

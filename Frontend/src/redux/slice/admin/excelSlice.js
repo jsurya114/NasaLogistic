@@ -28,6 +28,7 @@ export const excelWeeklyFileUpload = createAsyncThunk(
   "excel/uploadWeekly",
   async (formData, { rejectWithValue }) => {
     try {
+      console.log("File from React ",formData);
       const res = await fetch(`${API_BASE_URL}/admin/doubleStop/weekly-upload`, {
         method: "POST",
         body: formData,

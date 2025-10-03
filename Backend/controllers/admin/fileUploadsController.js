@@ -3,6 +3,7 @@ import { dbService } from "../../services/admin/dbQueries.js";
 import { generateToken } from "../../services/jwtservice.js";
 import HttpStatus from "../../utils/statusCodes.js";
 import XLSX from "xlsx";
+import XlsxPopulate from 'xlsx-populate';
 import { ExcelFileQueries } from "../../services/admin/excelFileQueries.js";
 import { table } from "console";
 const RouteObj = Object.freeze({
@@ -127,15 +128,30 @@ export const weeklyExcelUpload=async(req,res)=>{
   if(!file)
      return res.status(400).json({success:false,message:'NO file uploaded'});
 
-  console.log("Uploaded file = ",file);
-
+  // console.log("Uploaded file = ",file);
    XlsxPopulate.fromFileAsync(file.path)
-    .then((workbook)=>{
-        const values= workbook.sheet("Driver Daily Summary").usedRange().value()
-        let arr= values.map((x,i)=>{
-            if(i==0||i==1)
-                return null;
-            return [x[1],x[2],x[6],x[10],x[12]]});
-            console.log(arr);
-    })
+  .then((workbook) => {
+    const values = workbook
+      .sheet("Driver Daily Summary")
+      .usedRange()
+      .value();
+
+    const arr = values
+      .map((x, i) => {
+        if (i === 0 || i === 1) return null; // skip headers / metadata rows
+        return {
+          name: x[1],        // column B
+          date: x[2],        // column C
+          deliveries: x[6],  // column G
+          fullStop: x[10],   // column K
+          doubleStop: x[12], // column M
+        };
+      })
+      .filter(Boolean); // remove nulls
+
+    console.log(arr);
+  })
+  .catch((err) => {
+    console.error("Error reading file:", err);
+  });
 }

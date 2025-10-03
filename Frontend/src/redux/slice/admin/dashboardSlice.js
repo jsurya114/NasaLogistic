@@ -3,28 +3,28 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
 // --------- Async Thunks (Dashboard specific APIs) ----------
-export const fetchDashboardData = createAsyncThunk(
-  "dashboard/fetchData",
-  async (_, { rejectWithValue }) => {
-    try {
-      const [jobsRes, driversRes, routesRes, tableRes] = await Promise.all([
-        axios.get("/api/dashboard/jobs"),     // API only for jobs in dashboard
-        axios.get("/api/dashboard/drivers"),  // API only for dashboard drivers
-        axios.get("/api/dashboard/routes"),   // API only for dashboard routes
-        axios.get("/api/dashboard/driver-jobs"), // Table data
-      ]);
+// export const fetchDashboardData = createAsyncThunk(
+//   "dashboard/fetchData",
+//   async (_, { rejectWithValue }) => {
+//     try {
+//       const [jobsRes, driversRes, routesRes, tableRes] = await Promise.all([
+//         axios.get("/api/dashboard/jobs"),     // API only for jobs in dashboard
+//         axios.get("/api/dashboard/drivers"),  // API only for dashboard drivers
+//         axios.get("/api/dashboard/routes"),   // API only for dashboard routes
+//         axios.get("/api/dashboard/driver-jobs"), // Table data
+//       ]);
 
-      return {
-        jobs: jobsRes.data,
-        drivers: driversRes.data,
-        routes: routesRes.data,
-        driverJobs: tableRes.data,
-      };
-    } catch (err) {
-      return rejectWithValue(err.response?.data || err.message);
-    }
-  }
-);
+//       return {
+//         jobs: jobsRes.data,
+//         drivers: driversRes.data,
+//         routes: routesRes.data,
+//         driverJobs: tableRes.data,
+//       };
+//     } catch (err) {
+//       return rejectWithValue(err.response?.data || err.message);
+//     }
+//   }
+// );
 
 // --------- Slice ----------
 const dashboardSlice = createSlice({

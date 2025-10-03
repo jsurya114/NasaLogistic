@@ -28,7 +28,7 @@ const [isJourneySaved, setIsJourneySaved] = useState(false);
   console.log(journeys,'journeerrfe')
   // Get current date in YYYY-MM-DD format
   // const currentDate = new Date().toISOString().split("T")[0];
-  const currentDate = '2025-07-20'
+  const currentDate = new Date().toISOString().split("T")[0];
   const [formData, setFormData] = useState({
     journey_date: currentDate,
     start_sequence: "",
