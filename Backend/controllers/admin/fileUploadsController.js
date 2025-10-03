@@ -19,7 +19,15 @@ const RouteObj = Object.freeze({
 });
 // const sheetName = "dup";
 const sheetName = "dup";
-
+export const getUpdatedTempDashboardData = async(req,res)=>{
+  try {
+    const result = await ExcelFileQueries.getTempDashboardData()
+    return res.status(statusCode.OK).json({success:true,data:result})
+  } catch (error) {
+    console.error(error)
+    return res.status(statusCode.INTERNAL_SERVER_ERROR).json({message:'error in server',error})
+  }
+}
 
 export const DailyExcelUpload = async (req, res) => {
   try {
@@ -61,6 +69,10 @@ export const DailyExcelUpload = async (req, res) => {
     await ExcelFileQueries.createDailyTable(tableName);
     await ExcelFileQueries.insertDataIntoDailyTable(tableName,rows,chosenDate)
     await ExcelFileQueries.mergeDeliveriesAndExcelData()
+    await ExcelFileQueries.setUntouchedRowsAsNoScannedAndUpdateFailedAttempt()
+    await ExcelFileQueries.updateFirstStopAndDoubleStop()
+    await ExcelFileQueries.addEachDriversCount()
+
 
         // const DataObj = {}
         // for(let row of rows){

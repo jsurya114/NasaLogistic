@@ -6,7 +6,7 @@ import jobController from '../controllers/admin/jobController.js';
 import { createRoute,getRoutes,getRouteById, updateRoute, deleteRoute,toggleRouteStatus, fetchPaginatedRoutes} from "../controllers/admin/routeController.js"
 import { changeStatusUser, createUsers, getUsers } from '../controllers/admin/addUserController.js';
 import { getRoutes as getAccessCodeRoutes, createAccessCode } from '../controllers/admin/accessCodeControllers.js';
-import {DailyExcelUpload} from '../controllers/admin/fileUploadsController.js';
+import {DailyExcelUpload, getUpdatedTempDashboardData} from '../controllers/admin/fileUploadsController.js';
 import { getAccessCodes,updateAccessCode, } from '../controllers/admin/accessCodeControllers.js';
 import { changeRoleAdmin, changeStatusAdmin, createAdmins, getAdmins } from '../controllers/admin/addAdminController.js';
 
@@ -51,6 +51,8 @@ router.post('/doubleStop/weekly-upload',upload.single('file'),(req,res)=>{
         console.log(req.body,'body in weekly data')
 
 })
+
+router.get('/doubleStop/tempDashboardData',getUpdatedTempDashboardData)
 
 
 // router.get('/admin/check-for-user',checkforSuperAdminOrNot)
