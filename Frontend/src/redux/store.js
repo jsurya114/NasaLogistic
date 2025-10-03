@@ -8,7 +8,8 @@ import accessCodeReducer from "../redux/slice/admin/accessCodeSlice.js"
 import excelReducer from './slice/admin/excelSlice.js'
 import driverAccessCodeReducer from "./slice/driver/driverAccessCodeSlice.js";
 import doubleStop from './slice/admin/doublestopSlice.js'
-
+import AdminDashboardReducer from './slice/admin/dashboardUpdateSlice.js'
+import paymentDashboardReducer from './slice/admin/paymentDashboardSlice.js'
 
 import journeyReducer from "../redux/slice/driver/journeySlice.js"
 export const store = configureStore({
@@ -20,7 +21,10 @@ export const store = configureStore({
         driver:driverReducer,
         accessCodes: accessCodeReducer,
         journey:journeyReducer,
-        dashboard:doubleStop
+        ds:doubleStop,
+        dashboard:AdminDashboardReducer,
+        paymentDashboard:paymentDashboardReducer
+
     
     }
 })

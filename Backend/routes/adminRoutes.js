@@ -9,6 +9,7 @@ import { getRoutes as getAccessCodeRoutes, createAccessCode } from '../controlle
 import {DailyExcelUpload, getUpdatedTempDashboardData} from '../controllers/admin/fileUploadsController.js';
 import { getAccessCodes,updateAccessCode, } from '../controllers/admin/accessCodeControllers.js';
 import { changeRoleAdmin, changeStatusAdmin, createAdmins, getAdmins } from '../controllers/admin/addAdminController.js';
+import { getPaymentDashboardData } from '../controllers/admin/dashboardController.js';
 
 router.post('/login',adminController.Login);
 
@@ -43,7 +44,11 @@ router.patch('/toggle-admin-role/:id',changeRoleAdmin);
 //DoubleStop and file upload
 // for fileuploads use upload.single('file') as middleware
 router.post('/doubleStop/dailyFileUpload',upload.single('file'),DailyExcelUpload)
+// router.get('/doubleStop/calculatePayment',updateDriverPayment)
 
+
+
+router.get('/dashboard/paymentTable',getPaymentDashboardData)
 
 router.post('/ds',DailyExcelUpload)
 

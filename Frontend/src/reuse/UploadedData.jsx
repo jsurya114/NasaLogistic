@@ -6,7 +6,7 @@ const UploadedData = ({viewType}) => {
 
   console.log(viewType)
 const dispatch = useDispatch();
-const {data,loading,error} = useSelector((state) => state.dashboard);
+const {data,loading,error} = useSelector((state) => state.ds);
 
   useEffect(() => {
     dispatch(fetchDashboardData());

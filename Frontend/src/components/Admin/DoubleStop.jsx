@@ -71,18 +71,18 @@
 //   return (
 //     <div className="min-h-screen bg-gray-100 text-gray-900 font-poppins">
 //       <Header />
-      
+
 //       {/* View Toggle Section - Moved to Top */}
 //       <div className="flex items-center justify-center pt-6 pb-4">
 //         <div className="relative bg-white rounded-full p-1 shadow-md border border-gray-200">
-//           <div 
+//           <div
 //             className={`absolute top-1 bottom-1 bg-purple-600 rounded-full transition-all duration-300 ease-in-out ${
-//               activeView === "weekly" 
-//                 ? "left-1 right-1/2" 
+//               activeView === "weekly"
+//                 ? "left-1 right-1/2"
 //                 : "left-1/2 right-1"
 //             }`}
 //           />
-          
+
 //           <button
 //             onClick={() => setActiveView("weekly")}
 //             className={`relative z-10 px-6 py-2 rounded-full font-medium transition-colors duration-300 ${
@@ -93,7 +93,7 @@
 //           >
 //             Weekly
 //           </button>
-          
+
 //           <button
 //             onClick={() => setActiveView("daily")}
 //             className={`relative z-10 px-6 py-2 rounded-full font-medium transition-colors duration-300 ${
@@ -188,10 +188,10 @@
 //           <h2 className="font-bold text-gray-900 bg-gray-50 border-b border-gray-200 px-4 py-3 rounded-t-xl">
 //             {activeView === "weekly" ? "Weekly Data" : "Daily Data"}
 //           </h2>
-          
+
 //           <div className="relative overflow-hidden">
 //             {/* Weekly View */}
-//             <div 
+//             <div
 //               className={`transition-transform duration-500 ease-in-out ${
 //                 activeView === "weekly" ? "translate-x-0" : "-translate-x-full"
 //               }`}
@@ -207,7 +207,7 @@
 //             </div>
 
 //             {/* Daily View */}
-//             <div 
+//             <div
 //               className={`transition-transform duration-500 ease-in-out ${
 //                 activeView === "daily" ? "translate-x-0" : "translate-x-full"
 //               }`}
@@ -222,7 +222,7 @@
 //               </div>
 //             </div>
 //           </div>
-//         </section>       
+//         </section>
 //       </main>
 //       <Nav />
 //     </div>
@@ -231,19 +231,22 @@
 
 // export default DoubleStop
 
-
-
 import React, { useState } from "react";
-import { useDispatch } from "react-redux";
-import { excelDailyFileUpload,excelWeeklyFileUpload } from "../../redux/slice/admin/excelSlice";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  excelDailyFileUpload,
+  excelWeeklyFileUpload,
+} from "../../redux/slice/admin/excelSlice";
 import FileUpload from "../../../src/components/Excel-InputTag";
 import UploadedData from "../../reuse/UploadedData";
 import Header from "../../reuse/Header";
 import Nav from "../../reuse/Nav";
+import DriverPaymentSection from "./DriverPaymentUpdate";
 
 const DoubleStop = () => {
   const dispatch = useDispatch();
   const [activeView, setActiveView] = useState("weekly");
+
 
   // Weekly form state
   const [weeklyForm, setWeeklyForm] = useState({
@@ -351,7 +354,10 @@ const DoubleStop = () => {
             <h2 className="font-bold text-gray-900 bg-gray-50 border-b border-gray-200 px-4 py-3 -mx-6 -mt-6 rounded-t-xl">
               Weekly Upload
             </h2>
-            <form onSubmit={handleWeeklySubmit} className="flex flex-col gap-4 mt-6">
+            <form
+              onSubmit={handleWeeklySubmit}
+              className="flex flex-col gap-4 mt-6"
+            >
               <div>
                 <label className="block mb-1 font-medium">Week</label>
                 <input
@@ -364,13 +370,21 @@ const DoubleStop = () => {
                   }`}
                 />
                 {weeklyErrors.week && (
-                  <p className="text-red-500 text-sm mt-1">{weeklyErrors.week}</p>
+                  <p className="text-red-500 text-sm mt-1">
+                    {weeklyErrors.week}
+                  </p>
                 )}
               </div>
               <div>
-                <FileUpload onFileSelect={(f) => setWeeklyForm({ ...weeklyForm, file: f })} />
+                <FileUpload
+                  onFileSelect={(f) =>
+                    setWeeklyForm({ ...weeklyForm, file: f })
+                  }
+                />
                 {weeklyErrors.file && (
-                  <p className="text-red-500 text-sm mt-1">{weeklyErrors.file}</p>
+                  <p className="text-red-500 text-sm mt-1">
+                    {weeklyErrors.file}
+                  </p>
                 )}
               </div>
               <div className="flex justify-end">
@@ -391,7 +405,10 @@ const DoubleStop = () => {
             <h2 className="font-bold text-gray-900 bg-gray-50 border-b border-gray-200 px-4 py-3 -mx-6 -mt-6 rounded-t-xl">
               Daily Upload
             </h2>
-            <form onSubmit={handleDailySubmit} className="flex flex-col gap-4 mt-6">
+            <form
+              onSubmit={handleDailySubmit}
+              className="flex flex-col gap-4 mt-6"
+            >
               <div>
                 <label className="block mb-1 font-medium">Date</label>
                 <input
@@ -404,13 +421,19 @@ const DoubleStop = () => {
                   }`}
                 />
                 {dailyErrors.date && (
-                  <p className="text-red-500 text-sm mt-1">{dailyErrors.date}</p>
+                  <p className="text-red-500 text-sm mt-1">
+                    {dailyErrors.date}
+                  </p>
                 )}
               </div>
               <div>
-                <FileUpload onFileSelect={(f) => setDailyForm({ ...dailyForm, file: f })} />
+                <FileUpload
+                  onFileSelect={(f) => setDailyForm({ ...dailyForm, file: f })}
+                />
                 {dailyErrors.file && (
-                  <p className="text-red-500 text-sm mt-1">{dailyErrors.file}</p>
+                  <p className="text-red-500 text-sm mt-1">
+                    {dailyErrors.file}
+                  </p>
                 )}
               </div>
               <div className="flex justify-end">
@@ -426,7 +449,7 @@ const DoubleStop = () => {
         )}
 
         {/* Uploaded Data */}
-        <section className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-x-auto">
+        <section className="bg-white border mb-3 border-gray-200 rounded-xl shadow-sm overflow-x-auto">
           <h2 className="font-bold text-gray-900 bg-gray-50 border-b border-gray-200 px-4 py-3 rounded-t-xl">
             {activeView === "weekly" ? "Weekly Data" : "Daily Data"}
           </h2>
@@ -438,6 +461,13 @@ const DoubleStop = () => {
             )}
           </div>
         </section>
+        {/* driver payment calculate button section
+        <section className="bg-white border mb-4 p-6 border-gray-200 rounded-xl shadow-sm overflow-x-auto flex justify-center">
+          <button className="px-3 py-1 bg-blue-800 text-white rounded hover:bg-blue-600">
+            Calculate Driver Payment
+          </button>
+        </section> */}
+        <DriverPaymentSection />
       </main>
 
       <Nav />
