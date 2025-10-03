@@ -1,10 +1,11 @@
 import React,{useState,useEffect} from 'react'
 import { useDispatch,useSelector } from 'react-redux';
-import { excelDailyFileUpload} from '../../../src/redux/slice/excelSlice'
+import { excelDailyFileUpload,excelWeeklyFileUpload} from '../../../src/redux/slice/excelSlice'
 import FileUpload from '../../../src/components/Excel-InputTag';
 import UploadedData from '../../reuse/UploadedData';
 import Header from '../../reuse/Header'
 import Nav from '../../reuse/Nav';
+import { toast } from 'react-toastify';
 import AdminsList from '../../reuse/AdminsList';
 
 const DoubleStop = () => {
@@ -12,9 +13,8 @@ const DoubleStop = () => {
   const [activeView, setActiveView] = useState("weekly");
   const [file,setFile] = useState(null)
   const [form, setForm] = useState({
-    week: '',
     date: '',
-    file: null,
+    // file: null,
   });
 
   const [errors, setErrors] = useState({});
@@ -35,37 +35,28 @@ const DoubleStop = () => {
 
   const handleSubmit = async(e) => {
     e.preventDefault();
-
     // Validation
     let newErrors = {};
-    if (activeView === "weekly" && !form.week) {
-      newErrors.week = "Week is required";
-    }
     if (activeView === "daily" && !form.date) {
       newErrors.date = "Date is required";
     }
-    if (!form.file) newErrors.file = "Excel file is required";
     if (!file) {
-      alert('please select a valid excel file before submitting')
+      toast.error("Please select a valid excel file before submitting");
+      // alert('please select a valid excel file before submitting')
         return
     }
     setErrors(newErrors);
-    const formData = new FormData()
-    formData.append('file',file)
-    dispatch(excelDailyFileUpload(formData))
-    // try {
-    //     const res = await fetch('',{
-    //       method:'POST',
-    //       body:formData
-    //     })
-    //     const data = await res.json()
-    //     console.log('upload successful',data)
-    //     alert("File uploaded successfully")
-    // } catch (error) {
-    //   console.error('Error uploading file',error)
-    //   alert('Upload failed')
-    // }
+    if (Object.keys(newErrors).length > 0) return;
 
+    const formData = new FormData();
+    formData.append('file',file);
+    // console.log("Reached the client ");
+    if (activeView === "daily") {
+      formData.append("date", form.date);
+    dispatch(excelDailyFileUpload(formData))
+    }else{
+      dispatch(excelWeeklyFileUpload(formData));
+    }   
   };
 
   return (
@@ -118,7 +109,7 @@ const DoubleStop = () => {
             {/* Weekly Input */}
             {activeView === "weekly" && (
               <div>
-                <label className="block mb-1 font-medium">Week</label>
+                {/* <label className="block mb-1 font-medium">Week</label>
                 <input
                   type="week"
                   name="week"
@@ -127,10 +118,10 @@ const DoubleStop = () => {
                   className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-600 ${
                     errors.week ? "border-red-500" : "border-gray-300"
                   }`}
-                />
-                {errors.week && (
+                /> */}
+                {/* {errors.week && (
                   <p className="text-red-500 text-sm mt-1">{errors.week}</p>
-                )}
+                )} */}
               </div>
             )}
 

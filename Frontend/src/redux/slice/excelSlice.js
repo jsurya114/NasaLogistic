@@ -7,7 +7,33 @@ export const excelDailyFileUpload = createAsyncThunk(
         try {
             // const form = new FormData(fkr)
             // form.append('file',file)
-            const res = await fetch(`${backEndUrl}/admin/doubleStop/fileUpload`,{
+            console.log("FOrm data ",formData);
+            const res = await fetch(`${API_BASE_URL}/admin/doubleStop/fileUpload`,{
+                method:'POST',
+                body:formData,
+            })
+            const data = await res.json()
+            console.log(data,'excel file upload staus')
+            if(!res.ok){
+                return rejectWithValue(data.message || 'Excel file upload failed')
+            }
+            return data
+        } catch (error) {
+            return rejectWithValue(error.message)
+        }
+    }
+)
+export const excelWeeklyFileUpload = createAsyncThunk(
+    'admin/weekly-upload',
+    async(formData,{rejectWithValue})=>{
+        try {
+            // const form = new FormData(fkr)
+            // form.append('file',file)
+            console.log("FormData from client ");
+            for (let [key, value] of formData.entries()) {
+        console.log(key, value);
+      }
+            const res = await fetch(`${API_BASE_URL}/admin/doubleStop/weekly-upload`,{
                 method:'POST',
                 body:formData,
             })
@@ -40,6 +66,20 @@ const excelSlice = createSlice({
         state.success = true;
       })
       .addCase(excelDailyFileUpload.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || "Upload failed";
+      })
+
+      .addCase(excelWeeklyFileUpload.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.success = false;
+      })
+      .addCase(excelWeeklyFileUpload.fulfilled, (state) => {
+        state.loading = false;
+        state.success = true;
+      })
+      .addCase(excelWeeklyFileUpload.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || "Upload failed";
       });

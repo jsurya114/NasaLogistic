@@ -3,6 +3,7 @@ import { dbService } from "../../services/admin/dbQueries.js";
 import { generateToken } from "../../services/jwtservice.js";
 import HttpStatus from "../../utils/statusCodes.js";
 import XLSX from "xlsx";
+import XlsxPopulate from "xlsx-populate";
 
 const RouteObj = Object.freeze({
   "DFW 036-1": "36A",
@@ -67,3 +68,23 @@ export const DailyExcelUpload = async (req, res) => {
 };
 
 // export default fileUpload
+
+
+export const weeklyExcelUpload=async(req,res)=>{
+  // console.log("Body :", req.body);
+  const file=req.file;  
+  if(!file)
+     return res.status(400).json({success:false,message:'NO file uploaded'});
+
+  console.log("Uploaded file = ",file);
+
+   XlsxPopulate.fromFileAsync(file.path)
+    .then((workbook)=>{
+        const values= workbook.sheet("Driver Daily Summary").usedRange().value()
+        let arr= values.map((x,i)=>{
+            if(i==0||i==1)
+                return null;
+            return [x[1],x[2],x[6],x[10],x[12]]});
+            console.log(arr);
+    })
+}
