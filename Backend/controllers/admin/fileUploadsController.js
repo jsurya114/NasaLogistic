@@ -5,7 +5,10 @@ import HttpStatus from "../../utils/statusCodes.js";
 import XLSX from "xlsx";
 import XlsxPopulate from 'xlsx-populate';
 import { ExcelFileQueries } from "../../services/admin/excelFileQueries.js";
+import { formatExcelDate } from "../../utils/helper.js";
 import { table } from "console";
+import stringSimilarity from 'string-similarity'
+import { WeeklyExcelQueries } from "../../services/admin/weeklyExcelQueries.js";
 const RouteObj = Object.freeze({
   "DFW 036-1": "36A",
   "DFW 041 A-1": "41A",
@@ -123,35 +126,88 @@ export const DailyExcelUpload = async (req, res) => {
 
 
 export const weeklyExcelUpload=async(req,res)=>{
-  // console.log("Body :", req.body);
   const file=req.file;  
   if(!file)
      return res.status(400).json({success:false,message:'NO file uploaded'});
 
-  // console.log("Uploaded file = ",file);
-   XlsxPopulate.fromFileAsync(file.path)
-  .then((workbook) => {
-    const values = workbook
-      .sheet("Driver Daily Summary")
-      .usedRange()
-      .value();
-
-    const arr = values
-      .map((x, i) => {
-        if (i === 0 || i === 1) return null; // skip headers / metadata rows
+   const workbook = await XlsxPopulate.fromFileAsync(file.path);
+    const values = workbook.sheet("Driver Daily Summary").usedRange().value();
+     const excelData = values
+      .map((row, i) => {
+        if (i === 0 || i === 1) return null;
         return {
-          name: x[1],        // column B
-          date: x[2],        // column C
-          deliveries: x[6],  // column G
-          fullStop: x[10],   // column K
-          doubleStop: x[12], // column M
+          name: row[1]?.trim(),
+          date: row[2],       
+          deliveries: row[6] || 0,
+          fullStop: row[10] || 0,
+          doubleStop: row[12] || 0,
         };
       })
-      .filter(Boolean); // remove nulls
+      .filter(Boolean);
 
-    console.log(arr);
-  })
-  .catch((err) => {
-    console.error("Error reading file:", err);
-  });
-}
+      if(!excelData)
+        return res.status(HttpStatus.BAD_REQUEST).json({success: false, message: "No valid rows found in Excel"});
+
+      const formattedData=excelData.map((d)=>({
+        ...d,
+        date:formatExcelDate(d.date),
+      }));
+
+      const dates=formattedData.map((d)=>`${d.date}`).join(",");
+      const dashboardData= await WeeklyExcelQueries(dates);
+
+      const normalizedDrivers = new Map(
+      dashboardData.map(d => [
+        `${d.name.toLowerCase()}|${d.journey_date.toISOString().slice(0, 10)}`,d]));
+
+      const insertValues = [];
+      const insertPlaceholders = [];
+
+      formattedData.forEach((row, i) => {
+    // direct case-insensitive + date key
+    let dashRecord = normalizedDrivers.get(`${row.name.toLowerCase()}|${row.date}`);
+
+    if (!dashRecord) {     
+      const candidates = dashboardData
+        .filter(d => d.journey_date.toISOString().slice(0, 10) === row.date)
+        .map(d => d.name.toLowerCase());  
+
+      if (candidates.length > 0) {
+        const bestMatch = stringSimilarity.findBestMatch(row.name.toLowerCase(), candidates);
+        const match = bestMatch.bestMatch.target;
+        const score = bestMatch.bestMatch.rating;
+
+        if (score >= 0.8) {
+          dashRecord = normalizedDrivers.get(`${match}|${row.date}`);
+        }
+      }
+      }
+
+      const ambiguous = !dashRecord;
+
+      insertValues.push(
+        row.name,                     // original_name
+        dashRecord?.name || null,     // matched_name
+        row.date,                     // date
+        row.deliveries,
+        row.fullStop,
+        row.doubleStop,
+        dashRecord?.route_name || null,
+        dashRecord?.start_seq || null,
+        dashRecord?.end_seq || null,
+        ambiguous
+      );
+
+      const baseIndex = i * 9;
+      insertPlaceholders.push(
+        `($${baseIndex + 1}, $${baseIndex + 2}, $${baseIndex + 3}, $${baseIndex + 4}, $${baseIndex + 5}, $${baseIndex + 6}, $${baseIndex + 7}, $${baseIndex + 8}, $${baseIndex + 9})`
+      );
+        }) 
+
+        let tableName="weekly_excel_data";
+        await WeeklyExcelQueries.deleteWeeklyTableIfExists(tableName);
+        await WeeklyExcelQueries.createWeeklyTable(tableName);
+
+      }
+  
+
