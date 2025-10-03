@@ -2,7 +2,7 @@ import pool from "../../config/db.js";
 
         export const WeeklyExcelQueries={
             fetchDashboardDataByDates : async(dates)=>{
-                const query=`SELECT 
+                const selectQuery=`SELECT 
             dd.id AS dashboard_id,
             dd.journey_date,
             d.name,
@@ -17,11 +17,9 @@ import pool from "../../config/db.js";
         FROM dashboard_data dd
         JOIN drivers d ON dd.driver_id = d.id
         JOIN routes r ON dd.route_id = r.id
-        WHERE journey_date in $1`
-            
-        const value=[dates];
-
-        const res= await pool.query(query,value);
+        WHERE journey_date in $1`        
+        
+        const res= await pool.query(selectQuery,dates);
         return res.rows;
             },
 
@@ -59,5 +57,16 @@ import pool from "../../config/db.js";
       console.error(error);
     }
   },
+
+  insertBatchDatafromExcel:async(insertPlaceholders,insertValues)=>{
+
+    let insertQuery=`
+    INSERT INTO todays_excel_data
+    (orig_name, match_name, date, deliveries, fullStop, doubleStop, route, start_seq,end_seq, ambiguous)
+    VALUES ${insertPlaceholders.join(",")}
+    RETURNING *`;
+
+   return await pool.query(insertQuery ,insertValues);
+  }
 
 }

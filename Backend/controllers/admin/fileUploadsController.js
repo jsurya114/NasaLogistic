@@ -126,6 +126,7 @@ export const DailyExcelUpload = async (req, res) => {
 
 
 export const weeklyExcelUpload=async(req,res)=>{
+ try{ 
   const file=req.file;  
   if(!file)
      return res.status(400).json({success:false,message:'NO file uploaded'});
@@ -200,14 +201,20 @@ export const weeklyExcelUpload=async(req,res)=>{
 
       const baseIndex = i * 9;
       insertPlaceholders.push(
-        `($${baseIndex + 1}, $${baseIndex + 2}, $${baseIndex + 3}, $${baseIndex + 4}, $${baseIndex + 5}, $${baseIndex + 6}, $${baseIndex + 7}, $${baseIndex + 8}, $${baseIndex + 9})`
+        `($${baseIndex + 1}, $${baseIndex + 2}, $${baseIndex + 3}, $${baseIndex + 4}, $${baseIndex + 5}, $${baseIndex + 6}, $${baseIndex + 7}, $${baseIndex + 8},$${baseIndex + 9}, $${baseIndex + 10})`
       );
         }) 
 
         let tableName="weekly_excel_data";
         await WeeklyExcelQueries.deleteWeeklyTableIfExists(tableName);
         await WeeklyExcelQueries.createWeeklyTable(tableName);
-
+        let insertedData = await WeeklyExcelQueries.insertBatchDatafromExcel(insertPlaceholders,insertValues);
+        
+        return res.status(HttpStatus.OK).json({success:true,message:"Excel data processed and stored successfully",insertedData})
+      }catch(err){        
+        console.error("Upload Error:", err);
+        res.status(500).json({ success: false, message: "Internal server error" });  
       }
+      };
   
 
