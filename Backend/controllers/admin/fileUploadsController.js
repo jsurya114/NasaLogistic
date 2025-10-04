@@ -5,8 +5,16 @@ import HttpStatus from "../../utils/statusCodes.js";
 import XLSX from "xlsx";
 import XlsxPopulate from 'xlsx-populate';
 import { ExcelFileQueries } from "../../services/admin/excelFileQueries.js";
-import { formatExcelDate } from "../../utils/helper.js";
+import { formatExcelDate,getLocalDateString } from "../../utils/helper.js";
+import stringSimilarity from 'string-similarity'
+import { WeeklyExcelQueries } from "../../services/admin/weeklyExcelQueries.js";
 import { table } from "console";
+import { createDateBasedIndex, createDriverMap } from "../../utils/excelHelperFns.js";
+import { buildInsertData, 
+  // printMatchSummary 
+} from "../../utils/matchFns.js";
+
+
 // import { AdminDashboardQueries } from "../../services/admin/dashboardQueries.js";
 const RouteObj = Object.freeze({
   "DFW 036-1": "36A",
@@ -93,94 +101,83 @@ export const DailyExcelUpload = async (req, res) => {
     
 //   }
 // }
-
-
-
-
-
 // export default fileUpload
 
+
+export const getWeeklyTempData=async(req,res)=>{
+  try{
+    let data=await WeeklyExcelQueries.getWeeklyData();
+      return res.status(HttpStatus.OK).json({data});
+  }catch(err){
+    console.error("Upload Error:", err);
+        res.status(500).json({ success: false, message: "Internal server error" });
+  }
+}
 
 export const weeklyExcelUpload=async(req,res)=>{
  try{ 
   const file=req.file;  
   if(!file)
      return res.status(400).json({success:false,message:'NO file uploaded'});
+    console.log("File is ",req.file);
+   
+    const workbook = XLSX.readFile(file.path);
+      const sheetName = "Driver Daily Summary";
+      const worksheet = workbook.Sheets[sheetName];
 
-   const workbook = await XlsxPopulate.fromFileAsync(file.path);
-    const values = workbook.sheet("Driver Daily Summary").usedRange().value();
-     const excelData = values
-      .map((row, i) => {
-        if (i === 0 || i === 1) return null;
-        return {
-          name: row[1]?.trim(),
-          date: row[2],       
-          deliveries: row[6] || 0,
-          fullStop: row[10] || 0,
-          doubleStop: row[12] || 0,
-        };
-      })
-      .filter(Boolean);
+      // Convert to JSON with formatted values
+      const data = XLSX.utils.sheet_to_json(worksheet, {
+        header: 1,
+        raw: false, // Get formatted strings instead of raw numbers
+      });
 
-      if(!excelData)
-        return res.status(HttpStatus.BAD_REQUEST).json({success: false, message: "No valid rows found in Excel"});
+      const excelData = data
+        .slice(2) // Skip first 2 header rows
+        .map(row => ({
+          name: row[1]?.toString().trim(),
+          date: row[2], // Will be the formatted date string
+          deliveries: parseInt(row[6]) || 0,
+          fullStop: parseInt(row[10]) || 0,
+          doubleStop: parseInt(row[12]) || 0,
+        }))
+        .filter(item => item.name); // Remove empty rows
 
-      const formattedData=excelData.map((d)=>({
+      if (!excelData || excelData.length === 0) {
+        return res.status(HttpStatus.BAD_REQUEST).json({
+          success: false, 
+          message: "No valid rows found in Excel"
+        });
+      }
+
+      const formattedData = excelData.map((d) => ({ 
         ...d,
-        date:formatExcelDate(d.date),
+        date: formatExcelDate(d.date),
       }));
 
-      const dates=formattedData.map((d)=>`${d.date}`).join(",");
-      const dashboardData= await WeeklyExcelQueries(dates);
+      const dates = formattedData.map((d) => d.date);
+      const uniqueDates = [...new Set(dates)];
 
-      const normalizedDrivers = new Map(
-      dashboardData.map(d => [
-        `${d.name.toLowerCase()}|${d.journey_date.toISOString().slice(0, 10)}`,d]));
+      const dashboardData= await WeeklyExcelQueries.fetchDashboardDataByDates(uniqueDates);
+        if(!dashboardData)
+          return res.status(HttpStatus.BAD_REQUEST).json({success:false,message:"No valid rows match thge data in driver entered journey"})
 
-      const insertValues = [];
-      const insertPlaceholders = [];
+        // console.log("Data from DB ",dashboardData);   
 
-      formattedData.forEach((row, i) => {
-    // direct case-insensitive + date key
-    let dashRecord = normalizedDrivers.get(`${row.name.toLowerCase()}|${row.date}`);
+        const normalizedDrivers = createDriverMap(dashboardData);
+        const driversByDate = createDateBasedIndex(dashboardData);
 
-    if (!dashRecord) {     
-      const candidates = dashboardData
-        .filter(d => d.journey_date.toISOString().slice(0, 10) === row.date)
-        .map(d => d.name.toLowerCase());  
+        const { insertValues, insertPlaceholders, 
+          // matchResults 
+        } = buildInsertData(
+          formattedData,
+          normalizedDrivers,
+          driversByDate
+        );
+        // printMatchSummary(matchResults);
 
-      if (candidates.length > 0) {
-        const bestMatch = stringSimilarity.findBestMatch(row.name.toLowerCase(), candidates);
-        const match = bestMatch.bestMatch.target;
-        const score = bestMatch.bestMatch.rating;
-
-        if (score >= 0.8) {
-          dashRecord = normalizedDrivers.get(`${match}|${row.date}`);
-        }
-      }
-      }
-
-      const ambiguous = !dashRecord;
-
-      insertValues.push(
-        row.name,                     // original_name
-        dashRecord?.name || null,     // matched_name
-        row.date,                     // date
-        row.deliveries,
-        row.fullStop,
-        row.doubleStop,
-        dashRecord?.route_name || null,
-        dashRecord?.start_seq || null,
-        dashRecord?.end_seq || null,
-        ambiguous
-      );
-
-      const baseIndex = i * 9;
-      insertPlaceholders.push(
-        `($${baseIndex + 1}, $${baseIndex + 2}, $${baseIndex + 3}, $${baseIndex + 4}, $${baseIndex + 5}, $${baseIndex + 6}, $${baseIndex + 7}, $${baseIndex + 8},$${baseIndex + 9}, $${baseIndex + 10})`
-      );
-        }) 
-
+        // console.log("\n=== INSERT DATA ===");
+        // console.log("Values:", insertValues);
+        // console.log("Placeholders:", insertPlaceholders);
         let tableName="weekly_excel_data";
         await WeeklyExcelQueries.deleteWeeklyTableIfExists(tableName);
         await WeeklyExcelQueries.createWeeklyTable(tableName);
@@ -191,6 +188,6 @@ export const weeklyExcelUpload=async(req,res)=>{
         console.error("Upload Error:", err);
         res.status(500).json({ success: false, message: "Internal server error" });  
       }
-      };
+      }
   
 

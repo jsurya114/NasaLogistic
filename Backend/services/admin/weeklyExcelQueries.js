@@ -17,9 +17,8 @@ import pool from "../../config/db.js";
         FROM dashboard_data dd
         JOIN drivers d ON dd.driver_id = d.id
         JOIN routes r ON dd.route_id = r.id
-        WHERE journey_date in $1`        
-        
-        const res= await pool.query(selectQuery,dates);
+        WHERE journey_date = ANY($1)`        
+        const res= await pool.query(selectQuery,[dates]);
         return res.rows;
             },
 
@@ -38,6 +37,8 @@ import pool from "../../config/db.js";
                                 start_seq INT,
                                 end_seq INT,
                                 ambiguous boolean,
+                                failedAttempt INT,
+                                no_scanned INT DEFAULT 0,
                                 upload_date TIMESTAMP DEFAULT NOW()
                         );
                     `);
@@ -62,11 +63,41 @@ import pool from "../../config/db.js";
 
     let insertQuery=`
     INSERT INTO weekly_excel_data
-    (orig_name, match_name, date, deliveries, fullStop, doubleStop, route, start_seq,end_seq, ambiguous)
+    (orig_name, match_name, date, deliveries, fullStop, doubleStop, route, start_seq,end_seq, ambiguous,failedAttempt)
     VALUES ${insertPlaceholders.join(",")}
     RETURNING *`;
 
-   return await pool.query(insertQuery ,insertValues);
+   let res=await pool.query(insertQuery ,insertValues);
+   return res.rows;
+  },
+
+  getWeeklyData: async () => {
+  try {
+    // Check if table exists
+    const tableExists = await pool.query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_schema = 'public'
+        AND table_name = 'weekly_excel_data'
+      )
+    `);
+    
+    if (!tableExists.rows[0].exists) {
+      return { exists: false, data: [] };
+    }
+    
+    // Table exists, fetch data
+    const res = await pool.query(`
+      SELECT * FROM weekly_excel_data 
+      ORDER BY upload_date DESC
+    `);
+    
+    return { exists: true, data: res.rows };
+    
+  } catch (error) {
+    console.error('Error fetching weekly data:', error);
+    throw error;
   }
+}
 
 }
