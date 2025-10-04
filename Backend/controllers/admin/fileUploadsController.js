@@ -7,8 +7,7 @@ import XlsxPopulate from 'xlsx-populate';
 import { ExcelFileQueries } from "../../services/admin/excelFileQueries.js";
 import { formatExcelDate } from "../../utils/helper.js";
 import { table } from "console";
-import stringSimilarity from 'string-similarity'
-import { WeeklyExcelQueries } from "../../services/admin/weeklyExcelQueries.js";
+// import { AdminDashboardQueries } from "../../services/admin/dashboardQueries.js";
 const RouteObj = Object.freeze({
   "DFW 036-1": "36A",
   "DFW 041 A-1": "41A",
@@ -78,39 +77,6 @@ export const DailyExcelUpload = async (req, res) => {
     await ExcelFileQueries.addEachDriversCount()
 
 
-        // const DataObj = {}
-        // for(let row of rows){
-        //     const str2 = row['Route'].slice(4)
-        //     const str1 = row["Sequence"]
-        //     const res = str1+str2
-        //     // console.log(res)
-        //     DataObj[res] = {
-        //       'address':row['Address'],
-        //         'zip_code':row['ZipCode'],
-        //         'courier_code':row['TrackingNo'],
-        //         'recp_name':row['RecipientName'],
-        //         'recipient_phone':row['RecipientPhone'],
-        //         'status':row['Status'],
-        //         'address_unit':row['Unit']??'',
-        //     }        }
-        
-        // console.log(DataObj)
-   
-            // rows = null  
-    // console.log(rows[0], rows[1], rows.length);
-    // console.log(rows);
-    // const routes = rows.reduce((a, e) => {
-    //   e["Route"] = e["Route"].slice(5);
-    //   e["Route"] = RouteObj[e["Route"]];
-    //   if (a[e["Route"]]) a[e["Route"]] += 1;
-    //   else a[e["Route"]] = 1;
-    //   return a;
-    // }, {});
-    // console.log(routes, "routes      ");
-
-    // const dashData = await dbService.getDashboardData();
-    // dashData.forEach(item=>item['seqCount'] = item['end_seq']-item['start_seq']+1)
-    // console.log(dashData, "dashData");
     
     return res.status(statusCode.OK).json({ message: "code endeddd" });
   } catch (error) {
@@ -118,6 +84,16 @@ export const DailyExcelUpload = async (req, res) => {
     return res.status(statusCode.INTERNAL_SERVER_ERROR).json({message:'Error Occured while processing Excel'})
   }
 };
+
+// export const updateDriverPayment = async (req,res)=>{
+//   try {
+//     await AdminDashboardQueries.updatePaymentTable()
+    
+//   } catch (error) {
+    
+//   }
+// }
+
 
 
 

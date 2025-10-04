@@ -3,10 +3,7 @@ import React, { useEffect } from "react";
 
 import Header from "../../reuse/Header.jsx"; 
 import Nav from "../../reuse/Nav.jsx";
-import { useDispatch, useSelector } from "react-redux";
-import { fetchJobs } from "../../redux/slice/admin/jobSlice.js";
-import { getUsers } from "../../redux/slice/admin/userLoadSlice.js";
-import { fetchRoutes } from "../../redux/slice/admin/routeSlice.js";
+import PaymentDashboardTable from "./DashboardTable.jsx";
 export default function Dashboard() {
   const dispatch=useDispatch();
   const {cities}=useSelector((state)=>state.jobs);
@@ -80,7 +77,7 @@ export default function Dashboard() {
         </section>
 
         {/* Table Card */}
-        <section className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-x-auto">
+        {/* <section className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-x-auto">
           <div className="font-bold text-gray-900 bg-gray-50 border-b border-gray-200 px-4 py-3">
             Driver Jobs
           </div>
@@ -139,7 +136,9 @@ export default function Dashboard() {
               </tbody>
             </table>
           </div>
-        </section>
+        </section> */}
+                <PaymentDashboardTable />
+
       </main>
 
       {/* Bottom Dock */}

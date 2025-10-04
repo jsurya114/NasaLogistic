@@ -95,8 +95,8 @@ export const ExcelFileQueries = {
   mergeDeliveriesAndExcelData: async () => {
     try {
       await pool.query(`
-                        UPDATE deliveries d
-SET
+    UPDATE deliveries d
+    SET
     address = e.address,
     address_unit = e.unit,
     zip_code = e.zipcode,
@@ -107,7 +107,7 @@ SET
     
     FROM todays_excel_data e, todays_excel_data u
 
-WHERE d.seq_route_code = e.seq_route_code AND DATE(u.upload_date)= DATE(d.driver_set_date) ;
+    WHERE d.seq_route_code = e.seq_route_code AND DATE(u.upload_date)= DATE(d.driver_set_date) ;
 
                 `);
       console.log("table merged");
@@ -125,15 +125,15 @@ WHERE d.seq_route_code = e.seq_route_code AND DATE(u.upload_date)= DATE(d.driver
       //       `
       const queryStr = `
       UPDATE deliveries
-SET final_result = CASE
-    WHEN status = 'FAILED_ATTEMPT' THEN 'failed_attempt'
-    WHEN status = 'Pending'
-         AND address = 'No_Address'
-         AND recp_name = 'Unknown Recipient'
-    THEN 'no_scanned'
-    ELSE final_result
-END;
-`
+     SET final_result = CASE
+     WHEN status = 'FAILED_ATTEMPT' THEN 'failed_attempt'
+     WHEN status = 'Pending'
+          AND address = 'No_Address'
+          AND recp_name = 'Unknown Recipient'
+     THEN 'no_scanned'
+     ELSE final_result
+     END;
+     `
         await pool. query(queryStr)
         console.log('updated noscanned and failed attempts..')
     } catch (error) {
@@ -158,24 +158,24 @@ END;
         
       //   `
       const queryStr = `UPDATE 	
-	dashboard_data d
-SET
-	no_scanned = sub.no_scanned_count,
-	failed_attempt = sub.failed_attempt_count,
-  ds = sub.double_stop_count,
-  first_stop = sub.first_stop_count,
-  delivered = sub.first_stop_count + sub.double_stop_count
+      	dashboard_data d
+      SET
+      	no_scanned = sub.no_scanned_count,
+      	failed_attempt = sub.failed_attempt_count,
+        ds = sub.double_stop_count,
+        first_stop = sub.first_stop_count,
+        delivered = sub.first_stop_count + sub.double_stop_count
 
-FROM (
-    SELECT driver_id,
-  	COUNT (*) FILTER (WHERE final_result = 'no_scanned') AS no_scanned_count,
-		COUNT (*) FILTER (WHERE final_result = 'failed_attempt') AS failed_attempt_count,
-    COUNT (*) FILTER (WHERE final_result = 'first_stop') AS first_stop_count,
-    COUNT (*) FILTER (WHERE final_result = 'double_stop') AS double_stop_count
-        FROM deliveries
-    GROUP BY driver_id
-) AS sub
-WHERE d.driver_id = sub.driver_id;`
+      FROM (
+          SELECT driver_id,
+        	COUNT (*) FILTER (WHERE final_result = 'no_scanned') AS no_scanned_count,
+      		COUNT (*) FILTER (WHERE final_result = 'failed_attempt') AS failed_attempt_count,
+          COUNT (*) FILTER (WHERE final_result = 'first_stop') AS first_stop_count,
+          COUNT (*) FILTER (WHERE final_result = 'double_stop') AS double_stop_count
+              FROM deliveries
+          GROUP BY driver_id
+      ) AS sub
+      WHERE d.driver_id = sub.driver_id;`
         await pool.query(queryStr  )
     } catch (error) {
         console.error(error)
@@ -247,17 +247,16 @@ WHERE d.driver_id = sub.driver_id;`
         ) AS cnt
     FROM deliveries
     WHERE final_result = 'not_assigned'
-)
-UPDATE deliveries d
-SET final_result = CASE 
-        WHEN r.cnt = 1 THEN 'first_stop'::final_result_enum        -- no duplicates
-        WHEN r.rn = 1 THEN 'first_stop'::final_result_enum        -- first of duplicates
-        ELSE 'double_stop' :: final_result_enum                      -- subsequent duplicates
-    END
-FROM ranked r
-WHERE d.unique_id = r.unique_id;
-
-`
+    )
+    UPDATE deliveries d
+    SET final_result = CASE 
+            WHEN r.cnt = 1 THEN 'first_stop'::final_result_enum        -- no duplicates
+            WHEN r.rn = 1 THEN 'first_stop'::final_result_enum        -- first of duplicates
+            ELSE 'double_stop' :: final_result_enum                      -- subsequent duplicates
+        END
+    FROM ranked r
+    WHERE d.unique_id = r.unique_id;
+    `
 
       await pool.query(queryStr)
       console.log('updated table with doublestop and first stop')
