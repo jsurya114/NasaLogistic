@@ -237,6 +237,7 @@ import {
   excelDailyFileUpload,
   excelWeeklyFileUpload,
 } from "../../redux/slice/admin/excelSlice";
+import { fetchDashboardData, fetchWeeklyTempData } from "../../redux/slice/admin/doublestopSlice";
 import FileUpload from "../../../src/components/Excel-InputTag";
 import UploadedData from "../../reuse/UploadedData";
 import Header from "../../reuse/Header";
@@ -248,12 +249,7 @@ const DoubleStop = () => {
   const [activeView, setActiveView] = useState("weekly");
 
 
-  // Weekly form state
-  // const [weeklyForm, setWeeklyForm] = useState({
-  //   week: "",
-  //   file: null,
-  // });
-  const [file,setFile]=useState(null);
+ const [file,setFile]=useState(null);
   const [weeklyErrors, setWeeklyErrors] = useState({});
 
   // Daily form state
@@ -276,14 +272,12 @@ const DoubleStop = () => {
   const handleWeeklySubmit = (e) => {
     e.preventDefault();
     let errors = {};
-    // if (!weeklyForm.week) errors.week = "Week is required";
     if (!file) errors.file = "Excel file is required";
 
     setWeeklyErrors(errors);
     if (Object.keys(errors).length > 0) return;
 
     const formData = new FormData();
-    // formData.append("week", weeklyForm.week);
     formData.append("file", file);
     dispatch(excelWeeklyFileUpload(formData));
   };
@@ -350,29 +344,11 @@ const DoubleStop = () => {
               onSubmit={handleWeeklySubmit}
               className="flex flex-col gap-4 mt-6"
             >
+              {/* <div>
+                
+              </div> */}
               <div>
-                <label className="block mb-1 font-medium">Week</label>
-                <input
-                  type="week"
-                  name="week"
-                  value={weeklyForm.week}
-                  onChange={handleWeeklyChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-600 ${
-                    weeklyErrors.week ? "border-red-500" : "border-gray-300"
-                  }`}
-                />
-                {weeklyErrors.week && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {weeklyErrors.week}
-                  </p>
-                )}
-              </div>
-              <div>
-                <FileUpload
-                  onFileSelect={(f) =>
-                    setWeeklyForm({ ...weeklyForm, file: f })
-                  }
-                />
+                 <FileUpload onFileSelect={setFile} />
                 {weeklyErrors.file && (
                   <p className="text-red-500 text-sm mt-1">
                     {weeklyErrors.file}
@@ -382,7 +358,6 @@ const DoubleStop = () => {
               <div className="flex justify-end">
                 <button
                   type="submit"
-                  // onChange={handleWeeklyChange}
                   className="px-6 py-2 bg-purple-700 text-white rounded-lg shadow hover:bg-purple-800"
                 >
                   Upload Weekly Data
@@ -448,7 +423,7 @@ const DoubleStop = () => {
           </h2>
           <div className="p-4">
             {activeView === "weekly" ? (
-              <UploadedData viewType="weekly" loadData={null}/>
+              <UploadedData viewType="weekly" loadData={()=>dispatch(fetchWeeklyTempData())}/>
             ) : (
               <UploadedData viewType="daily" loadData={()=>dispatch(fetchDashboardData())}/>
             )}

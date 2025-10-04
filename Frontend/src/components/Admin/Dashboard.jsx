@@ -1,6 +1,5 @@
 import React, { useEffect } from "react";
-
-
+import { useDispatch,useSelector } from "react-redux";
 import Header from "../../reuse/Header.jsx"; 
 import Nav from "../../reuse/Nav.jsx";
 import PaymentDashboardTable from "./DashboardTable.jsx";
@@ -9,12 +8,7 @@ export default function Dashboard() {
   const {cities}=useSelector((state)=>state.jobs);
   const {drivers}=useSelector((state)=>state.users);
   const {routes}=useSelector((state)=>state.routes);
-
-  useEffect(()=>{
-    dispatch(fetchJobs());
-    dispatch(getUsers());
-    dispatch(fetchRoutes());
-  },[dispatch])
+ 
 
   return (
     <div className="min-h-screen bg-gray-100 text-gray-900 font-poppins">
