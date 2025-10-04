@@ -5,7 +5,7 @@ import Pagination from './Pagination';
 
 function DriversList() {
   const dispatch = useDispatch();  
-  const {drivers,loading:usersLoad,error:usersError,page,totalPages} = useSelector((state) => state.users);   
+  const {drivers=[],loading:usersLoad,error:usersError,page,totalPages} = useSelector((state) => state.users);   
 
   const [currentPage, setCurrentPage]=useState(1);
   useEffect(()=>{

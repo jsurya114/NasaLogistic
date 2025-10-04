@@ -24,17 +24,21 @@ export const createUsers=async(req,res)=>{
 
 export const getUsers= async(req,res)=>{
     try{
-       console.log("Page Number ",req.query.page);
-       let page = parseInt(req.query.page);
-       let limit=10;
+        console.log("Entered by Get users route");
 
-       let offset = (page-1) * limit;
+        const page = parseInt(req.query.page) || 1;
+        const limit = 10;
+        const offset = (page - 1) * limit;
 
-        const data =await dbService.getAllDrivers(limit,offset);
-        const totalCount = await dbService.getCountOfDrivers();
-        const totalPages= Math.ceil(totalCount/limit); 
-        
-        return res.status(HttpStatus.OK).json({drivers:data,page,totalPages,totalCount});
+        const drivers = await dbService.getAllDrivers(limit, offset);
+        const totalDrivers = await dbService.getCountOfDrivers();
+        const totalPages = Math.ceil(totalDrivers / limit);
+
+        return res.status(HttpStatus.OK).json({
+            drivers,
+            page,
+            totalPages
+        });
     }catch(err){
         console.error(err.message);
         res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Server error" })
@@ -44,7 +48,7 @@ export const getUsers= async(req,res)=>{
 export const changeStatusUser= async(req,res)=>{
     try{
         const id=req.params.id;
-        // console.log("Data from url ",id);
+        console.log("Data from url ",id);
         const checkUser= await dbService.getDriverById(id);
         if(!checkUser)
             return res.status(HttpStatus.NOT_FOUND).json({message:"User does not exists"});
@@ -56,3 +60,12 @@ export const changeStatusUser= async(req,res)=>{
         res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Server error" });
     }
 }
+
+// export const checkforSuperAdminOrNot= async(req,res)=>{
+//     try{
+//         // const res= await dbService.
+//     }catch(err){
+//         console.error(err.message);
+//         res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Server error" });
+//     }
+// }
