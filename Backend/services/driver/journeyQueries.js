@@ -111,7 +111,7 @@ export const getTodayJourney = async (driver_id) => {
              r.name AS route_name
       FROM dashboard_data d
       JOIN routes r ON d.route_id = r.id
-      WHERE driver_id = $1 AND journey_date = CURRENT_DATE
+      WHERE driver_id = $1 
       ORDER BY d.start_seq ASC;
     `;
     const result = await pool.query(query, [driver_id]);
@@ -130,11 +130,13 @@ export const addRangeOfSqeunceToDeliveries = async (driver_id, route_id, start_s
       )
       SELECT 
           $1 AS driver_id,
-          CURRENT_DATE AS driver_set_date,
+          DATE '2025-07-20' AS driver_set_date,
           $2 AS route_id,
           seq AS sequence_number
       FROM generate_series($3::int, $4::int) AS seq 
       RETURNING *;
+
+     
     `;
     const values = [Number(driver_id), Number(route_id),Number( start_seq),Number( end_seq)];
     const result = await pool.query(query, values);
@@ -144,3 +146,29 @@ export const addRangeOfSqeunceToDeliveries = async (driver_id, route_id, start_s
     return { success: false, message: "Error inserting deliveries", error: error.message };
   }
 };
+
+export const updateSeqRouteCodeToDeliveriesTable = async ()=>{
+    try {
+      const query = ` UPDATE deliveries d
+        SET seq_route_code = d.sequence_number || '-' || r.route_code_in_string
+        FROM routes r
+        WHERE d.route_id = r.id;
+      `
+      await pool.query(query)
+    } catch (error) {
+      console.error(error,'error in updation seq_route_code for deliveries table')
+    }
+}
+
+export const markNoAddressAsNoScanned = async ()=>{
+  try {
+      const query =`
+      UPDATE TABLE deliveries
+      SET status = 'no_scanned'
+      WHERE 
+      address = 'No_Address' AND recp_name ='Unknown Recipient'
+      `
+  } catch (error) {
+    
+  }
+}
