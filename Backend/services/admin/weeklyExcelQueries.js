@@ -61,7 +61,7 @@ import pool from "../../config/db.js";
   insertBatchDatafromExcel:async(insertPlaceholders,insertValues)=>{
 
     let insertQuery=`
-    INSERT INTO todays_excel_data
+    INSERT INTO weekly_excel_data
     (orig_name, match_name, date, deliveries, fullStop, doubleStop, route, start_seq,end_seq, ambiguous)
     VALUES ${insertPlaceholders.join(",")}
     RETURNING *`;
