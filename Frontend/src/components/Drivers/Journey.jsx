@@ -27,8 +27,8 @@ const [isJourneySaved, setIsJourneySaved] = useState(false);
   );
   console.log(journeys,'journeerrfe')
   // Get current date in YYYY-MM-DD format
-  // const currentDate = new Date().toISOString().split("T")[0];
   const currentDate = new Date().toISOString().split("T")[0];
+  // const currentDate = '2025-07-20'
   const [formData, setFormData] = useState({
     journey_date: currentDate,
     start_sequence: "",
@@ -140,7 +140,7 @@ setErrors({})
           <form onSubmit={handleSubmit} className="p-6 space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Journey Date
+               Date
               </label>
               <input
                 type="date"
@@ -216,7 +216,7 @@ setErrors({})
       : "bg-blue-600 text-white hover:bg-blue-700"
   }`}
 >
-  {isJourneySaved ? "Journey Already Saved" : "Save Journey"}
+  {isJourneySaved ? "Route Already Saved" : "Save Route"}
 </button>
 
           </form>
@@ -226,7 +226,7 @@ setErrors({})
         <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
           <div className="px-6 py-4 border-b border-gray-200">
             <h2 className="text-lg font-semibold text-gray-900">
-              Journey Records
+               Records
             </h2>
           </div>
 
@@ -238,7 +238,7 @@ setErrors({})
                     Driver ID
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Journey Date
+                  Date
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Route
