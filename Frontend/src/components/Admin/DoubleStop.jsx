@@ -238,6 +238,7 @@ import {
   excelWeeklyFileUpload,
 } from "../../redux/slice/admin/excelSlice";
 import { fetchDashboardData, fetchWeeklyTempData } from "../../redux/slice/admin/doublestopSlice";
+import { fetchDriverPayment,updateWeeklyExcelToDashboard } from "../../redux/slice/admin/dashboardUpdateSlice";
 import FileUpload from "../../../src/components/Excel-InputTag";
 import UploadedData from "../../reuse/UploadedData";
 import Header from "../../reuse/Header";
@@ -436,7 +437,11 @@ const DoubleStop = () => {
             Calculate Driver Payment
           </button>
         </section> */}
-        <DriverPaymentSection />
+        {activeView === "weekly" ? (
+        <DriverPaymentSection loadData={()=>dispatch(updateWeeklyExcelToDashboard())}/>
+        ):(
+          <DriverPaymentSection loadData={()=>dispatch(fetchDriverPayment())}/>
+        )}
       </main>
 
       <Nav />

@@ -1,3 +1,5 @@
+//Helper functions to get weekly excel Process (Don't touch)
+
 import { findExactMatch,findPartialMatch,findFuzzyMatch,findFirstLastNameMatch } from "./excelHelperFns.js";
 
 // Main matching function that tries all strategies
