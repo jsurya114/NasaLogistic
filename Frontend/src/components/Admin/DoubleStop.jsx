@@ -243,6 +243,7 @@ import UploadedData from "../../reuse/UploadedData";
 import Header from "../../reuse/Header";
 import Nav from "../../reuse/Nav";
 import DriverPaymentSection from "./DriverPaymentUpdate";
+import TempUploadedData from "../../reuse/TempUploadedData";
 
 const DoubleStop = () => {
   const dispatch = useDispatch();
@@ -423,7 +424,7 @@ const DoubleStop = () => {
           </h2>
           <div className="p-4">
             {activeView === "weekly" ? (
-              <UploadedData viewType="weekly" loadData={()=>dispatch(fetchWeeklyTempData())}/>
+              <TempUploadedData viewType="weekly" loadData={()=>dispatch(fetchWeeklyTempData())}/>
             ) : (
               <UploadedData viewType="daily" loadData={()=>dispatch(fetchDashboardData())}/>
             )}
