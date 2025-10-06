@@ -1,8 +1,8 @@
 import React,{useEffect} from 'react';
 import { useDispatch,useSelector } from 'react-redux';
-import { clearData, fetchDashboardData } from '../redux/slice/admin/doublestopSlice';
+import { clearData } from '../redux/slice/admin/doublestopSlice';
 
-const UploadedData = ({viewType,loadData}) => {
+const TempUploadedData = ({viewType,loadData}) => {
 
   console.log(viewType)
 const dispatch = useDispatch();
@@ -55,17 +55,17 @@ const {data,loading,error} = useSelector((state) => state.ds);
             data.map((item, idx) => (
               <tr key={idx}>
                 <td className="px-3 py-2 border-b">{idx + 1}</td>
-                <td className="px-3 py-2 border-b">{item.name}</td>
+                <td className="px-3 py-2 border-b">{item.match_name}</td>
                 <td className="px-3 py-2 border-b">
-                  {new Date(item.journey_date).toLocaleDateString()}
+                  {new Date(item.date).toLocaleDateString()}
                 </td>
                 <td className="px-3 py-2 border-b">{item.route}</td>
-                <td className="px-3 py-2 border-b">{item.sequence}</td>
-                <td className="px-3 py-2 border-b">{item.packages}</td>
-                <td className="px-3 py-2 border-b">{item.delivered}</td>
-                <td className="px-3 py-2 border-b">{item.ds}</td>
+                <td className="px-3 py-2 border-b">{item.start_seq} - {item.end_seq}</td>
+                <td className="px-3 py-2 border-b">{item.deliveries}</td>
+                <td className="px-3 py-2 border-b">{item.deliveries}</td>
+                <td className="px-3 py-2 border-b">{item.doublestop}</td>
                 <td className="px-3 py-2 border-b">{item.no_scanned}</td>
-                <td className="px-3 py-2 border-b">{item.failed_attempt}</td>
+                <td className="px-3 py-2 border-b">{item.failedattempt}</td>
               </tr>
             ))
           ) : (
@@ -84,4 +84,4 @@ const {data,loading,error} = useSelector((state) => state.ds);
   );
 }
 
-export default UploadedData
+export default TempUploadedData

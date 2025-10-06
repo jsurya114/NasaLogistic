@@ -237,22 +237,21 @@ import {
   excelDailyFileUpload,
   excelWeeklyFileUpload,
 } from "../../redux/slice/admin/excelSlice";
+import { fetchDashboardData, fetchWeeklyTempData } from "../../redux/slice/admin/doublestopSlice";
+import { fetchDriverPayment,updateWeeklyExcelToDashboard } from "../../redux/slice/admin/dashboardUpdateSlice";
 import FileUpload from "../../../src/components/Excel-InputTag";
 import UploadedData from "../../reuse/UploadedData";
 import Header from "../../reuse/Header";
 import Nav from "../../reuse/Nav";
 import DriverPaymentSection from "./DriverPaymentUpdate";
+import TempUploadedData from "../../reuse/TempUploadedData";
 
 const DoubleStop = () => {
   const dispatch = useDispatch();
   const [activeView, setActiveView] = useState("weekly");
 
 
-  // Weekly form state
-  const [weeklyForm, setWeeklyForm] = useState({
-    week: "",
-    file: null,
-  });
+ const [file,setFile]=useState(null);
   const [weeklyErrors, setWeeklyErrors] = useState({});
 
   // Daily form state
@@ -261,15 +260,6 @@ const DoubleStop = () => {
     file: null,
   });
   const [dailyErrors, setDailyErrors] = useState({});
-
-  // Weekly input handler
-  const handleWeeklyChange = (e) => {
-    const { name, value, type, files } = e.target;
-    setWeeklyForm((prev) => ({
-      ...prev,
-      [name]: type === "file" ? files[0] : value,
-    }));
-  };
 
   // Daily input handler
   const handleDailyChange = (e) => {
@@ -284,15 +274,13 @@ const DoubleStop = () => {
   const handleWeeklySubmit = (e) => {
     e.preventDefault();
     let errors = {};
-    if (!weeklyForm.week) errors.week = "Week is required";
-    if (!weeklyForm.file) errors.file = "Excel file is required";
+    if (!file) errors.file = "Excel file is required";
 
     setWeeklyErrors(errors);
     if (Object.keys(errors).length > 0) return;
 
     const formData = new FormData();
-    formData.append("week", weeklyForm.week);
-    formData.append("file", weeklyForm.file);
+    formData.append("file", file);
     dispatch(excelWeeklyFileUpload(formData));
   };
 
@@ -358,29 +346,11 @@ const DoubleStop = () => {
               onSubmit={handleWeeklySubmit}
               className="flex flex-col gap-4 mt-6"
             >
+              {/* <div>
+                
+              </div> */}
               <div>
-                <label className="block mb-1 font-medium">Week</label>
-                <input
-                  type="week"
-                  name="week"
-                  value={weeklyForm.week}
-                  onChange={handleWeeklyChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-600 ${
-                    weeklyErrors.week ? "border-red-500" : "border-gray-300"
-                  }`}
-                />
-                {weeklyErrors.week && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {weeklyErrors.week}
-                  </p>
-                )}
-              </div>
-              <div>
-                <FileUpload
-                  onFileSelect={(f) =>
-                    setWeeklyForm({ ...weeklyForm, file: f })
-                  }
-                />
+                 <FileUpload onFileSelect={setFile} />
                 {weeklyErrors.file && (
                   <p className="text-red-500 text-sm mt-1">
                     {weeklyErrors.file}
@@ -455,9 +425,9 @@ const DoubleStop = () => {
           </h2>
           <div className="p-4">
             {activeView === "weekly" ? (
-              <UploadedData viewType="weekly" />
+              <TempUploadedData viewType="weekly" loadData={()=>dispatch(fetchWeeklyTempData())}/>
             ) : (
-              <UploadedData viewType="daily" />
+              <UploadedData viewType="daily" loadData={()=>dispatch(fetchDashboardData())}/>
             )}
           </div>
         </section>
@@ -467,12 +437,16 @@ const DoubleStop = () => {
             Calculate Driver Payment
           </button>
         </section> */}
-        <DriverPaymentSection />
+        {activeView === "weekly" ? (
+        <DriverPaymentSection loadData={()=>dispatch(updateWeeklyExcelToDashboard())}/>
+        ):(
+          <DriverPaymentSection loadData={()=>dispatch(fetchDriverPayment())}/>
+        )}
       </main>
 
       <Nav />
     </div>
   );
-};
+}
 
 export default DoubleStop;

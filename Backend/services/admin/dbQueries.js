@@ -145,8 +145,7 @@ export const dbService={
 
   getDashboardData : async ()=>{
     const result = await pool.query(
-      `SELECT * FROM dashboard_data
-         
+      `SELECT * FROM dashboard_data    
         ;
         
       `

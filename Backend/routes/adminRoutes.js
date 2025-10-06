@@ -6,10 +6,10 @@ import jobController from '../controllers/admin/jobController.js';
 import { createRoute,getRoutes,getRouteById, updateRoute, deleteRoute,toggleRouteStatus, fetchPaginatedRoutes} from "../controllers/admin/routeController.js"
 import { changeStatusUser, createUsers, getUsers } from '../controllers/admin/addUserController.js';
 import { getRoutes as getAccessCodeRoutes, createAccessCode } from '../controllers/admin/accessCodeControllers.js';
-import {DailyExcelUpload, getUpdatedTempDashboardData} from '../controllers/admin/fileUploadsController.js';
+import {DailyExcelUpload, getUpdatedTempDashboardData, getWeeklyTempData, weeklyExcelUpload} from '../controllers/admin/fileUploadsController.js';
 import { getAccessCodes,updateAccessCode, } from '../controllers/admin/accessCodeControllers.js';
 import { changeRoleAdmin, changeStatusAdmin, createAdmins, getAdmins } from '../controllers/admin/addAdminController.js';
-import { getPaymentDashboardData, updatePaymentData } from '../controllers/admin/dashboardController.js';
+import { getPaymentDashboardData, updatePaymentData,updateWeeklyTempDataToDashboard } from '../controllers/admin/dashboardController.js';
 
 router.post('/login',adminController.Login);
 
@@ -51,11 +51,10 @@ router.post('/doubleStop/dailyFileUpload',upload.single('file'),DailyExcelUpload
 router.get('/dashboard/paymentTable',getPaymentDashboardData)
 
 router.post('/ds',DailyExcelUpload)
-
-router.post('/doubleStop/weekly-upload',upload.single('file'),(req,res)=>{
-        console.log(req.body,'body in weekly data')
-
-})
+//Weekly Upload 
+router.post('/doubleStop/weekly-upload',upload.single('file'),weeklyExcelUpload);
+router.get('/doubleStop/fetchWeeklyTempData',getWeeklyTempData);
+router.put('/doubleStop/update-weekly-excel-to-dashboard',updateWeeklyTempDataToDashboard);
 
 router.get('/doubleStop/tempDashboardData',getUpdatedTempDashboardData)
 router.get('/doubleStop/calculatePayment',updatePaymentData)

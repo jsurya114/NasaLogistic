@@ -5,7 +5,7 @@ import { dbService } from '../../services/admin/dbQueries.js';
 export const createUsers=async(req,res)=>{
     try{
     const {email,password,name,city,enabled}= req.body;
-    console.log("Data from client ",req.body);
+    // console.log("Data from client ",req.body);
 
     if(!email || !password|| !city){
         return res.status(HttpStatus.UNAUTHORIZED).json({message:"Email , passoword & city is required"})

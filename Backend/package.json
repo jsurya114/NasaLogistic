@@ -24,7 +24,9 @@
     "pg": "^8.16.3",
     "sequelize": "^6.37.7",
     "sequelize-cli": "^6.6.3",
-    "xlsx": "^0.18.5"
+    "string-similarity": "^4.0.4",
+    "xlsx": "^0.18.5",
+    "xlsx-populate": "^1.21.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"
