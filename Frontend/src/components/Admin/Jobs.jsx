@@ -148,17 +148,17 @@ function Jobs() {
         {/* Form Section */}
         <section className="bg-white border border-gray-200 rounded-xl shadow-sm mb-4 p-6">
           <h2 className="font-bold text-gray-900 bg-gray-50 border-b border-gray-200 px-4 py-3 -mx-6 -mt-6 rounded-t-xl">
-            Add Job
+            Add City
           </h2>
           <form onSubmit={handleSubmit} className="flex flex-col gap-4 mt-6">
             <div>
-              <label className="block mb-1 font-medium">Job</label>
+              <label className="block mb-1 font-medium">City</label>
               <input
                 type="text"
                 name="job"
                 value={form.job}
                 onChange={handleChange}
-                placeholder="Enter job"
+                placeholder="Enter City"
                 className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-600 ${
                   errors.job ? "border-red-500" : "border-gray-300"
                 }`}
@@ -198,7 +198,7 @@ function Jobs() {
                 type="submit"
                 className="px-6 py-2 bg-purple-700 text-white rounded-lg shadow hover:bg-purple-800"
               >
-                Add Job
+                Add City
               </button>
             </div>
           </form>
@@ -213,13 +213,13 @@ function Jobs() {
           <SearchBar
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search jobs..."
+            placeholder="Search city..."
           />
           
           <table className="w-full border-collapse text-sm">
             <thead>
               <tr className="bg-gray-50 text-left">
-                {["ID", "Job", "City Code", "Status", "Actions"].map((head, i) => (
+                {["ID", "City", "City Code", "Status", "Actions"].map((head, i) => (
                   <th key={i} className="px-3 py-2 border-b border-gray-200 font-semibold text-gray-800">{head}</th>
                 ))}
               </tr>
@@ -258,7 +258,7 @@ function Jobs() {
               ) : (
                 <tr>
                   <td colSpan="5" className="text-center py-4 text-gray-500 font-medium">
-                    No jobs added yet
+                    No Citiess added yet
                   </td>
                 </tr>
               )}

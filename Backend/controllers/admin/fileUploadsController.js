@@ -3,16 +3,15 @@ import { dbService } from "../../services/admin/dbQueries.js";
 import { generateToken } from "../../services/jwtservice.js";
 import HttpStatus from "../../utils/statusCodes.js";
 import XLSX from "xlsx";
-import XlsxPopulate from 'xlsx-populate';
+// import XlsxPopulate from 'xlsx-populate';
 import { ExcelFileQueries } from "../../services/admin/excelFileQueries.js";
 import { formatExcelDate,getLocalDateString } from "../../utils/helper.js";
-import stringSimilarity from 'string-similarity'
+// import stringSimilarity from 'string-similarity'
 import { WeeklyExcelQueries } from "../../services/admin/weeklyExcelQueries.js";
 import { table } from "console";
 import { createDateBasedIndex, createDriverMap } from "../../utils/excelHelperFns.js";
-import { buildInsertData, 
-  // printMatchSummary 
-} from "../../utils/matchFns.js";
+import { buildInsertData} from "../../utils/matchFns.js";
+// printMatchSummary 
 
 
 // import { AdminDashboardQueries } from "../../services/admin/dashboardQueries.js";

@@ -77,9 +77,9 @@ function Nav() {
             }
           >
             <div className="w-10 h-10 rounded-lg bg-[#eef2f7] flex items-center justify-center text-2xl">
-              🧭
+             🚛
             </div>
-            <small className="text-[13px] font-semibold">Routes</small>
+            <small className="text-[13px] font-semibold">Deliveries</small>
           </NavLink>
         </div>
       </nav>
