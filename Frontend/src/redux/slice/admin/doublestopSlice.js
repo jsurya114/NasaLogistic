@@ -15,6 +15,19 @@ export const fetchDashboardData = createAsyncThunk(
   }
 );
 
+
+export const fetchWeeklyTempData = createAsyncThunk(
+  "dashboard/fetchWeeklyTempData",
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}/admin/doubleStop/fetchWeeklyTempData`);
+      return res.data.data; // API returns { success: true, data: [...] }
+    } catch (err) {
+      return rejectWithValue(err.response?.data || err.message);
+    }
+  }
+);
+
 const dashboardSlice = createSlice({
   name: "dashboard",
   initialState: {
@@ -22,7 +35,11 @@ const dashboardSlice = createSlice({
     loading: false,
     error: null,
   },
-  reducers: {},
+  reducers: {
+    clearData:(state)=>{
+      state.data=[];
+    }
+  },
   extraReducers: (builder) => {
     builder
       .addCase(fetchDashboardData.pending, (state) => {
@@ -36,8 +53,22 @@ const dashboardSlice = createSlice({
       .addCase(fetchDashboardData.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || "Failed to fetch data";
-      });
+      })
+      .addCase(fetchWeeklyTempData.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchWeeklyTempData.fulfilled, (state, action) => {
+        state.loading = false;
+        // console.log("Data from weeklt Temp ",action.payload.data);
+        state.data = action.payload.data;
+      })
+      .addCase(fetchWeeklyTempData.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || "Failed to fetch data";
+      })
   },
 });
 
+export const {clearData} = dashboardSlice.actions
 export default dashboardSlice.reducer;

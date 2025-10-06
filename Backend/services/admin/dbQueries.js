@@ -30,13 +30,13 @@ export const dbService={
         return result.rows[0];
     },
 
-    getCountOfDrivers:async()=>{
-      const countResult = await pool.query(`SELECT COUNT(*) FROM drivers`);
-      return parseInt(countResult.rows[0].count,10);
-    },
-
+    
     getCountOfAdmins:async()=>{
       const countResult = await pool.query(`SELECT COUNT(*) FROM admin`);
+      return parseInt(countResult.rows[0].count,10);
+    },
+    getCountOfDrivers:async()=>{
+      const countResult = await pool.query(`SELECT COUNT(*) FROM drivers`);
       return parseInt(countResult.rows[0].count,10);
     },
     getAllDrivers :async(lim,offset)=>{
@@ -145,8 +145,7 @@ export const dbService={
 
   getDashboardData : async ()=>{
     const result = await pool.query(
-      `SELECT * FROM dashboard_data
-         
+      `SELECT * FROM dashboard_data    
         ;
         
       `
