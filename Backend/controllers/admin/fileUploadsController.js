@@ -5,7 +5,16 @@ import HttpStatus from "../../utils/statusCodes.js";
 import XLSX from "xlsx";
 import { ExcelFileQueries } from "../../services/admin/excelFileQueries.js";
 import { table } from "console";
+<<<<<<< Updated upstream
 import { fsync,unlink } from "fs";
+=======
+import { createDateBasedIndex, createDriverMap } from "../../utils/excelHelperFns.js";
+import { buildInsertData, 
+  // printMatchSummary 
+} from "../../utils/matchFns.js";
+import { unlink } from "fs";
+
+>>>>>>> Stashed changes
 // import { AdminDashboardQueries } from "../../services/admin/dashboardQueries.js";
 
 // const sheetName = "dup";
@@ -22,7 +31,7 @@ export const getUpdatedTempDashboardData = async(req,res)=>{
 
 export const DailyExcelUpload = async (req, res) => {
   try {
-    console.log(req.body)
+    console.log(req.body,'dateeted')
     const chosenDate = req.body?.date
     if(!chosenDate) return res.status(HttpStatus.BAD_REQUEST).json({success:false,message:"No Date Chosen"})
     if(!req.file) {

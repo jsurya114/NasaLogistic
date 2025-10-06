@@ -35,7 +35,7 @@ export const ExcelFileQueries = {
 
       const values = [];
       const placeholders = [];
-
+      console.log(date,"new table date")
       data.forEach((row, i) => {
         const idx = i * 12; // 11 columns now (10 + new seq_route_code)
         placeholders.push(

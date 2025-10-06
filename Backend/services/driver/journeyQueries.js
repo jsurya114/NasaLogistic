@@ -130,7 +130,7 @@ export const addRangeOfSqeunceToDeliveries = async (driver_id, route_id, start_s
       )
       SELECT 
           $1 AS driver_id,
-          DATE '2025-10-02' AS driver_set_date,
+          CURRENT_DATE AS driver_set_date,
           $2 AS route_id,
           seq AS sequence_number
       FROM generate_series($3::int, $4::int) AS seq 
