@@ -11,16 +11,13 @@ import { WeeklyExcelQueries } from "../../services/admin/weeklyExcelQueries.js";
 import { table } from "console";
 
 
-<<<<<<< Updated upstream
 import { fsync,unlink } from "fs";
-=======
+
 import { createDateBasedIndex, createDriverMap } from "../../utils/excelHelperFns.js";
 import { buildInsertData, 
   // printMatchSummary 
 } from "../../utils/matchFns.js";
-import { unlink } from "fs";
 
->>>>>>> Stashed changes
 // import { AdminDashboardQueries } from "../../services/admin/dashboardQueries.js";
 
 // const sheetName = "dup";
