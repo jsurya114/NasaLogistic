@@ -3,6 +3,7 @@ import axios from "axios";
 import { API_BASE_URL } from "../../../config";
 
 // Async thunk to fetch dashboard data
+
 export const fetchDashboardData = createAsyncThunk(
   "dashboard/fetchDashboardData",
   async (_, { rejectWithValue }) => {
@@ -31,13 +32,14 @@ export const fetchWeeklyTempData = createAsyncThunk(
 const dashboardSlice = createSlice({
   name: "dashboard",
   initialState: {
-    data: [],
+    // data: [],
+    data:{weeklyData:[],dailyData:[]},
     loading: false,
     error: null,
   },
   reducers: {
     clearData:(state)=>{
-      state.data=[];
+      state.data={weeklyData:[],dailyData:[]};
     }
   },
   extraReducers: (builder) => {
@@ -48,7 +50,7 @@ const dashboardSlice = createSlice({
       })
       .addCase(fetchDashboardData.fulfilled, (state, action) => {
         state.loading = false;
-        state.data = action.payload;
+        state.data .dailyData = action.payload;
       })
       .addCase(fetchDashboardData.rejected, (state, action) => {
         state.loading = false;
@@ -61,7 +63,7 @@ const dashboardSlice = createSlice({
       .addCase(fetchWeeklyTempData.fulfilled, (state, action) => {
         state.loading = false;
         // console.log("Data from weeklt Temp ",action.payload.data);
-        state.data = action.payload.data;
+        state.data .weeklyData= action.payload.data;
       })
       .addCase(fetchWeeklyTempData.rejected, (state, action) => {
         state.loading = false;
@@ -70,5 +72,5 @@ const dashboardSlice = createSlice({
   },
 });
 
-export const {clearData} = dashboardSlice.actions
+export const {clearData} = dashboardSlice.actions ;
 export default dashboardSlice.reducer;

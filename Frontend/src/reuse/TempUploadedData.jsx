@@ -7,12 +7,14 @@ const TempUploadedData = ({viewType,loadData}) => {
   console.log(viewType)
 const dispatch = useDispatch();
 const {data,loading,error} = useSelector((state) => state.ds);
-
+console.log(data,'data in dailyyy')
   useEffect(() => {
-    dispatch(clearData());
+    // dispatch(clearData());
     if(loadData)
     loadData();
-  }, [loadData]);
+  }, [loadData,dispatch]);
+  // console.log(loadData,'loadData function')
+
 
   return (
       <section className="bg-white rounded-xl shadow p-4">
@@ -51,8 +53,8 @@ const {data,loading,error} = useSelector((state) => state.ds);
           </tr>
         </thead>
         <tbody>
-          {data.length > 0 ? (
-            data.map((item, idx) => (
+          {data?.weeklyData?.length > 0 ? (
+            data.weeklyData.map((item, idx) => (
               <tr key={idx}>
                 <td className="px-3 py-2 border-b">{idx + 1}</td>
                 <td className="px-3 py-2 border-b">{item.match_name}</td>

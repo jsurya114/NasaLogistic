@@ -34,9 +34,7 @@ export const getUpdatedTempDashboardData = async(req,res)=>{
 export const DailyExcelUpload = async (req, res) => {
   try {
     console.log(req.body,'dateeted')
-    const chosenDate = req.body?.date
-    if(!chosenDate) return res.status(HttpStatus.BAD_REQUEST).json({success:false,message:"No Date Chosen"})
-    if(!req.file) {
+   if(!req.file) {
         return res.status(HttpStatus.BAD_REQUEST).json({success:false,message:'NO file uploaded'})
     }
     const fileName = req.file
@@ -52,14 +50,15 @@ export const DailyExcelUpload = async (req, res) => {
     }
     const rows = XLSX.utils.sheet_to_json(sheet);
 
-    console.log(rows[1])
+      console.log(rows[205])
+    
     // const now = new Date()
     // const dd = String(now.getDate()).padStart(2,'0');
     // const mm = String(now.getMonth()).padStart(2,'0');
     const tableName = `todays_excel_data`;
     await ExcelFileQueries.deleteIfTableAlreadyExists(tableName)
     await ExcelFileQueries.createDailyTable(tableName);
-    await ExcelFileQueries.insertDataIntoDailyTable(tableName,rows,chosenDate)
+    await ExcelFileQueries.insertDataIntoDailyTable(tableName,rows)
     await ExcelFileQueries.mergeDeliveriesAndExcelData()
     await ExcelFileQueries.setUntouchedRowsAsNoScannedAndUpdateFailedAttempt()
     await ExcelFileQueries.updateFirstStopAndDoubleStop()

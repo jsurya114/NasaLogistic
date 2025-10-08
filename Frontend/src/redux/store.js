@@ -24,7 +24,5 @@ export const store = configureStore({
         ds:doubleStop,
         dashboard:AdminDashboardReducer,
         paymentDashboard:paymentDashboardReducer
-
-    
     }
 })
