@@ -88,6 +88,7 @@ setErrors({})
 
     const journeyData = {
       driver_id: driver?.id || "D001",
+        driver_name: driver?.name || "",
       journey_date: formData.journey_date,
       route_id: formData.route,
       start_seq: formData.start_sequence,
@@ -235,7 +236,7 @@ setErrors({})
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Driver ID
+                    Driver 
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Date
@@ -259,7 +260,7 @@ setErrors({})
                   journeys.map((row, idx) => (
                     <tr key={idx} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {row.driver_id}
+                        {driver?.name}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {row.journey_date}

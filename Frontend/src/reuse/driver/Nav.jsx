@@ -69,7 +69,7 @@ function Nav() {
             <small className="text-[13px] font-semibold">Access Codes</small>
           </NavLink>
           <NavLink
-            to="/driver/routes"
+            to="/driver/delivery"
             className={({ isActive }) =>
               `bg-white text-[#1f2633] rounded-xl px-4 py-2 min-w-[105px] flex flex-col items-center gap-2 shadow-md ${
                 isActive ? "bg-opacity-90" : ""
