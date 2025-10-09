@@ -9,9 +9,12 @@ const dispatch = useDispatch();
 const {data,loading,error} = useSelector((state) => state.ds);
 
   useEffect(() => {
-    dispatch(clearData());
-    if(loadData)
-    loadData();
+    if(!data||data?.weeklyData?.length===0){
+      loadData()
+    }
+    // dispatch(clearData());
+    // if(loadData)
+    // loadData();
   }, [loadData]);
 
   return (
@@ -51,13 +54,13 @@ const {data,loading,error} = useSelector((state) => state.ds);
           </tr>
         </thead>
         <tbody>
-          {data.length > 0 ? (
-            data.map((item, idx) => (
+          {data?.dailyData?.length > 0 ? (
+            data.dailyData.map((item, idx) => (
               <tr key={idx}>
                 <td className="px-3 py-2 border-b">{idx + 1}</td>
                 <td className="px-3 py-2 border-b">{item.name}</td>
                 <td className="px-3 py-2 border-b">
-                  {new Date(item.journey_date).toLocaleDateString()}
+                   {new Date(item.journey_date).toLocaleDateString()}
                 </td>
                 <td className="px-3 py-2 border-b">{item.route}</td>
                 <td className="px-3 py-2 border-b">{item.sequence}</td>

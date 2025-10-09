@@ -26,7 +26,7 @@ export const ExcelFileQueries = {
     }
   },
 
-  insertDataIntoDailyTable: async (tableName, data, date) => {
+  insertDataIntoDailyTable: async (tableName, data) => {
     try {
       if (!data || data.length === 0) {
         console.log("⚠️ No data to insert");
@@ -35,7 +35,6 @@ export const ExcelFileQueries = {
 
       const values = [];
       const placeholders = [];
-
       data.forEach((row, i) => {
         const idx = i * 12; // 11 columns now (10 + new seq_route_code)
         placeholders.push(
@@ -47,6 +46,7 @@ export const ExcelFileQueries = {
 
         // Remove first 4 chars of route
         const routeModified = row.Route ? row.Route.substring(4) : null;
+        const dateFromRoute = `${new Date().getFullYear()}-${row.Route[0]}${row.Route[1]}-${row.Route[2]}${row.Route[3]}`
 
         values.push(
           row.Route,
@@ -60,9 +60,10 @@ export const ExcelFileQueries = {
           row.Status,
           row.CompleteTime ? new Date(row.CompleteTime) : null,
           `${row.Sequence}${routeModified}`,
-          new Date(date)
+          new Date(dateFromRoute)
         );
       });
+      console.log(values[0],values[1],values.length,'valleeues')
 
       const query = `
               INSERT INTO ${tableName} (
@@ -130,7 +131,8 @@ export const ExcelFileQueries = {
      WHEN status = 'Pending'
           AND address = 'No_Address'
           AND recp_name = 'Unknown Recipient'
-     THEN 'no_scanned'
+       THEN 'no_scanned'
+     WHEN status = 'NEW' THEN 'no_scanned'
      ELSE final_result
      END;
      `

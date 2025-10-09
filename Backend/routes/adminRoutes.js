@@ -50,7 +50,7 @@ router.post('/doubleStop/dailyFileUpload',upload.single('file'),DailyExcelUpload
 
 router.get('/dashboard/paymentTable',getPaymentDashboardData)
 
-router.post('/ds',DailyExcelUpload)
+// router.post('/ds',DailyExcelUpload)
 //Weekly Upload 
 router.post('/doubleStop/weekly-upload',upload.single('file'),weeklyExcelUpload);
 router.get('/doubleStop/fetchWeeklyTempData',getWeeklyTempData);

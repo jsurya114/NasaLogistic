@@ -231,7 +231,7 @@
 
 // export default DoubleStop
 
-import React, { useState } from "react";
+import React, { useState,useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   excelDailyFileUpload,
@@ -247,6 +247,7 @@ import DriverPaymentSection from "./DriverPaymentUpdate";
 import TempUploadedData from "../../reuse/TempUploadedData";
 
 const DoubleStop = () => {
+  
   const dispatch = useDispatch();
   const [activeView, setActiveView] = useState("weekly");
 
@@ -284,21 +285,27 @@ const DoubleStop = () => {
     dispatch(excelWeeklyFileUpload(formData));
   };
 
+
+  
   // Daily submit
   const handleDailySubmit = (e) => {
     e.preventDefault();
     let errors = {};
-    if (!dailyForm.date) errors.date = "Date is required";
     if (!dailyForm.file) errors.file = "Excel file is required";
 
     setDailyErrors(errors);
     if (Object.keys(errors).length > 0) return;
 
     const formData = new FormData();
-    formData.append("date", dailyForm.date);
     formData.append("file", dailyForm.file);
     dispatch(excelDailyFileUpload(formData));
   };
+  const loadWeeklyData = useCallback(()=>{
+    dispatch(fetchWeeklyTempData())
+  },[dispatch])
+  const loadDailyData = useCallback(()=>{
+    dispatch(fetchDashboardData());
+  },[dispatch])
 
   return (
     <div className="min-h-screen bg-gray-100 text-gray-900 font-poppins">
@@ -379,23 +386,7 @@ const DoubleStop = () => {
               onSubmit={handleDailySubmit}
               className="flex flex-col gap-4 mt-6"
             >
-              <div>
-                <label className="block mb-1 font-medium">Date</label>
-                <input
-                  type="date"
-                  name="date"
-                  value={dailyForm.date}
-                  onChange={handleDailyChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-600 ${
-                    dailyErrors.date ? "border-red-500" : "border-gray-300"
-                  }`}
-                />
-                {dailyErrors.date && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {dailyErrors.date}
-                  </p>
-                )}
-              </div>
+             
               <div>
                 <FileUpload
                   onFileSelect={(f) => setDailyForm({ ...dailyForm, file: f })}
@@ -425,9 +416,9 @@ const DoubleStop = () => {
           </h2>
           <div className="p-4">
             {activeView === "weekly" ? (
-              <TempUploadedData viewType="weekly" loadData={()=>dispatch(fetchWeeklyTempData())}/>
+              <TempUploadedData viewType="weekly" loadData={loadWeeklyData}/>
             ) : (
-              <UploadedData viewType="daily" loadData={()=>dispatch(fetchDashboardData())}/>
+              <UploadedData viewType="daily" loadData={loadDailyData}/>
             )}
           </div>
         </section>

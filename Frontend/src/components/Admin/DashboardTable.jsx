@@ -4,7 +4,6 @@ import { useDispatch, useSelector } from "react-redux";
 //   fetchPaymentDashboard,
 //   clearPaymentDashboard,
 // } from "../features/paymentDashboard/paymentDashboardSlice";
-// import { HoverCardDemo } from "./ui/HoverCardDemo";
 import { fetchPaymentDashboard,clearPaymentDashboard } from "../../redux/slice/admin/paymentDashboardSlice";
 export default function PaymentDashboardTable() {
   const dispatch = useDispatch();
