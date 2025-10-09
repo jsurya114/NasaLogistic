@@ -23,8 +23,6 @@ export const store = configureStore({
         journey:journeyReducer,
         ds:doubleStop,
         dashboard:AdminDashboardReducer,
-        paymentDashboard:paymentDashboardReducer
-
-    
+        paymentDashboard:paymentDashboardReducer    
     }
 })
