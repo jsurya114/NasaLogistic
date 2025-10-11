@@ -13,7 +13,7 @@ export const fetchRoutes = createAsyncThunk("routes/fetchRoutes", async () => {
   } catch (error) {
     throw error;
   }
-});
+})
 
 export const fetchTodayJourney = createAsyncThunk(
     "journeys/fetchTodayJourney",
@@ -51,16 +51,49 @@ export const saveJourney = createAsyncThunk(
         }
      }
 )
+// --- ADMIN THUNKS ---
+
+export const fetchAllJourneys=createAsyncThunk(
+  "journeys/fetchAlljourneys",
+  async()=>{
+    const res = await fetch(`${API_BASE_URL}/admin/journeys`);
+    if(!res.ok) throw new Error("Failed to fetch all journeys");
+    const data = await res.json()
+    return data.data;
+  }
+)
+export const updateJourney = createAsyncThunk(
+"journeys/updateJourney",
+async({journey_id,updatedData},{rejectWithValue})=>{
+  try {
+    const res = await fetch(`${API_BASE_URL}/admin/journey/${journey_id}`,{
+      method:"PUT",
+      headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedData),
+    })
+    const data = await res.json()
+     if(!res.ok) return rejectWithValue(data)
+      return data.data
+  } catch (error) {
+        return rejectWithValue({ message: error.message });
+  }
+}
+)                                      
+
 
 const journeySlice = createSlice({
  name: "journey",
   initialState: {
+    
     routes: [],
     routesStatus: "idle",
     routesError: null,
     journeys: [],
     journeyStatus: "idle",
     journeyError: null,
+    adminJourneys:[],
+    adminStatus:"idle",
+    adminError:null
   },
   reducers: {
      clearRoutesError(state) {
@@ -124,6 +157,25 @@ const journeySlice = createSlice({
         state.journeyStatus = "failed";
         state.journeyError = action.payload?.message
       });
+
+      builder
+      .addCase(fetchAllJourneys.pending,(state)=>{
+        state.adminStatus="loading"
+        state.adminError=null
+      })
+      .addCase(fetchAllJourneys.fulfilled,(state,action)=>{
+        state.adminJourneys=action.payload
+        state.adminStatus="succeeded"
+      })
+      .addCase(fetchAllJourneys.rejected,(state,action)=>{
+        state.adminStatus="failed"
+        state.adminError=action.error.message
+      })
+      .addCase(updateJourney.fulfilled,(state,action)=>{
+        const index = state.adminJourneys.findIndex(j=>j.id===action.payload.id)
+        if(index!==-1) state.adminJourneys[index]=action.payload
+
+      })
   },
 });
 

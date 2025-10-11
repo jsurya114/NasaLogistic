@@ -8,11 +8,12 @@ function Nav() {
     { to: "/admin/routes", icon: "🧭", label: "Routes" },
     { to: "/admin/jobs", icon: "📦", label: "Jobs" },
     { to: "/admin/double-stop", icon: "🔁", label: "Double Stop" },
-    { to: "/admin/manage-access-codes", icon: "🔑", label: "Access Codes" }
+    { to: "/admin/manage-access-codes", icon: "🔑", label: "Access Codes" },
+
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-[#153a6a] border-t border-white/10">
+    <nav className="fixed bottom-0 left-0 right-0 bg-[#462976] border-t border-white/10">
       <div className="flex justify-between sm:justify-center gap-1 xs:gap-2 sm:gap-3 md:gap-4 p-1 xs:p-2 sm:p-3 max-w-full sm:max-w-5xl mx-auto px-2 sm:px-4">
         {links.map((item, i) => (
           <NavLink

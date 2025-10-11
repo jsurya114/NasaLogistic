@@ -23,9 +23,16 @@ const fetchDeliverySummary = async (driverId, fromDate, toDate) => {
     if (fromDate && toDate) {
         query += ` AND pd.journey_date BETWEEN $2 AND $3`;
         params.push(fromDate, toDate);
+    }else if(fromDate){
+        query+=`AND pd.journey_date>=2`
+        params.push(fromDate)
+    }else if (toDate){
+        query+=`AND pd.journey_date<=2`
+        params.push(toDate)
     }
+    query+=`  ORDER BY pd.journey_date DESC`
     
-    query += ` ORDER BY pd.journey_date DESC`;
+  
     
     const { rows } = await pool.query(query, params);
     return rows;

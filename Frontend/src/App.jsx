@@ -20,6 +20,7 @@ import "react-toastify/dist/ReactToastify.css";
 
 import AddAccessCodePage from "./components/Admin/AccessCode.jsx"
 import DriverAccessCodePage from "./components/Drivers/AccessCode.jsx";
+import AdminJourney from "./components/Admin/AdminJorney.jsx";
 function App() {
   return (
   <>
@@ -44,7 +45,7 @@ function App() {
         <Route path="/admin/create-users" element={<AddUsers />} />
         <Route path="/admin/double-stop" element={<DoubleStop/>}/>
        <Route path="/admin/manage-access-codes" element={<AddAccessCodePage/>}/>
-
+         <Route path="/admin/journeys" element={<AdminJourney/>}/>
         {/*  Page not found error pages */}
 
 

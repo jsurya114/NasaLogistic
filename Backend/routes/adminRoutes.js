@@ -10,7 +10,7 @@ import {DailyExcelUpload, getUpdatedTempDashboardData, getWeeklyTempData, weekly
 import { getAccessCodes,updateAccessCode, } from '../controllers/admin/accessCodeControllers.js';
 import { changeRoleAdmin, changeStatusAdmin, createAdmins, getAdmins } from '../controllers/admin/addAdminController.js';
 import { getPaymentDashboardData, updatePaymentData,updateWeeklyTempDataToDashboard } from '../controllers/admin/dashboardController.js';
-
+import adminJourneyController from '../controllers/admin/adminJourneyController.js';
 router.post('/login',adminController.Login);
 
 
@@ -46,8 +46,12 @@ router.patch('/toggle-admin-role/:id',changeRoleAdmin);
 router.post('/doubleStop/dailyFileUpload',upload.single('file'),DailyExcelUpload)
 // router.get('/doubleStop/calculatePayment',updateDriverPayment)
 
+//admin journey
+router.get("/journeys",adminJourneyController.fetchAllJourneys)
+router.put("/journey/:journey_id",adminJourneyController.updateJourney)
 
 
+//payment
 router.get('/dashboard/paymentTable',getPaymentDashboardData)
 
 // router.post('/ds',DailyExcelUpload)
