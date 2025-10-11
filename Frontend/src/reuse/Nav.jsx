@@ -6,7 +6,7 @@ function Nav() {
     { to: "/admin/dashboard", icon: "📊", label: "Dashboard" },
     { to: "/admin/create-users", icon: "👥", label: "Users" },
     { to: "/admin/routes", icon: "🧭", label: "Routes" },
-    { to: "/admin/jobs", icon: "📦", label: "Jobs" },
+    { to: "/admin/jobs", icon: "📦", label: "Cities" },
     { to: "/admin/double-stop", icon: "🔁", label: "Double Stop" },
     { to: "/admin/manage-access-codes", icon: "🔑", label: "Access Codes" },
 
