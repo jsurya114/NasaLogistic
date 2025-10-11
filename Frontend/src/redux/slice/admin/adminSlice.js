@@ -119,7 +119,7 @@ const adminSlice = createSlice({
             state.loading=false;
             state.error=action.payload;
         })
-           .addCase(accessAdminUser.pending,(state)=>{
+        .addCase(accessAdminUser.pending,(state)=>{
             state.loading=true
             state.error=null
         })

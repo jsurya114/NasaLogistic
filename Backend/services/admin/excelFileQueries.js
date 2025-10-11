@@ -1,9 +1,9 @@
 import pool from "../../config/db.js";
 
 export const ExcelFileQueries = {
-  createDailyTable: async (tableName) => {
+  createDailyTable: async (tableName,client) => {
     try {
-      await pool.query(`
+      await client.query(`
                 CREATE TABLE ${tableName}(
                         id SERIAL PRIMARY KEY,
                         route TEXT,
@@ -23,10 +23,12 @@ export const ExcelFileQueries = {
       console.log(`✅ Table ${tableName} created successfully`);
     } catch (error) {
       console.error("❌ Error creating table:", error);
+      throw error
+
     }
   },
 
-  insertDataIntoDailyTable: async (tableName, data) => {
+  insertDataIntoDailyTable: async (tableName, data,client) => {
     try {
       if (!data || data.length === 0) {
         console.log("⚠️ No data to insert");
@@ -73,29 +75,33 @@ export const ExcelFileQueries = {
               ) VALUES ${placeholders.join(", ")}
             `;
 
-      await pool.query(query, values);
+      await client.query(query, values);
       console.log(
         `✅ Successfully inserted ${data.length} rows into ${tableName}`
       );
     } catch (error) {
       console.error("❌ Error inserting daily data:", error);
+      throw error
+
     }
   },
 
-  deleteIfTableAlreadyExists: async (tableName) => {
+  deleteIfTableAlreadyExists: async (tableName,client) => {
     try {
-      await pool.query(`
+      await client.query(`
                 DROP TABLE IF EXISTS ${tableName}
             `);
       console.log(`✅ Table ${tableName} deleted`);
     } catch (error) {
       console.error(error);
+      throw error
+
     }
   },
 
-  mergeDeliveriesAndExcelData: async () => {
+  mergeDeliveriesAndExcelData: async (client) => {
     try {
-      await pool.query(`
+      await client.query(`
     UPDATE deliveries d
     SET
     address = e.address,
@@ -112,11 +118,14 @@ export const ExcelFileQueries = {
 
                 `);
       console.log("table merged");
-    } catch (error) {}
+    } catch (error) {
+      throw error
+
+    }
   },
 
 
-  setUntouchedRowsAsNoScannedAndUpdateFailedAttempt : async ()=>{
+  setUntouchedRowsAsNoScannedAndUpdateFailedAttempt : async (client)=>{
     try {
 
       // const queryStr = `
@@ -136,14 +145,15 @@ export const ExcelFileQueries = {
      ELSE final_result
      END;
      `
-        await pool. query(queryStr)
+        await client. query(queryStr)
         console.log('updated noscanned and failed attempts..')
     } catch (error) {
-        
+      throw error
+
     }
   },
 
-  addEachDriversCount :async()=>{
+  addEachDriversCount :async(client)=>{
     try {
       // const queryStr =   `
       
@@ -178,9 +188,11 @@ export const ExcelFileQueries = {
           GROUP BY driver_id
       ) AS sub
       WHERE d.driver_id = sub.driver_id;`
-        await pool.query(queryStr  )
+        await client.query(queryStr  )
     } catch (error) {
         console.error(error)
+      throw error
+
     }
   },
 //   addEachDriverFailedAttempt:async()=>{
@@ -202,9 +214,9 @@ export const ExcelFileQueries = {
 //     }
 //   },
 
-  getTempDashboardData:async()=>{
+  getTempDashboardData:async(client)=>{
     try {
-       const res =  await pool.query(`
+       const res =  await client.query(`
             select
              d.name,dd.journey_date ,
              r.name as route,
@@ -225,9 +237,11 @@ export const ExcelFileQueries = {
             return res.rows
     } catch (error) {
         console.error(error)
+      throw error
+
     }
   },
-  updateFirstStopAndDoubleStop:async()=>{
+  updateFirstStopAndDoubleStop:async(client)=>{
     try {
       const queryStr = `WITH ranked AS (
     SELECT
@@ -260,10 +274,11 @@ export const ExcelFileQueries = {
     WHERE d.unique_id = r.unique_id;
     `
 
-      await pool.query(queryStr)
+      await client.query(queryStr)
       console.log('updated table with doublestop and first stop')
     } catch (error) {
       console.error(error)
+      throw error
     }
   }
 };
