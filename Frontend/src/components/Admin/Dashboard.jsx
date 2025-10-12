@@ -24,11 +24,13 @@ export default function Dashboard() {
   });
 
   const [showExtraFields, setShowExtraFields] = useState(false);
-  const [extraFieldsData, setExtraFieldsData] = useState({
-    sequence: "",
+  const [extraFieldsData] = useState({
     packages: "",
     noScanned: "",
     failedAttempt: "",
+    doubleStop: "",
+    delivered: "",
+    driversPayment: "",
   });
 
   const handleFilterChange = useCallback((e) => {
@@ -39,20 +41,17 @@ export default function Dashboard() {
     }));
   }, []);
 
-  const handleExtraFieldChange = (e) => {
-    const { name, value } = e.target;
-    setExtraFieldsData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
   const handleFilterClick = () => {
-    setShowExtraFields(true); // Show extra fields and Add Delivery button
+    // Only show extra fields if Company Earnings is checked
+    if (filters.companyEarnings) {
+      setShowExtraFields(true);
+    } else {
+      setShowExtraFields(false);
+    }
   };
 
   const handleAddDelivery = useCallback(() => {
-    navigate("/admin/journeys"); // Navigate to AdminJourney page
+    navigate("/admin/journeys");
   }, [navigate]);
 
   const filterOptions = useMemo(() => [
@@ -66,9 +65,9 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-100 text-gray-900 font-poppins">
-      <Header/>
+      <Header />
 
-      <main className="max-w-[1450px] mx-auto p-4 pb-40">
+      <main className="max-w-[1450px] mx-auto p-2 sm:p-4 pb-20 sm:pb-40">
         {/* Filters Card */}
         <section className="bg-white border border-gray-200 rounded-xl shadow-sm mb-4">
           <div className="font-bold text-gray-900 bg-gray-50 border-b border-gray-200 px-4 py-3">
@@ -76,7 +75,7 @@ export default function Dashboard() {
           </div>
           <div className="divide-y">
             {filterOptions.map((item, i) => (
-              <div key={i} className="grid grid-cols-[160px_1fr_40px] items-center gap-3 px-4 py-3">
+              <div key={i} className="grid grid-cols-1 sm:grid-cols-[160px_1fr_40px] items-center gap-2 sm:gap-3 px-4 py-3">
                 <div className="text-gray-600">{item.label}</div>
                 {item.type === "select" ? (
                   <select
@@ -98,7 +97,7 @@ export default function Dashboard() {
                     className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
                   />
                 )}
-                <div className="text-gray-400 text-center">
+                <div className="text-gray-400 text-center hidden sm:block">
                   {item.type === "select" ? "▾" : "📅"}
                 </div>
               </div>
@@ -126,25 +125,25 @@ export default function Dashboard() {
               </button>
             </div>
 
-            {/* Extra Fields as input fields */}
+            {/* Extra Fields (Read-Only) */}
             {showExtraFields && (
               <div className="px-4 py-3 grid grid-cols-1 gap-3">
-                {["sequence", "packages", "noScanned", "failedAttempt"].map((field, i) => (
+                {["packages", "noScanned", "failedAttempt", "doubleStop", "delivered", "driversPayment"].map((field, i) => (
                   <input
                     key={i}
                     type="text"
                     placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
                     name={field}
                     value={extraFieldsData[field]}
-                    onChange={handleExtraFieldChange}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    readOnly
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 bg-gray-100 text-gray-500 cursor-not-allowed"
                   />
                 ))}
 
-                {/* Add Delivery Button (concise like Filter button) */}
+                {/* Add Delivery Button */}
                 <button
                   onClick={handleAddDelivery}
-                  className="bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg shadow-md hover:bg-blue-700 w-40 mx-auto"
+                  className="bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg shadow-md hover:bg-blue-700 w-full sm:w-40 mx-auto"
                 >
                   Add Delivery
                 </button>
@@ -162,7 +161,7 @@ export default function Dashboard() {
         </section>
       </main>
 
-      <Nav/>
+      <Nav />
     </div>
   );
 }

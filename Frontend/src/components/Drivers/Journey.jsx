@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import Header from "../../reuse/driver/Header";
 import Nav from "../../reuse/driver/Nav";
 import { useSelector, useDispatch } from "react-redux";
@@ -14,21 +14,19 @@ import {
 const Journey = () => {
   const { driver } = useSelector((state) => state.driver);
   const dispatch = useDispatch();
-const [errors, setErrors] = useState({});
-const [isJourneySaved, setIsJourneySaved] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [isJourneySaved, setIsJourneySaved] = useState(false);
 
-
-  const { routes, routesStatus, routesError } = useSelector(
+  const { routes, routesStatus, routesError, journeys, journeyStatus, journeyError } = useSelector(
     (state) => state.journey
   );
-  // const journeys=[]
-  const { journeys, journeyStatus, journeyError } = useSelector(
-    (state) => state.journey
+
+  // Memoize current date to prevent recalculation
+  const currentDate = useMemo(
+    () => new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }),
+    []
   );
-  console.log(journeys,'journeerrfe')
-  // Get current date in YYYY-MM-DD format
-const currentDate = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' })
-  // const currentDate = '2025-07-20'
+
   const [formData, setFormData] = useState({
     journey_date: currentDate,
     start_sequence: "",
@@ -36,59 +34,71 @@ const currentDate = new Date().toLocaleDateString('en-CA', { timeZone: 'America/
     route: "",
   });
 
-  // Fetch routes on mount
+  // Fetch routes only once on mount
   useEffect(() => {
     dispatch(fetchRoutes());
   }, [dispatch]);
 
   // Fetch today's journey for driver
-useEffect(() => {
-  if (driver?.id) {
-    dispatch(fetchTodayJourney(driver.id))
-      .unwrap()
-      .then((data) => {
-        if (data.length > 0) {
-          setIsJourneySaved(true); // Journey already saved today
-        }
-      })
-      .catch(() => {
-        setIsJourneySaved(false); // No journey or error
-      });
-  }
-}, [dispatch, driver?.id]);
+  useEffect(() => {
+    if (driver?.id) {
+      dispatch(fetchTodayJourney(driver.id))
+        .unwrap()
+        .then((data) => {
+          setIsJourneySaved(data.length > 0);
+        })
+        .catch(() => {
+          setIsJourneySaved(false);
+        });
+    }
+  }, [dispatch, driver?.id]);
 
-
-  // Error handling
+  // Error handling - separated to avoid dependency issues
   useEffect(() => {
     if (routesError) {
       toast.error(routesError);
       dispatch(clearRoutesError());
     }
+  }, [routesError, dispatch]);
+
+  useEffect(() => {
     if (journeyError) {
       toast.error(journeyError);
       dispatch(clearJourneyError());
     }
-  }, [routesError, journeyError, dispatch]);
+  }, [journeyError, dispatch]);
 
-  const handleChange = (e) => {
+  // Memoize error field mapping
+  const getErrorField = useCallback((name) => {
+    const fieldMap = {
+      start_sequence: "start_seq",
+      end_sequence: "end_seq",
+      route: "route_id",
+    };
+    return fieldMap[name] || name;
+  }, []);
+
+  // Optimized handleChange with useCallback
+  const handleChange = useCallback((e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-      setErrors((prevErrors) => ({
-    ...prevErrors,
-    [name === "start_sequence" ? "start_seq" : name === "end_sequence" ? "end_seq" : name === "route" ? "route_id" : name]: undefined,
-  }));
-  };
+    setErrors((prevErrors) => {
+      const errorField = getErrorField(name);
+      const { [errorField]: _, ...rest } = prevErrors;
+      return rest;
+    });
+  }, [getErrorField]);
 
-  const handleSubmit = async (e) => {
+  // Optimized handleSubmit
+  const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
-setErrors({})
+    setErrors({});
 
-    const packages =
-      Number(formData.end_sequence) - Number(formData.start_sequence) + 1;
+    const packages = Number(formData.end_sequence) - Number(formData.start_sequence) + 1;
 
     const journeyData = {
       driver_id: driver?.id || "D001",
-        driver_name: driver?.name || "",
+      driver_name: driver?.name || "",
       journey_date: formData.journey_date,
       route_id: formData.route,
       start_seq: formData.start_sequence,
@@ -103,27 +113,32 @@ setErrors({})
         autoClose: 3000,
       });
 
-      setFormData({
-        ...formData,
+      setFormData((prev) => ({
+        ...prev,
         start_sequence: "",
         end_sequence: "",
         route: "",
-      });
-          setIsJourneySaved(true);
+      }));
+      setIsJourneySaved(true);
       
-          if (driver?.id) {
-    dispatch(fetchTodayJourney(driver.id));
-  }
+      // ⚠️ REMOVED: Redundant fetchTodayJourney call
+      // The journey state should be updated by the saveJourney action
+      // If your Redux slice doesn't handle this, update the slice instead
     } catch (err) {
-       if (err.errors) {
-      setErrors(err.errors); // show inline
-     
- 
-      if(err.errors['sequenceConflict']) toast.error(err.errors['sequenceConflict'])
-      console.log(errors,'error after form submission')
-    } 
+      if (err.errors) {
+        setErrors(err.errors);
+        if (err.errors['sequenceConflict']) {
+          toast.error(err.errors['sequenceConflict']);
+        }
+      }
     }
-  };
+  }, [formData, driver, dispatch]);
+
+  // Memoize filtered routes to prevent recalculation
+  const enabledRoutes = useMemo(
+    () => routes.filter((route) => route.enabled),
+    [routes]
+  );
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 font-poppins">
@@ -141,7 +156,7 @@ setErrors({})
           <form onSubmit={handleSubmit} className="p-6 space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-               Date
+                Date
               </label>
               <input
                 type="date"
@@ -162,9 +177,10 @@ setErrors({})
                 value={formData.start_sequence}
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                
               />
-              {errors.start_seq && <p className="text-red-500 text-sm mt-1">{errors.start_seq}</p>}
+              {errors.start_seq && (
+                <p className="text-red-500 text-sm mt-1">{errors.start_seq}</p>
+              )}
             </div>
 
             <div>
@@ -177,10 +193,10 @@ setErrors({})
                 value={formData.end_sequence}
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                
               />
-                {errors.end_seq && <p className="text-red-500 text-sm mt-1">{errors.end_seq}</p>}
-
+              {errors.end_seq && (
+                <p className="text-red-500 text-sm mt-1">{errors.end_seq}</p>
+              )}
             </div>
 
             <div>
@@ -188,47 +204,42 @@ setErrors({})
                 Route
               </label>
               <select
-  name="route"
-  value={formData.route}
-  onChange={handleChange}
-  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-300-white"
->
-  <option value="">Select Route</option>
-  {routesStatus === "succeeded" &&
-    routes
-    .filter((route)=>route.enabled)
-    .map((r) => (
-      <option key={r.id} value={r.id} className="text-gray-900 bg-gray-600-400 hover:bg-gray-500">
-        {r.route}
-      </option>
-    ))}
-</select>
-
-                {errors.route_id && <p className="text-red-500 text-sm mt-1">{errors.route_id}</p>}
-
+                name="route"
+                value={formData.route}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">Select Route</option>
+                {routesStatus === "succeeded" &&
+                  enabledRoutes.map((r) => (
+                    <option key={r.id} value={r.id}>
+                      {r.route}
+                    </option>
+                  ))}
+              </select>
+              {errors.route_id && (
+                <p className="text-red-500 text-sm mt-1">{errors.route_id}</p>
+              )}
             </div>
 
-           <button
-  type="submit"
-  disabled={isJourneySaved}
-  className={`w-full py-2 px-4 rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors ${
-    isJourneySaved
-      ? "bg-gray-400 text-gray-700 cursor-not-allowed"
-      : "bg-blue-600 text-white hover:bg-blue-700"
-  }`}
->
-  {isJourneySaved ? "Route Already Saved" : "Save Route"}
-</button>
-
+            <button
+              type="submit"
+              disabled={isJourneySaved}
+              className={`w-full py-2 px-4 rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors ${
+                isJourneySaved
+                  ? "bg-gray-400 text-gray-700 cursor-not-allowed"
+                  : "bg-blue-600 text-white hover:bg-blue-700"
+              }`}
+            >
+              {isJourneySaved ? "Route Already Saved" : "Save Route"}
+            </button>
           </form>
         </div>
 
         {/* Table Card */}
         <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
           <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">
-               Records
-            </h2>
+            <h2 className="text-lg font-semibold text-gray-900">Records</h2>
           </div>
 
           <div className="overflow-x-auto">
@@ -236,10 +247,10 @@ setErrors({})
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Driver 
+                    Driver
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Date
+                    Date
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Route
@@ -256,9 +267,9 @@ setErrors({})
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {journeyStatus === "succeeded" && Array.isArray(journeys)  &&
-                  journeys.map((row, idx) => (
-                    <tr key={idx} className="hover:bg-gray-50">
+                {journeyStatus === "succeeded" && Array.isArray(journeys) &&
+                  journeys.map((row) => (
+                    <tr key={row.id || row.journey_date} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                         {driver?.name}
                       </td>

@@ -1,11 +1,11 @@
-import React, { useEffect, useState, useCallback, useMemo } from "react";
+import React, { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Header from "../../reuse/Header";
 import Nav from "../../reuse/Nav";
 import SearchBar from "../../reuse/Search.jsx";
-import { fetchJobs, addJob, deleteJob, jobStatus, fetchPaginatedJobs, updateJob } from "../../redux/slice/admin/jobSlice";
+import { addJob, jobStatus, fetchPaginatedJobs, updateJob } from "../../redux/slice/admin/jobSlice";
 import Pagination from "../../reuse/Pagination.jsx";
 
 function Jobs() {
@@ -17,21 +17,44 @@ function Jobs() {
   const [editingId, setEditingId] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
   
-  // Debounced search with cleanup
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      dispatch(fetchPaginatedJobs({ page: 1, limit: 3, search: searchTerm }));
-    }, 400);
-    return () => clearTimeout(timer);
-  }, [searchTerm, dispatch]);
+  // Use ref to track if initial fetch is done
+  const initialFetchDone = useRef(false);
+  const limit = 3;
 
-  // Memoized page change handler
+  // Memoized fetch function to prevent recreation
+  const fetchData = useCallback((pageNum, search) => {
+    dispatch(fetchPaginatedJobs({ page: pageNum, limit, search }));
+  }, [dispatch]);
+
+  // Initial fetch on mount
+  useEffect(() => {
+    if (!initialFetchDone.current) {
+      fetchData(1, "");
+      initialFetchDone.current = true;
+    }
+  }, [fetchData]);
+
+  // Debounced search - REMOVED dispatch from dependencies
+  useEffect(() => {
+    if (!initialFetchDone.current) return; // Skip on initial mount
+    
+    const timer = setTimeout(() => {
+      setCurrentPage(1); // Reset to page 1 on search
+      fetchData(1, searchTerm);
+    }, 400);
+    
+    return () => clearTimeout(timer);
+  }, [searchTerm, fetchData]); // dispatch removed!
+
+  // Page change handler
   const handlePageChange = useCallback((newPage) => {
-    dispatch(fetchPaginatedJobs({ page: newPage, limit: 3, search: searchTerm }));
-  }, [dispatch, searchTerm]);
+    setCurrentPage(newPage);
+    fetchData(newPage, searchTerm);
+  }, [fetchData, searchTerm]);
   
-  // Memoized form change handler
+  // Form change handler
   const handleChange = useCallback((e) => {
     const { name, value, type, checked } = e.target;
     setForm((prev) => ({ 
@@ -41,16 +64,16 @@ function Jobs() {
     setErrors((prev) => ({ ...prev, [name]: "" }));
   }, []);
 
-  // Memoized validation function
+  // Validation function
   const validate = useCallback(() => {
-    let newErrors = {};
+    const newErrors = {};
     if (!form.job.trim()) newErrors.job = "Job name is required";
     if (!form.city_code.trim()) newErrors.city_code = "City code is required";
     if (!isEditing && !form.enabled) newErrors.enabled = "City must be enabled to add";
     return newErrors;
   }, [form.job, form.city_code, form.enabled, isEditing]);
 
-  // Memoized edit handler
+  // Edit handler
   const handleEdit = useCallback((city) => {
     setForm({
       job: city.job,
@@ -63,7 +86,7 @@ function Jobs() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
 
-  // Memoized cancel edit handler
+  // Cancel edit handler
   const handleCancelEdit = useCallback(() => {
     setForm({ job: "", city_code: "", enabled: true });
     setEditingId(null);
@@ -71,7 +94,7 @@ function Jobs() {
     setErrors({});
   }, []);
 
-  // Memoized submit handler
+  // Submit handler - with proper dependency management
   const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
 
@@ -95,14 +118,11 @@ function Jobs() {
           toast.success('Job updated successfully!', {
             position: "top-right",
             autoClose: 3000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
           });
           
           handleCancelEdit();
-          dispatch(fetchPaginatedJobs({ page: page || 1, limit: 3, search: searchTerm }));
+          // Refetch current page after update
+          fetchData(currentPage, searchTerm);
         }
       } else {
         const actionResult = await dispatch(
@@ -113,15 +133,13 @@ function Jobs() {
           toast.success('Job added successfully!', {
             position: "top-right",
             autoClose: 3000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
           });
           
           setForm({ job: "", city_code: "", enabled: true });
           setErrors({});
-          dispatch(fetchPaginatedJobs({ page: page || 1, limit: 3, search: searchTerm }));
+          // Refetch page 1 after adding new item
+          setCurrentPage(1);
+          fetchData(1, searchTerm);
         }
       }
     } catch (err) {
@@ -130,38 +148,32 @@ function Jobs() {
       toast.error(`Failed to ${isEditing ? 'update' : 'add'} job. Please try again.`, {
         position: "top-right",
         autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
       });
     }
-  }, [validate, isEditing, editingId, form, dispatch, page, searchTerm, handleCancelEdit]);
+  }, [validate, isEditing, editingId, form, dispatch, currentPage, searchTerm, handleCancelEdit, fetchData]);
 
-  // Memoized toggle status handler
+  // Toggle status handler with refetch
   const handleToggleStatus = useCallback(async (id) => {
     try {
-      await dispatch(jobStatus(id));
-      toast.success('Job status updated successfully!', {
-        position: "top-right",
-        autoClose: 2000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
+      const actionResult = await dispatch(jobStatus(id));
+      
+      if (jobStatus.fulfilled.match(actionResult)) {
+        toast.success('Job status updated successfully!', {
+          position: "top-right",
+          autoClose: 2000,
+        });
+        
+        // Refetch to ensure data consistency
+        fetchData(currentPage, searchTerm);
+      }
     } catch (err) {
       console.error("Failed to toggle status:", err);
       toast.error('Failed to update job status. Please try again.', {
         position: "top-right",
         autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
       });
     }
-  }, [dispatch]);
+  }, [dispatch, currentPage, searchTerm, fetchData]);
 
   // Memoized table headers
   const tableHeaders = useMemo(() => 

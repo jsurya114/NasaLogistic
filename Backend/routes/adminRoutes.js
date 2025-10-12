@@ -15,6 +15,7 @@ router.post('/login',adminController.Login);
 
 
 //Job creation
+// router.get("/jobs",jobController.getJob)
 router.post('/addjob', jobController.addJob);
 router.put('/updatejob/:id',jobController.updateJob)
 router.delete('/deletejob/:id',jobController.deleteJob)
@@ -24,6 +25,7 @@ router.get('/jobs', jobController.fetchPaginatedJobs)
 //Route creation
 router.post("/routes", createRoute);
 router.get("/routes", fetchPaginatedRoutes);
+router.get("/routes-list",getRoutes)
 router.get("/routes/:id", getRouteById);
 router.put("/routes/:id", updateRoute);
 router.patch("/routes/:id/status", toggleRouteStatus);
@@ -48,8 +50,9 @@ router.post('/doubleStop/dailyFileUpload',upload.single('file'),DailyExcelUpload
 
 //admin journey
 router.get("/journeys",adminJourneyController.fetchAllJourneys)
+router.post("/journey", adminJourneyController.addJourney);
 router.put("/journey/:journey_id",adminJourneyController.updateJourney)
-
+router.get("/drivers",adminJourneyController.fetchAllDrivers)
 
 //payment
 router.get('/dashboard/paymentTable',getPaymentDashboardData)
