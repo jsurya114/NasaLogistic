@@ -39,10 +39,11 @@ const getDeliverySummary = async(req,res)=>{
 
 
         const data= await deliveryService.fetchDeliverySummary(driverId,from_date,to_date)
-
+  console.log("Fetched deliveries:", data.length);
         res.status(HttpStatus.OK).json(data)
     } catch (error) {
-        console.error(error)
+           console.error("Delivery query failed:", error)
+
         res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Failed to fetch delivery summary" })
     }
 }

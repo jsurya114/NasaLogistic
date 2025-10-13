@@ -111,7 +111,7 @@ export const getTodayJourney = async (driver_id) => {
              r.name AS route_name
       FROM dashboard_data d
       JOIN routes r ON d.route_id = r.id
-      WHERE driver_id = $1 
+      WHERE driver_id = $1  AND journey_date = CURRENT_DATE
       ORDER BY d.start_seq ASC;
     `;
     const result = await pool.query(query, [driver_id]);

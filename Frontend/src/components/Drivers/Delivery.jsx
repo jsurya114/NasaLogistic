@@ -1,12 +1,13 @@
-
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import Header from "../../reuse/driver/Header";
 import Nav from "../../reuse/driver/Nav";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchDeliverySummary, resetDeliveries } from "../../redux/slice/driver/deliverySlice.js";
+import { fetchDeliverySummary, resetDeliveries, setDeliveriesFromCache } from "../../redux/slice/driver/deliverySlice.js";
 import { accessDriver } from "../../redux/slice/driver/driverSlice.js";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes cache
 
 const Deliveries = () => {
   const dispatch = useDispatch();
@@ -16,10 +17,14 @@ const Deliveries = () => {
 
   const [filters, setFilters] = useState({ from_date: "", to_date: "" });
   const [hasFiltered, setHasFiltered] = useState(false);
-  const [toastShown, setToastShown] = useState(false);
   const [validationError, setValidationError] = useState("");
+  
+  // Use refs to prevent toast spam
+  const lastSuccessToast = useRef(0);
+  const lastErrorToast = useRef(0);
+  const initialLoadDone = useRef(false);
 
-  // ✅ Memoized summary
+  // ✅ Memoized summary calculation
   const summary = useMemo(() => {
     if (!deliveries || deliveries.length === 0) return null;
     return deliveries.reduce(
@@ -35,64 +40,98 @@ const Deliveries = () => {
     );
   }, [deliveries]);
 
-  // ✅ Load from localStorage
+  // ✅ Load from localStorage ONCE with cache validation
   useEffect(() => {
+    if (initialLoadDone.current) return;
+    initialLoadDone.current = true;
+
     const savedFilters = localStorage.getItem("deliveryFilters");
     const savedDeliveries = localStorage.getItem("deliveryData");
+    const savedTimestamp = localStorage.getItem("deliveryTimestamp");
 
-    if (savedFilters) {
-      setFilters(JSON.parse(savedFilters));
-      setHasFiltered(true);
-    }
-
-    if (savedDeliveries) {
-      const parsed = JSON.parse(savedDeliveries);
-      if (parsed.length > 0) {
-        dispatch({
-          type: "delivery/fetchDeliverySummary/fulfilled",
-          payload: parsed,
-        });
+    if (savedFilters && savedDeliveries && savedTimestamp) {
+      const cacheAge = Date.now() - parseInt(savedTimestamp);
+      
+      // Only use cache if it's less than 5 minutes old
+      if (cacheAge < CACHE_DURATION) {
+        try {
+          const parsedFilters = JSON.parse(savedFilters);
+          const parsedDeliveries = JSON.parse(savedDeliveries);
+          
+          if (parsedDeliveries.length > 0) {
+            setFilters(parsedFilters);
+            setHasFiltered(true);
+            // Use new action instead of direct dispatch
+            dispatch(setDeliveriesFromCache(parsedDeliveries));
+          }
+        } catch (err) {
+          console.error("Failed to parse cached data:", err);
+          localStorage.removeItem("deliveryData");
+          localStorage.removeItem("deliveryFilters");
+          localStorage.removeItem("deliveryTimestamp");
+        }
+      } else {
+        // Clear stale cache
+        localStorage.removeItem("deliveryData");
+        localStorage.removeItem("deliveryFilters");
+        localStorage.removeItem("deliveryTimestamp");
       }
     }
   }, [dispatch]);
 
-  // ✅ Fetch driver data
+  // ✅ Fetch driver data once
   useEffect(() => {
     if (!driver && isAuthenticated !== false) {
       dispatch(accessDriver());
     }
   }, [dispatch, driver, isAuthenticated]);
 
-  // ✅ Cleanup
+  // ✅ Cleanup on unmount
   useEffect(() => {
     return () => {
       dispatch(resetDeliveries());
     };
   }, [dispatch]);
 
-  // ✅ Success toast (only once)
+  // ✅ Success toast with debouncing
   useEffect(() => {
-    if (status === "succeeded" && hasFiltered && deliveries?.length > 0 && !toastShown) {
-      localStorage.setItem("deliveryData", JSON.stringify(deliveries));
-      localStorage.setItem("deliveryFilters", JSON.stringify(filters));
+    if (status === "succeeded" && hasFiltered && deliveries?.length > 0) {
+      const now = Date.now();
+      
+      // Only show toast if 3 seconds have passed since last one
+      if (now - lastSuccessToast.current > 3000) {
+        // Save to localStorage with timestamp
+        localStorage.setItem("deliveryData", JSON.stringify(deliveries));
+        localStorage.setItem("deliveryFilters", JSON.stringify(filters));
+        localStorage.setItem("deliveryTimestamp", Date.now().toString());
 
-      toast.success(
-        `Successfully fetched ${deliveries.length} delivery record${deliveries.length === 1 ? "" : "s"}!`,
-        { position: "top-right", autoClose: 3000 }
-      );
-      setToastShown(true);
+        toast.success(
+          `Successfully fetched ${deliveries.length} delivery record${deliveries.length === 1 ? "" : "s"}!`,
+          { position: "top-right", autoClose: 3000, toastId: "delivery-success" }
+        );
+        lastSuccessToast.current = now;
+      }
     }
-  }, [status, hasFiltered, deliveries, filters, toastShown]);
+  }, [status, hasFiltered, deliveries, filters]);
 
-  // ✅ Error toast (only once)
+  // ✅ Error toast with debouncing
   useEffect(() => {
-    if (status === "failed" && error && !toastShown) {
-      toast.error(error, { position: "top-right", autoClose: 4000 });
-      setToastShown(true);
+    if (status === "failed" && error) {
+      const now = Date.now();
+      
+      // Only show toast if 3 seconds have passed since last one
+      if (now - lastErrorToast.current > 3000) {
+        toast.error(error, { 
+          position: "top-right", 
+          autoClose: 4000,
+          toastId: "delivery-error" 
+        });
+        lastErrorToast.current = now;
+      }
     }
-  }, [status, error, toastShown]);
+  }, [status, error]);
 
-  // ✅ Handlers
+  // ✅ Memoized handlers
   const handleChange = useCallback((e) => {
     const { name, value } = e.target;
     setFilters((prev) => ({ ...prev, [name]: value }));
@@ -103,7 +142,7 @@ const Deliveries = () => {
     (e) => {
       e.preventDefault();
 
-      // Inline validation
+      // Validation
       if (!filters.from_date || !filters.to_date) {
         setValidationError("Please select both From and To dates");
         return;
@@ -120,7 +159,6 @@ const Deliveries = () => {
       }
 
       setValidationError("");
-      setToastShown(false);
       setHasFiltered(true);
       dispatch(fetchDeliverySummary({ driverId: driver.id, ...filters }));
     },
@@ -130,11 +168,14 @@ const Deliveries = () => {
   const handleReset = useCallback(() => {
     setFilters({ from_date: "", to_date: "" });
     setHasFiltered(false);
-    setToastShown(false);
     setValidationError("");
     dispatch(resetDeliveries());
     localStorage.removeItem("deliveryData");
     localStorage.removeItem("deliveryFilters");
+    localStorage.removeItem("deliveryTimestamp");
+    // Reset toast timers
+    lastSuccessToast.current = 0;
+    lastErrorToast.current = 0;
   }, [dispatch]);
 
   const formatDate = useCallback((dateString) => {
@@ -142,6 +183,22 @@ const Deliveries = () => {
     const date = new Date(dateString);
     return date.toLocaleDateString("en-IN", { year: "numeric", month: "short", day: "numeric" });
   }, []);
+
+  // ✅ Memoized table headers
+  const tableHeaders = useMemo(() => [
+    "Date", "Route", "Start Seq", "End Seq", "Packages", 
+    "Not Scanned", "Failed", "Double Stop", "Delivered", "Earning"
+  ], []);
+
+  // ✅ Memoized summary labels
+  const summaryLabels = useMemo(() => ({
+    "Total Packages": summary?.packages,
+    Delivered: summary?.delivered,
+    Failed: summary?.failed_attempt,
+    "Not Scanned": summary?.no_scanned,
+    "Double Stop": summary?.double_stop,
+    "Total Earning": summary ? `₹${summary.earning.toFixed(2)}` : "₹0.00",
+  }), [summary]);
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 font-poppins">
@@ -200,7 +257,6 @@ const Deliveries = () => {
               </button>
             </div>
 
-            {/* ✅ Inline validation message */}
             {validationError && (
               <div className="sm:col-span-4 mt-2 text-red-600 text-sm font-medium">{validationError}</div>
             )}
@@ -212,14 +268,7 @@ const Deliveries = () => {
               <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg mb-4">
                 <h3 className="text-sm font-semibold text-gray-700 mb-3">Summary Statistics</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
-                  {Object.entries({
-                    "Total Packages": summary.packages,
-                    Delivered: summary.delivered,
-                    Failed: summary.failed_attempt,
-                    "Not Scanned": summary.no_scanned,
-                    "Double Stop": summary.double_stop,
-                    "Total Earning": `₹${summary.earning.toFixed(2)}`,
-                  }).map(([label, value]) => (
+                  {Object.entries(summaryLabels).map(([label, value]) => (
                     <div key={label}>
                       <label className="block text-xs text-gray-600 mb-1">{label}</label>
                       <input
@@ -262,18 +311,7 @@ const Deliveries = () => {
               <table className="w-full">
                 <thead className="bg-gray-50 border-b">
                   <tr>
-                    {[
-                      "Date",
-                      "Route",
-                      "Start Seq",
-                      "End Seq",
-                      "Packages",
-                      "Not Scanned",
-                      "Failed",
-                      "Double Stop",
-                      "Delivered",
-                      "Earning",
-                    ].map((h) => (
+                    {tableHeaders.map((h) => (
                       <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
                         {h}
                       </th>
@@ -282,7 +320,7 @@ const Deliveries = () => {
                 </thead>
                 <tbody>
                   {deliveries.map((d, i) => (
-                    <tr key={d.id || i} className="hover:bg-gray-50">
+                    <tr key={d.id || i} className="hover:bg-gray-50 border-b border-gray-100">
                       <td className="px-4 py-3 text-sm text-gray-900">{formatDate(d.journey_date)}</td>
                       <td className="px-4 py-3 text-sm">{d.route_id}</td>
                       <td className="px-4 py-3 text-sm text-center">{d.start_seq}</td>
@@ -311,4 +349,3 @@ const Deliveries = () => {
 };
 
 export default Deliveries;
-

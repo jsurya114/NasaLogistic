@@ -13,11 +13,15 @@ export const insertRoute = async (data) => {
   } = data;
 
   // Validate job exists in city table
-  const jobCheck = await pool.query("SELECT job FROM city WHERE job = $1", [job]);
+  const jobCheck = await pool.query("SELECT job. enabled FROM city WHERE job = $1", [job]);
   if (jobCheck.rows.length === 0) {
     throw new Error(`Job '${job}' does not exist in city table`);
   }
 
+
+   if (!jobCheck.rows[0].enabled) {
+    throw new Error(`Job '${job}' is currently disabled and cannot be used`);
+  }
   // Validate price fields
   const prices = {
     company_route_price: parseFloat(company_route_price),
@@ -79,11 +83,14 @@ export const updateRouteQuery = async (id, data) => {
   } = data;
 
   // Validate job exists in city table
-  const jobCheck = await pool.query("SELECT job FROM city WHERE job = $1", [job]);
+  const jobCheck = await pool.query("SELECT job,enabled FROM city WHERE job = $1", [job]);
   if (jobCheck.rows.length === 0) {
     throw new Error(`Job '${job}' does not exist in city table`);
   }
 
+    if (!jobCheck.rows[0].enabled) {
+    throw new Error(`Job '${job}' is currently disabled and cannot be used`);
+  }
   // Validate price fields
   const prices = {
     company_route_price: parseFloat(company_route_price),
