@@ -1,16 +1,12 @@
 import { useState,useEffect } from "react";
 import { useSelector,useDispatch } from "react-redux";
 import { fetchJobs } from '../redux/slice/admin/jobSlice';
-import { getUsers } from "../redux/slice/admin/userLoadSlice";
+
 
 function AddDriverForm({ onSubmit }) {
-   const { cities, status: jobsStatus, error: jobsError } = useSelector((state) => state.jobs);
-   const {loading}= useSelector((state)=>state.users);
-    const dispatch=useDispatch();
-
-    useEffect(()=>{
-        dispatch(fetchJobs());
-    },[dispatch]);
+  //  const { cities, status: jobsStatus, error: jobsError } = useSelector((state) => state.jobs);
+   const {loading,city,success,error}= useSelector((state)=>state.users);
+    const dispatch=useDispatch();   
 
   const [form, setForm] = useState({
     name: "",
@@ -105,18 +101,18 @@ function AddDriverForm({ onSubmit }) {
       {errors.confirmPassword && (
         <p className="text-red-500 text-sm">{errors.confirmPassword}</p>
       )}
-      {/* <select
-            name="city"
-            value={form.city}
-            onChange={handleChange}
-            className="px-3 py-2 border rounded-lg"
-            >
-            <option value="">-- Select City --</option>
-           {cities && Array.isArray(cities) && cities.map((city) => (
-  <option key={city.id} value={city.job}>
-    {city.job}
-  </option>
-))}
+                  {/* <select
+                        name="city"
+                        value={form.city}
+                        onChange={handleChange}
+                        className="px-3 py-2 border rounded-lg"
+                        >
+                        <option value="">-- Select City --</option>
+                      {cities && Array.isArray(cities) && cities.map((city) => (
+              <option key={city.id} value={city.job}>
+                {city.job}
+              </option>
+            ))}
             </select> */}           
             <div>
               <select
@@ -127,8 +123,8 @@ function AddDriverForm({ onSubmit }) {
                 
               >
                 <option value="">Select City</option>
-                {jobsStatus === "succeeded" && Array.isArray(cities) && cities.length > 0 ? (
-                  cities.map((job) => (
+                {Array.isArray(city) && city.length > 0 ? (
+                  city.map((job) => (
                     <option key={job.id} value={job.job}>
                       {job.job}
                     </option>
@@ -137,7 +133,7 @@ function AddDriverForm({ onSubmit }) {
                   <option disabled>No jobs available</option>
                 )}
               </select>
-              {jobsStatus === "loading" && (
+              {loading && (
                 <div className="flex items-center mt-1">
                   <svg className="animate-spin h-6 w-6 mr-2 text-purple-600" viewBox="0 0 24 24">
                     <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
@@ -146,10 +142,10 @@ function AddDriverForm({ onSubmit }) {
                   <p className="text-purple-600 font-medium">Loading jobs...</p>
                 </div>
               )}
-              {jobsStatus === "failed" && (
+              {error && (
                 <p className="text-red-500 mt-1">Error loading jobs: {jobsError || "Unknown error"}</p>
               )}
-              {jobsStatus === "succeeded" && (!Array.isArray(cities) || cities.length === 0) && (
+              {(!Array.isArray(city) || city.length === 0) && (
                 <p className="text-yellow-500 mt-1">No jobs found</p>
               )}
             </div>

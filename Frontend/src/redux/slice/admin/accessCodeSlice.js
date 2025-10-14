@@ -1,46 +1,16 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { API_BASE_URL } from "../../../config";
 
-// Fetch all routes for access codes
-export const fetchAccessCodeRoutes = createAsyncThunk(
-  "accessCodes/fetchAccessCodeRoutes",
-  async (_, { rejectWithValue }) => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/admin/access-codes`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      
-      if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(`HTTP ${res.status}: ${errorText}`);
-      }
-      
-      const data = await res.json();
-      
-      if (!Array.isArray(data)) {
-        return [];
-      }
-      
-      return data;
-    } catch (error) {
-      return rejectWithValue(error.message);
-    }
-  }
-);
-
 // Fetch paginated access codes
 export const fetchAccessCodes = createAsyncThunk(
   "accessCodes/fetchAccessCodes",
-  async ({ page = 1, limit = 10, search = '', routeFilter = '' } = {}, { rejectWithValue }) => {
+  async ({ page = 1, limit = 10, search = '', zipCodeFilter = '' } = {}, { rejectWithValue }) => {
     try {
       const params = new URLSearchParams({
         page: page.toString(),
         limit: limit.toString(),
         ...(search && { search }),
-        ...(routeFilter && { route_id: routeFilter })
+        ...(zipCodeFilter && { zip_code: zipCodeFilter })
       });
 
       const res = await fetch(`${API_BASE_URL}/admin/access-codes/list?${params}`, {
@@ -84,12 +54,12 @@ export const createAccessCode = createAsyncThunk(
       const data = await res.json();
       
       // Refetch with current pagination settings
-      const { currentPage, pageLimit, searchTerm, routeFilter } = getState().accessCodes;
+      const { currentPage, pageLimit, searchTerm, zipCodeFilter } = getState().accessCodes;
       dispatch(fetchAccessCodes({ 
         page: currentPage, 
         limit: pageLimit, 
         search: searchTerm, 
-        routeFilter 
+        zipCodeFilter 
       }));
       
       return data.data;
@@ -102,14 +72,14 @@ export const createAccessCode = createAsyncThunk(
 // Update an access code
 export const updateAccessCode = createAsyncThunk(
   "accessCodes/updateAccessCode",
-  async ({ id, route_id, address, access_code }, { rejectWithValue, dispatch, getState }) => {
+  async ({ id, zip_code, address, access_code }, { rejectWithValue, dispatch, getState }) => {
     try {
       const res = await fetch(`${API_BASE_URL}/admin/access-codes/${id}`, {
         method: "PUT",
         headers: { 
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ route_id, address, access_code }),
+        body: JSON.stringify({ zip_code, address, access_code }),
       });
       
       if (!res.ok) {
@@ -120,12 +90,12 @@ export const updateAccessCode = createAsyncThunk(
       const data = await res.json();
       
       // Refetch with current pagination settings
-      const { currentPage, pageLimit, searchTerm, routeFilter } = getState().accessCodes;
+      const { currentPage, pageLimit, searchTerm, zipCodeFilter } = getState().accessCodes;
       dispatch(fetchAccessCodes({ 
         page: currentPage, 
         limit: pageLimit, 
         search: searchTerm, 
-        routeFilter 
+        zipCodeFilter 
       }));
       
       return data.data;
@@ -153,12 +123,12 @@ export const deleteAccessCode = createAsyncThunk(
       }
       
       // Refetch with current pagination settings
-      const { currentPage, pageLimit, searchTerm, routeFilter } = getState().accessCodes;
+      const { currentPage, pageLimit, searchTerm, zipCodeFilter } = getState().accessCodes;
       dispatch(fetchAccessCodes({ 
         page: currentPage, 
         limit: pageLimit, 
         search: searchTerm, 
-        routeFilter 
+        zipCodeFilter 
       }));
       
       return id;
@@ -171,7 +141,6 @@ export const deleteAccessCode = createAsyncThunk(
 const accessCodeSlice = createSlice({
   name: "accessCodes",
   initialState: {
-    routes: [],
     accessCodes: [],
     status: "idle",
     error: null,
@@ -181,7 +150,7 @@ const accessCodeSlice = createSlice({
     totalItems: 0,
     hasMore: false,
     searchTerm: '',
-    routeFilter: '',
+    zipCodeFilter: '',
   },
   reducers: {
     clearError: (state) => {
@@ -201,28 +170,13 @@ const accessCodeSlice = createSlice({
       state.searchTerm = action.payload;
       state.currentPage = 1;
     },
-    setRouteFilter: (state, action) => {
-      state.routeFilter = action.payload;
+    setZipCodeFilter: (state, action) => {
+      state.zipCodeFilter = action.payload;
       state.currentPage = 1;
     },
   },
   extraReducers: (builder) => {
     builder
-      // Fetch routes
-      .addCase(fetchAccessCodeRoutes.pending, (state) => {
-        state.status = "loading";
-        state.error = null;
-      })
-      .addCase(fetchAccessCodeRoutes.fulfilled, (state, action) => {
-        state.status = "succeeded";
-        state.routes = action.payload || [];
-        state.error = null;
-      })
-      .addCase(fetchAccessCodeRoutes.rejected, (state, action) => {
-        state.status = "failed";
-        state.error = action.payload || action.error.message || "Failed to fetch routes";
-        state.routes = [];
-      })
       // Fetch access codes
       .addCase(fetchAccessCodes.pending, (state) => {
         state.status = "loading";
@@ -282,5 +236,5 @@ const accessCodeSlice = createSlice({
   },
 });
 
-export const { clearError, resetStatus, setPage, setPageLimit, setSearchTerm, setRouteFilter } = accessCodeSlice.actions;
+export const { clearError, resetStatus, setPage, setPageLimit, setSearchTerm, setZipCodeFilter } = accessCodeSlice.actions;
 export default accessCodeSlice.reducer;

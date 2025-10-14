@@ -93,6 +93,15 @@ const jobController={
       message: error.message,
     });
         }
+    },
+    getCities:async(req,res)=>{
+        try {
+            const cities= await jobService.getTotalCities();
+            return res.status(HttpStatus.OK).json(({cities}));
+        } catch (error) {
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+      success: false, message: error.message });
+        }
     }
 
 }
