@@ -19,7 +19,7 @@ app.use(cors({
  app.use(express.json())
  app.use(cookieParser());
  app.use('/admin',(req,_,next)=>{
-  console.log(req.originalUrl,'##',req.headers?.cookie ?? 'no-Cookie','**',Date().toString().slice(16,25))
+  console.log(req.originalUrl,'##',req.headers?.cookie?.slice(0,15) ?? 'no-Cookie','**',Date().toString().slice(16,25))
   next()
  },adminRoutes);
  app.use('/driver',driverRoutes)

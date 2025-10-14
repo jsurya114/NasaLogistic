@@ -23,13 +23,19 @@ import { buildInsertData} from "../../utils/matchFns.js";
 // const sheetName = "dup";
 const sheetName = "result";
 export const getUpdatedTempDashboardData = async(req,res)=>{
+  const client = await pool.connect()
   try {
-
-    const result = await ExcelFileQueries.getTempDashboardData()
+    client.query('BEGIN')
+    const result = await ExcelFileQueries.getTempDashboardData(client)
+    client.query('COMMIT')
     return res.status(statusCode.OK).json({success:true,data:result})
   } catch (error) {
     console.error(error)
+    client.query('ROLLBACK')
     return res.status(statusCode.INTERNAL_SERVER_ERROR).json({message:'error in server',error})
+  }
+  finally{
+    client.release()
   }
 }
 
