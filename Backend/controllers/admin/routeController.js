@@ -74,7 +74,8 @@ export const fetchPaginatedRoutes=async(req,res)=>{
   try {
     const page = parseInt(req.query.page)||1
     const limit = parseInt(req.query.limit)||4
-    const {routes,total}=await routePagination(page,limit)
+    const search  = req.query.search||""
+    const {routes,total}=await routePagination(page,limit,search)
 
     res.status(HttpStatus.OK).json({
       success:true,
@@ -95,11 +96,11 @@ export const fetchPaginatedRoutes=async(req,res)=>{
 // Get all routes
 export const getRoutes = async (req, res) => {
   try {
-    console.log("Fetching all routes..."); // Debug log
+    // console.log("Fetching all routes..."); // Debug log
     const routesDb = await getAllRoutes();
     const routes = routesDb.map(mapRoute);
-    console.log("Returning routes:", routes); // Debug log
-    res.json(routes);
+    // console.log("Returning routes:", routes); // Debug log
+    res.json({routes});
   } catch (err) {
     console.error("❌ getRoutes error:", err.message); // Debug log
     res.status(HttpStatus.INTERNAL_SERVER_ERROR).json( {err:message});
@@ -109,14 +110,14 @@ export const getRoutes = async (req, res) => {
 // Get route by ID
 export const getRouteById = async (req, res) => {
   try {
-    console.log(`Fetching route with id: ${req.params.id}`); // Debug log
+    // console.log(`Fetching route with id: ${req.params.id}`); // Debug log
     const routeDb = await getRouteByIdQuery(req.params.id);
     if (!routeDb) {
       console.log(`Route id: ${req.params.id} not found`); // Debug log
       return res.status(404).json({ error: "Route not found" });
     }
     const route = mapRoute(routeDb);
-    console.log("Returning route:", route); // Debug log
+    // console.log("Returning route:", route); // Debug log
     res.json(route);
   } catch (err) {
     console.error("❌ getRouteById error:", err.message); // Debug log

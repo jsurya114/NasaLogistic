@@ -1,5 +1,6 @@
 
 import {useState} from 'react';
+import { useSelector } from 'react-redux';
 function AddAdminForm({ onSubmit }) {
   const [form, setForm] = useState({
     name: "",
@@ -8,6 +9,8 @@ function AddAdminForm({ onSubmit }) {
     confirmPassword: "",
     role: "admin",
   });
+ const {loading} = useSelector((state)=>state.users);
+
   const [errors, setErrors] = useState({});
 
   const handleChange = (e) => {
@@ -95,8 +98,7 @@ function AddAdminForm({ onSubmit }) {
         name="role"
         value={form.role}
         onChange={handleChange}
-        className="px-3 py-2 border rounded-lg"
-      >
+        className="px-3 py-2 border rounded-lg">
         <option value="admin">Admin</option>
         <option value="superadmin">Super Admin</option>
       </select>
@@ -105,7 +107,7 @@ function AddAdminForm({ onSubmit }) {
         type="submit"
         className="px-6 py-2 bg-purple-700 text-white rounded-lg shadow hover:bg-purple-800"
       >
-        Add Admin
+        {loading ? 'Adding Admin' : 'Add Admin' }
       </button>
     </form>
   );

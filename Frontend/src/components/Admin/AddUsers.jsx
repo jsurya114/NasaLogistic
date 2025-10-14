@@ -6,7 +6,7 @@ import AddDriverForm from '../../reuse/AddDriverForm';
 import AdminsList from '../../reuse/AdminsList';
 import DriversList from '../../reuse/DriversList';
 import { useDispatch, useSelector } from 'react-redux';
-
+import { toast } from "react-toastify";
 import { addDriver,addAdmin } from '../../redux/slice/admin/userLoadSlice';
 import { clearMessages } from '../../redux/slice/admin/userLoadSlice';
 import { accessAdminUser } from '../../redux/slice/admin/adminSlice';
@@ -18,16 +18,16 @@ const AddUsers = () => {
     const {isSuperAdmin}= useSelector((state)=>state.admin);
     const [activeTab, setActiveTab] = useState("drivers");
 
-    useEffect(()=>{
-        dispatch(accessAdminUser());
-        // console.log("isSuperAdmin is ",isSuperAdmin);        
-        if (error || success) {
-      const timer = setTimeout(() => {
-        dispatch(clearMessages());
-      }, 5000);
-      return () => clearTimeout(timer);
+    useEffect(()=>{     
+     if (error) {
+      toast.error(error);
+      dispatch(clearMessages()); // reset state after showing toast
     }
-    },[error,success]);
+    if (success) {
+      toast.success(success);
+      dispatch(clearMessages());
+    }
+    },[error,success,dispatch]);
 
   return (
     <div className="min-h-screen bg-gray-100 text-gray-900 font-poppins">
@@ -60,9 +60,9 @@ const AddUsers = () => {
             {/* Admins Tab - Always visible but conditionally functional */}
             <button
               onClick={() => {
-                if (isSuperAdmin) {
+                // if (isSuperAdmin) {
                   setActiveTab("admins");
-                }
+              // }
               }}
               className={`relative z-10 px-6 py-2 rounded-full font-medium transition-colors duration-300 ${
                 activeTab === "admins"
@@ -78,7 +78,7 @@ const AddUsers = () => {
         </div>
 
         {/* Error/Success Messages */}
-        <div className="text-center mt-4">
+        {/* <div className="text-center mt-4">
           {error && (
             <p className="bg-red-100 text-red-700 px-4 py-2 rounded-md inline-block shadow">
               {error}
@@ -89,7 +89,7 @@ const AddUsers = () => {
               {success}
             </p>
           )}
-        </div>
+        </div> */}
       
         {/* Content Area */}
         <div className="flex-1 p-6 pb-24">       

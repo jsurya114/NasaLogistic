@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useState,useEffect } from "react";
+
 // import { X } from "lucide-react";
 
 export default function FileUpload({ onFileSelect }) {
   const [file, setFile] = useState(null);
   const [error, setError] = useState("");
 
+  
   const allowedTypes = [
     "application/vnd.ms-excel", // .xls
     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xlsx

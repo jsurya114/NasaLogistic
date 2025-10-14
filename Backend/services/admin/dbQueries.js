@@ -25,12 +25,39 @@ export const dbService={
         return result.rows[0];
     },
 
-    getAllDrivers :async()=>{
+     getAdminById: async(id)=>{
+        let result = await pool.query("SELECT * FROM admin WHERE id =$1",[id]);
+        return result.rows[0];
+    },
+
+    
+    getCountOfAdmins:async()=>{
+      const countResult = await pool.query(`SELECT COUNT(*) FROM admin`);
+      return parseInt(countResult.rows[0].count,10);
+    },
+    getCountOfDrivers:async()=>{
+      const countResult = await pool.query(`SELECT COUNT(*) FROM drivers`);
+      return parseInt(countResult.rows[0].count,10);
+    },
+    getAllDrivers :async(lim,offset)=>{
         let result = await pool.query(`
             select d.id, d.driver_code, d.name,d.email, c.job, d.enabled 
             from drivers d
-            join city c on d.city_id=c.id `);
+            join city c on d.city_id=c.id 
+            order by d.name asc
+            limit $1 offset $2`,
+          [lim,offset]);
         return result.rows;
+    },
+    getAllAdmins: async (limit,offset) => {
+      const result = await pool.query(
+        `SELECT id,name, email, role,is_active
+        FROM admin
+        WHERE id != $1
+        LIMIT $2 OFFSET $3`,
+        [100,limit,offset]
+      );
+      return result.rows;
     },
 
     insertUser : async(data)=>{    
@@ -41,12 +68,28 @@ export const dbService={
     const result = await pool.query(
       `INSERT INTO drivers (name, email, password, city_id, enabled) 
        VALUES ($1, $2, $3, $4, $5) 
-       RETURNING *`,
+       RETURNING id,name,email,enabled,city_id,driver_code`,
       [data.name, data.email, hashedPwd, city_id, data.enabled]
     );
     return result.rows[0];
   } catch (err) {
     console.error("Error inserting user:", err.message);
+    throw err;
+  }
+  },
+
+  insertAdmin : async(data)=>{    
+      try {
+    const hashedPwd = await dbService.hashedPassword(data.password);
+    const result = await pool.query(
+      `INSERT INTO admin (name, email, password, role) 
+       VALUES ($1, $2, $3, $4) 
+       RETURNING id,name,email,role`,
+      [data.name, data.email, hashedPwd, data.role]
+    );
+    return result.rows[0];
+  } catch (err) {
+    console.error("Error inserting new admin:", err.message);
     throw err;
   }
   },
@@ -75,10 +118,34 @@ export const dbService={
   return joined.rows[0];  
   },
 
+   changeStatusOfAdmin: async(id)=>{
+   const result = await pool.query(
+    `UPDATE admin 
+     SET is_active = NOT is_active 
+     WHERE id = $1 
+     RETURNING id, name, email,role,is_active`,
+    [id]
+  );
+    return result.rows[0];
+   },
+
+  changeRoleOfAdmin: async (id) => {
+  const result = await pool.query(
+    `UPDATE admin 
+     SET role = CASE 
+                  WHEN role = 'admin' THEN 'superadmin'
+                  ELSE 'admin'
+                END
+     WHERE id = $1 
+     RETURNING id, name, email, role, is_active`,
+    [id]
+  );
+  return result.rows[0];
+},
+
   getDashboardData : async ()=>{
     const result = await pool.query(
-      `SELECT * FROM dashboard_data
-         
+      `SELECT * FROM dashboard_data    
         ;
         
       `

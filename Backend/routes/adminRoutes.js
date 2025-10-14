@@ -5,8 +5,9 @@ import adminController from '../controllers/admin/adminController.js'
 import jobController from '../controllers/admin/jobController.js';
 import { createRoute,getRoutes,getRouteById, updateRoute, deleteRoute,toggleRouteStatus, fetchPaginatedRoutes} from "../controllers/admin/routeController.js"
 import { changeStatusUser, createUsers, getUsers } from '../controllers/admin/addUserController.js';
+import { getRoutes as getAccessCodeRoutes, createAccessCode } from '../controllers/admin/accessCodeControllers.js';
 import {DailyExcelUpload, getUpdatedTempDashboardData, getWeeklyTempData, weeklyExcelUpload} from '../controllers/admin/fileUploadsController.js';
-import { createAccessCode, getAccessCodes, updateAccessCode, deleteAccessCode } from "../controllers/admin/accessCodeControllers.js"
+import { getAccessCodes,updateAccessCode, } from '../controllers/admin/accessCodeControllers.js';
 import { changeRoleAdmin, changeStatusAdmin, createAdmins, getAdmins } from '../controllers/admin/addAdminController.js';
 import { getPaymentDashboardData, updatePaymentData,updateWeeklyTempDataToDashboard } from '../controllers/admin/dashboardController.js';
 import adminJourneyController from '../controllers/admin/adminJourneyController.js';

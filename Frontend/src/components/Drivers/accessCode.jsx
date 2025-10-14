@@ -206,8 +206,17 @@ export default function DriverAccessCodePage() {
                   touched.zipCode && errors.zipCode ? "border-red-500" : "border-gray-200"
                 } rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-[#8200db] bg-white text-gray-900 transition-all`}
                 disabled={status === "loading"}
-              />
-              {touched.zipCode && errors.zipCode && (
+              >
+                <option value="">Choose a route...</option>
+                {routes
+                .filter((route)=>!route.enabled)
+                .map((route) => (
+                  <option key={route.id} value={route.id}>
+                    Route {route.name}
+                  </option>
+                ))}
+              </select>
+              {touched.selectedRoute && errors.selectedRoute && (
                 <p className="text-red-500 text-sm mt-1 flex items-center">
                   <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                     <path

@@ -5,7 +5,7 @@ import { dbService } from '../../services/admin/dbQueries.js';
 export const createUsers=async(req,res)=>{
     try{
     const {email,password,name,city,enabled}= req.body;
-    console.log("Data from client ",req.body);
+    // console.log("Data from client ",req.body);
 
     if(!email || !password|| !city){
         return res.status(HttpStatus.UNAUTHORIZED).json({message:"Email , passoword & city is required"})
@@ -25,9 +25,20 @@ export const createUsers=async(req,res)=>{
 export const getUsers= async(req,res)=>{
     try{
         console.log("Entered by Get users route");
-        const data =await dbService.getAllDrivers();
-        console.log("List of Data ",data);
-        return res.status(HttpStatus.OK).json({data});
+
+        const page = parseInt(req.query.page) || 1;
+        const limit = 10;
+        const offset = (page - 1) * limit;
+
+        const drivers = await dbService.getAllDrivers(limit, offset);
+        const totalDrivers = await dbService.getCountOfDrivers();
+        const totalPages = Math.ceil(totalDrivers / limit);
+
+        return res.status(HttpStatus.OK).json({
+            drivers,
+            page,
+            totalPages
+        });
     }catch(err){
         console.error(err.message);
         res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Server error" })
