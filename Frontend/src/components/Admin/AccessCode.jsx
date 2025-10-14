@@ -300,7 +300,7 @@ export default function AddAccessCodePage() {
                     Route {route.name}
                   </option>
                 ))}
-              </select>
+              </input>
               {touched.selectedRoute && errors.selectedRoute && (
                 <p className="text-red-500 text-sm mt-1 flex items-center">
                   <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
