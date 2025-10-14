@@ -77,6 +77,26 @@ export const deleteRoute = createAsyncThunk("routes/deleteRoute", async (id) => 
   }
 });
 
+export const updateRoute=createAsyncThunk("routes/updateRoute",async({id,routeData})=>{
+  try {
+    const res = await fetch(`${API_BASE_URL}/admin/routes/${id}`,{
+      method:"PUT",
+ headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(routeData),
+    })
+ if (!res.ok) {
+      const error = await res.json();
+      throw new Error(error.error || "Failed to update route");
+    }
+    const data = await res.json();
+    console.log("Updated route:", data);
+    return data;
+  } catch (error) {
+    console.error("updateRoute error:", error.message);
+    throw error;
+  }
+})
+
 const routeSlice = createSlice({
   name: "routes",
   initialState: {
@@ -125,6 +145,25 @@ const routeSlice = createSlice({
         state.status = "failed";
         state.error = action.error.message;
         console.error("addRoute: Failed:", action.error.message); // Debug log
+      })
+      //update Route
+      .addCase(updateRoute.pending,(state)=>{
+        state.status ="loading"
+        state.error=null
+         console.log("updateRoute: Status set to loading");
+      })
+      .addCase(updateRoute.fulfilled,(state,action)=>{
+        state.status="succeeded"
+        const index = state.routes.findIndex((r)=>r.id===action.payload.id)
+        if(index!==-1){
+          state.routes[index]=action.payload
+           console.log("updateRoute: Route updated:", action.payload);
+        }
+      })
+        .addCase(updateRoute.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.error.message;
+        console.error("updateRoute: Failed:", action.error.message);
       })
       // Toggle route status
       .addCase(toggleRouteStatus.pending, (state) => {

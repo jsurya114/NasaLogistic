@@ -38,7 +38,7 @@ useEffect(()=>{
       const result = await dispatch(driverLogin({ email, password })).unwrap();
       if (result.driver) {
         toast.success("Driver login successful!", {
-          position: "bottom-center",
+          position: "top-right",
           autoClose: 3000,
           pauseOnHover: true,
           draggable: true,
@@ -53,7 +53,7 @@ useEffect(()=>{
         });
       } else if (err.message) {
         toast.error(err.message, {
-          position: "bottom-center",
+          position: "top-right",
           autoClose: 3000,
           pauseOnHover: true,
           draggable: true,

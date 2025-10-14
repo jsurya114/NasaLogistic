@@ -10,11 +10,12 @@ import {DailyExcelUpload, getUpdatedTempDashboardData, getWeeklyTempData, weekly
 import { getAccessCodes,updateAccessCode, } from '../controllers/admin/accessCodeControllers.js';
 import { changeRoleAdmin, changeStatusAdmin, createAdmins, getAdmins } from '../controllers/admin/addAdminController.js';
 import { getPaymentDashboardData, updatePaymentData,updateWeeklyTempDataToDashboard } from '../controllers/admin/dashboardController.js';
-
+import adminJourneyController from '../controllers/admin/adminJourneyController.js';
 router.post('/login',adminController.Login);
 
 
 //Job creation
+// router.get("/jobs",jobController.getJob)
 router.post('/addjob', jobController.addJob);
 router.put('/updatejob/:id',jobController.updateJob)
 router.delete('/deletejob/:id',jobController.deleteJob)
@@ -24,6 +25,7 @@ router.get('/jobs', jobController.fetchPaginatedJobs)
 //Route creation
 router.post("/routes", createRoute);
 router.get("/routes", fetchPaginatedRoutes);
+router.get("/routes-list",getRoutes)
 router.get("/routes/:id", getRouteById);
 router.put("/routes/:id", updateRoute);
 router.patch("/routes/:id/status", toggleRouteStatus);
@@ -46,8 +48,13 @@ router.patch('/toggle-admin-role/:id',changeRoleAdmin);
 router.post('/doubleStop/dailyFileUpload',upload.single('file'),DailyExcelUpload)
 // router.get('/doubleStop/calculatePayment',updateDriverPayment)
 
+//admin journey
+router.get("/journeys",adminJourneyController.fetchAllJourneys)
+router.post("/journey", adminJourneyController.addJourney);
+router.put("/journey/:journey_id",adminJourneyController.updateJourney)
+router.get("/drivers",adminJourneyController.fetchAllDrivers)
 
-
+//payment
 router.get('/dashboard/paymentTable',getPaymentDashboardData)
 
 // router.post('/ds',DailyExcelUpload)
