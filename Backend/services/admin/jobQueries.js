@@ -93,6 +93,15 @@ jobPagination: async (page, limit, search = "") => {
     throw error;
   }
 },
+    getTotalCities: async(req,res)=>{
+    try {
+      const cities= await pool.query(`SELECT id,job  FROM city ORDER BY id ASC `);
+      return cities.rows;
+    } catch (error) {
+      console.error("GETTING CITIES ERROR:", error.message);
+        throw error;
+    }
+    },
 
 }
 

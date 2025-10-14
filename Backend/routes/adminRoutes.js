@@ -37,6 +37,7 @@ router.get('/get-users',getUsers);
 router.patch('/toggle-user/:id',changeStatusUser);
 
 //Admin Creation
+router.get('/get-cities',jobController.getCities);
 router.post("/create-admin",createAdmins);
 router.get('/get-admins',getAdmins);
 router.patch('/toggle-admin/:id',changeStatusAdmin);

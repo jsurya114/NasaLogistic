@@ -7,7 +7,7 @@ import AdminsList from '../../reuse/AdminsList';
 import DriversList from '../../reuse/DriversList';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from "react-toastify";
-import { addDriver,addAdmin } from '../../redux/slice/admin/userLoadSlice';
+import { addDriver,addAdmin, getCities } from '../../redux/slice/admin/userLoadSlice';
 import { clearMessages } from '../../redux/slice/admin/userLoadSlice';
 import { accessAdminUser } from '../../redux/slice/admin/adminSlice';
 
@@ -18,7 +18,11 @@ const AddUsers = () => {
     const {isSuperAdmin}= useSelector((state)=>state.admin);
     const [activeTab, setActiveTab] = useState("drivers");
 
-    useEffect(()=>{     
+     useEffect(()=>{
+        dispatch(getCities());
+    },[dispatch]);
+
+    useEffect(()=>{           
      if (error) {
       toast.error(error);
       dispatch(clearMessages()); // reset state after showing toast
