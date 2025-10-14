@@ -18,7 +18,7 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 import AddAccessCodePage from "./components/Admin/AccessCode.jsx"
-import DriverAccessCodePage from "./components/Drivers/AccessCode.jsx";
+import DriverAccessCodePage from "./components/Drivers/accessCode.jsx";
 function App() {
   return (
   <>
