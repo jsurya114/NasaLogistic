@@ -8,7 +8,7 @@ import DriversList from '../../reuse/DriversList';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from "react-toastify";
 import { addDriver,addAdmin } from '../../redux/slice/admin/userLoadSlice';
-import { clearMessages } from '../../redux/slice/admin/userLoadSlice';
+import { clearMessages,getCities } from '../../redux/slice/admin/userLoadSlice';
 import { accessAdminUser } from '../../redux/slice/admin/adminSlice';
 
 
