@@ -1,25 +1,24 @@
+// components/driver/DriverAccessCodePage.jsx
 "use client";
 
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
-  fetchAccessCodeRoutes,
   fetchAccessCodes,
   createAccessCode,
   clearError,
   setPage,
   setPageLimit,
   setSearchTerm,
-  setRouteFilter,
+  setZipCodeFilter,
 } from "../../redux/slice/driver/driverAccessCodeSlice";
-import Header from "../../reuse/driver/Header";
-import Nav from "../../reuse/driver/Nav"
+import Header from "../../reuse/Header";
+import Nav from "../../reuse/Nav";
 import { toast } from "react-toastify";
 
 export default function DriverAccessCodePage() {
   const dispatch = useDispatch();
   const {
-    routes = [],
     accessCodes = [],
     status = "idle",
     error: reduxError,
@@ -28,44 +27,38 @@ export default function DriverAccessCodePage() {
     totalPages,
     totalItems,
     searchTerm,
-    routeFilter,
+    zipCodeFilter,
   } = useSelector((state) => state.driverAccessCodes || {});
 
   const [address, setAddress] = useState("");
   const [accessCode, setAccessCode] = useState("");
-  const [selectedRoute, setSelectedRoute] = useState("");
+  const [zipCode, setZipCode] = useState("");
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
   const [localSearch, setLocalSearch] = useState("");
-  const [localRouteFilter, setLocalRouteFilter] = useState("");
+  const [localZipCodeFilter, setLocalZipCodeFilter] = useState("");
 
   useEffect(() => {
     if (status === "idle") {
-      dispatch(fetchAccessCodeRoutes());
-      dispatch(fetchAccessCodes({ page: currentPage, limit: pageLimit, search: searchTerm, routeFilter }));
+      dispatch(fetchAccessCodes({ page: currentPage, limit: pageLimit, search: searchTerm, zipCodeFilter }));
     }
   }, [dispatch, status]);
 
   useEffect(() => {
-    if (routes.length > 0 && !selectedRoute) {
-      setSelectedRoute(routes[0].id.toString());
-    }
-  }, [routes, selectedRoute]);
-
-  useEffect(() => {
-    if (reduxError) {
-      toast.error(reduxError, { position: "top-right", autoClose: 4000 });
+    return () => {
       dispatch(clearError());
-    }
-  }, [reduxError, dispatch]);
+    };
+  }, [dispatch]);
 
   const validateField = (name, value) => {
     let error = "";
 
     switch (name) {
-      case "selectedRoute":
-        if (!value) {
-          error = "Please select a route";
+      case "zipCode":
+        if (!value.trim()) {
+          error = "Zip code is required";
+        } else if (!/^\d{5}(-\d{4})?$/.test(value.trim())) {
+          error = "Please enter a valid zip code (5 digits or 5+4 format)";
         }
         break;
       case "address":
@@ -93,14 +86,14 @@ export default function DriverAccessCodePage() {
 
   const handleBlur = (field) => {
     setTouched({ ...touched, [field]: true });
-    const value = field === "selectedRoute" ? selectedRoute : field === "address" ? address : accessCode;
+    const value = field === "zipCode" ? zipCode : field === "address" ? address : accessCode;
     const error = validateField(field, value);
     setErrors({ ...errors, [field]: error });
   };
 
   const handleFieldChange = (field, value) => {
-    if (field === "selectedRoute") {
-      setSelectedRoute(value);
+    if (field === "zipCode") {
+      setZipCode(value);
     } else if (field === "address") {
       setAddress(value);
     } else if (field === "accessCode") {
@@ -117,31 +110,29 @@ export default function DriverAccessCodePage() {
     e.preventDefault();
 
     const newErrors = {
-      selectedRoute: validateField("selectedRoute", selectedRoute),
+      zipCode: validateField("zipCode", zipCode),
       address: validateField("address", address),
       accessCode: validateField("accessCode", accessCode),
     };
 
     setErrors(newErrors);
-    setTouched({ selectedRoute: true, address: true, accessCode: true });
+    setTouched({ zipCode: true, address: true, accessCode: true });
 
     if (Object.values(newErrors).some((error) => error !== "")) {
       toast.error("Please fix all validation errors", { position: "top-right" });
       return;
     }
 
-    const routeId = Number.parseInt(selectedRoute);
-
     try {
       await dispatch(
-        createAccessCode({ route_id: routeId, address: address.trim(), access_code: accessCode.trim() }),
+        createAccessCode({ zip_code: zipCode.trim(), address: address.trim(), access_code: accessCode.trim() }),
       ).unwrap();
 
       toast.success("Access code created successfully!", { position: "top-right", autoClose: 3000 });
 
       setAddress("");
       setAccessCode("");
-      setSelectedRoute(routes.length > 0 ? routes[0].id.toString() : "");
+      setZipCode("");
       setErrors({});
       setTouched({});
     } catch (err) {
@@ -152,24 +143,24 @@ export default function DriverAccessCodePage() {
   const handleSearch = () => {
     dispatch(setSearchTerm(localSearch));
     dispatch(setPage(1));
-    dispatch(fetchAccessCodes({ page: 1, limit: pageLimit, search: localSearch, routeFilter: localRouteFilter }));
+    dispatch(fetchAccessCodes({ page: 1, limit: pageLimit, search: localSearch, zipCodeFilter: localZipCodeFilter }));
   };
 
   const handleFilterChange = (filter) => {
-    setLocalRouteFilter(filter);
-    dispatch(setRouteFilter(filter));
+    setLocalZipCodeFilter(filter);
+    dispatch(setZipCodeFilter(filter));
     dispatch(setPage(1));
-    dispatch(fetchAccessCodes({ page: 1, limit: pageLimit, search: localSearch, routeFilter: filter }));
+    dispatch(fetchAccessCodes({ page: 1, limit: pageLimit, search: localSearch, zipCodeFilter: filter }));
   };
 
   const handlePageChange = (newPage) => {
     dispatch(setPage(newPage));
-    dispatch(fetchAccessCodes({ page: newPage, limit: pageLimit, search: searchTerm, routeFilter }));
+    dispatch(fetchAccessCodes({ page: newPage, limit: pageLimit, search: searchTerm, zipCodeFilter }));
   };
 
   const handleLimitChange = (newLimit) => {
     dispatch(setPageLimit(newLimit));
-    dispatch(fetchAccessCodes({ page: 1, limit: newLimit, search: searchTerm, routeFilter }));
+    dispatch(fetchAccessCodes({ page: 1, limit: newLimit, search: searchTerm, zipCodeFilter }));
   };
 
   return (
@@ -193,37 +184,30 @@ export default function DriverAccessCodePage() {
                 Add New Access Code
               </h1>
               <p className="text-gray-600 mt-1 text-sm sm:text-base">
-                Create secure access codes for specific routes and addresses
+                Create secure access codes for specific zip codes and addresses
               </p>
             </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
-            {/* Route Dropdown */}
+            {/* Zip Code Input */}
             <div className="space-y-2">
-              <label htmlFor="route" className="block text-sm font-semibold text-gray-800 mb-2">
-                Select Route <span className="text-red-500">*</span>
+              <label htmlFor="zipCode" className="block text-sm font-semibold text-gray-800 mb-2">
+                Zip Code <span className="text-red-500">*</span>
               </label>
-              <select
-                id="route"
-                value={selectedRoute}
-                onChange={(e) => handleFieldChange("selectedRoute", e.target.value)}
-                onBlur={() => handleBlur("selectedRoute")}
+              <input
+                id="zipCode"
+                type="text"
+                placeholder="Enter zip code (e.g., 12345 or 12345-6789)"
+                value={zipCode}
+                onChange={(e) => handleFieldChange("zipCode", e.target.value)}
+                onBlur={() => handleBlur("zipCode")}
                 className={`w-full px-4 py-3 border-2 ${
-                  touched.selectedRoute && errors.selectedRoute ? "border-red-500" : "border-gray-200"
+                  touched.zipCode && errors.zipCode ? "border-red-500" : "border-gray-200"
                 } rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-[#8200db] bg-white text-gray-900 transition-all`}
                 disabled={status === "loading"}
-              >
-                <option value="">Choose a route...</option>
-                {routes
-                .filter((route)=>!route.enabled)
-                .map((route) => (
-                  <option key={route.id} value={route.id}>
-                    Route {route.name}
-                  </option>
-                ))}
-              </select>
-              {touched.selectedRoute && errors.selectedRoute && (
+              />
+              {touched.zipCode && errors.zipCode && (
                 <p className="text-red-500 text-sm mt-1 flex items-center">
                   <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                     <path
@@ -232,9 +216,10 @@ export default function DriverAccessCodePage() {
                       clipRule="evenodd"
                     />
                   </svg>
-                  {errors.selectedRoute}
+                  {errors.zipCode}
                 </p>
               )}
+              <p className="text-xs text-gray-500 mt-1">Enter 5-digit zip code or 5+4 format (e.g., 12345-6789)</p>
             </div>
 
             {/* Address Input */}
@@ -385,18 +370,13 @@ export default function DriverAccessCodePage() {
               </div>
 
               <div className="w-full md:w-48">
-                <select
-                  value={localRouteFilter}
+                <input
+                  type="text"
+                  placeholder="Filter by zip code..."
+                  value={localZipCodeFilter}
                   onChange={(e) => handleFilterChange(e.target.value)}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-sm"
-                >
-                  <option value="">All Routes</option>
-                  {routes.map((route) => (
-                    <option key={route.id} value={route.id}>
-                      Route {route.name}
-                    </option>
-                  ))}
-                </select>
+                />
               </div>
             </div>
           </div>
@@ -436,7 +416,7 @@ export default function DriverAccessCodePage() {
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">No access codes found</h3>
                 <p className="text-gray-600">
-                  {searchTerm || routeFilter
+                  {searchTerm || zipCodeFilter
                     ? "Try adjusting your filters"
                     : "Create your first access code using the form above"}
                 </p>
@@ -449,7 +429,7 @@ export default function DriverAccessCodePage() {
                       <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
                         <tr>
                           <th className="px-2 sm:px-4 lg:px-6 py-3 sm:py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
-                            Route
+                            Zip Code
                           </th>
                           <th className="px-2 sm:px-4 lg:px-6 py-3 sm:py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
                             Address
@@ -470,7 +450,7 @@ export default function DriverAccessCodePage() {
                           >
                             <td className="px-2 sm:px-4 lg:px-6 py-3 sm:py-5 whitespace-nowrap">
                               <span className="text-xs sm:text-sm font-semibold text-gray-900">
-                                Route {ac.route_name}
+                                {ac.zip_code}
                               </span>
                             </td>
                             <td className="px-2 sm:px-4 lg:px-6 py-3 sm:py-5">

@@ -34,14 +34,16 @@ const Journey = () => {
     route: "",
   });
 
-  // Fetch routes only once on mount
+  // ✅ OPTIMIZED: Fetch routes only once if not already loaded
   useEffect(() => {
-    dispatch(fetchRoutes());
-  }, [dispatch]);
+    if (routesStatus === 'idle') {
+      dispatch(fetchRoutes());
+    }
+  }, [dispatch, routesStatus]);
 
-  // Fetch today's journey for driver
+  // ✅ OPTIMIZED: Fetch today's journey only if needed
   useEffect(() => {
-    if (driver?.id) {
+    if (driver?.id && journeyStatus === 'idle') {
       dispatch(fetchTodayJourney(driver.id))
         .unwrap()
         .then((data) => {
@@ -51,7 +53,7 @@ const Journey = () => {
           setIsJourneySaved(false);
         });
     }
-  }, [dispatch, driver?.id]);
+  }, [dispatch, driver?.id, journeyStatus]);
 
   // Error handling - separated to avoid dependency issues
   useEffect(() => {
@@ -89,7 +91,7 @@ const Journey = () => {
     });
   }, [getErrorField]);
 
-  // Optimized handleSubmit
+  // ✅ OPTIMIZED: Handle submit without refetching
   const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
     setErrors({});
@@ -121,9 +123,7 @@ const Journey = () => {
       }));
       setIsJourneySaved(true);
       
-      // ⚠️ REMOVED: Redundant fetchTodayJourney call
-      // The journey state should be updated by the saveJourney action
-      // If your Redux slice doesn't handle this, update the slice instead
+      // ✅ No need to refetch - Redux slice handles adding to state
     } catch (err) {
       if (err.errors) {
         setErrors(err.errors);

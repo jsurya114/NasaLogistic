@@ -168,6 +168,7 @@ const userLoadSlice=createSlice({
         admins:[],
         page:1,
         city:[],
+        city:[],
         totalPages:0,
     },
     reducers:{

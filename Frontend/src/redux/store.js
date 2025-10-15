@@ -19,6 +19,7 @@ export const store = configureStore({
         jobs: JobReducer,
         users:userAdminReducer,
         driver:driverReducer,
+        driverAccessCodes: driverAccessCodeReducer,
         accessCodes: accessCodeReducer,
         journey:journeyReducer,
         ds:doubleStop,

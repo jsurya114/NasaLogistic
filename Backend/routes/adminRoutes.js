@@ -5,7 +5,7 @@ import adminController from '../controllers/admin/adminController.js'
 import jobController from '../controllers/admin/jobController.js';
 import { createRoute,getRoutes,getRouteById, updateRoute, deleteRoute,toggleRouteStatus, fetchPaginatedRoutes} from "../controllers/admin/routeController.js"
 import { changeStatusUser, createUsers, getUsers } from '../controllers/admin/addUserController.js';
-import { getRoutes as getAccessCodeRoutes, createAccessCode } from '../controllers/admin/accessCodeControllers.js';
+import { createAccessCode } from '../controllers/admin/accessCodeControllers.js';
 import {DailyExcelUpload, getUpdatedTempDashboardData, getWeeklyTempData, weeklyExcelUpload} from '../controllers/admin/fileUploadsController.js';
 import { getAccessCodes,updateAccessCode, } from '../controllers/admin/accessCodeControllers.js';
 import { changeRoleAdmin, changeStatusAdmin, createAdmins, getAdmins } from '../controllers/admin/addAdminController.js';
@@ -37,6 +37,7 @@ router.get('/get-users',getUsers);
 router.patch('/toggle-user/:id',changeStatusUser);
 
 //Admin Creation
+router.get('/get-cities',jobController.getCities);
 router.post("/create-admin",createAdmins);
 router.get('/get-admins',getAdmins);
 router.patch('/toggle-admin/:id',changeStatusAdmin);
@@ -74,10 +75,10 @@ router.post('/logout',adminController.Logout);
 //Check for admin User
 router.get('/access-admin',adminController.getUser);
 
-router.get("/access-codes",getAccessCodeRoutes)
 router.post("/access-codes",createAccessCode)
 router.get("/access-codes/list", getAccessCodes)
 router.put("/access-codes/:id", updateAccessCode)
+
 
 
 export default router;
