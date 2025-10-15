@@ -1,6 +1,7 @@
 
 import {useState} from 'react';
 import { useSelector } from 'react-redux';
+import Select from 'react-select';
 function AddAdminForm({ onSubmit }) {
   const [form, setForm] = useState({
     name: "",
@@ -8,15 +9,28 @@ function AddAdminForm({ onSubmit }) {
     password: "",
     confirmPassword: "",
     role: "admin",
+    cities:[],
   });
- const {loading} = useSelector((state)=>state.users);
-
+ const {loading,city,} = useSelector((state)=>state.users);
   const [errors, setErrors] = useState({});
+
+     // Transform city data into react-select format
+  const cityOptions = Array.isArray(city) 
+    ? city.map(c => ({ 
+        value: c.id,      // City ID
+        label: c.job      // City name to display
+      }))
+    : [];
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm({ ...form, [name]: value });
     setErrors({ ...errors, [name]: "" });
+  };
+
+    const handleCityChange = (selectedOptions) => {
+    setForm({ ...form, cities: selectedOptions || [] });
+    setErrors({ ...errors, cities: "" });
   };
 
   const validate = () => {
@@ -28,6 +42,8 @@ function AddAdminForm({ onSubmit }) {
       newErrors.confirmPassword = "Confirm Password is required";
     if (form.password !== form.confirmPassword)
       newErrors.confirmPassword = "Passwords do not match";
+    if (form.cities.length === 0)
+      newErrors.cities = "At least one city must be selected";
     return newErrors;
   };
 
@@ -39,6 +55,8 @@ function AddAdminForm({ onSubmit }) {
       return;
     }
 
+  
+
     const { confirmPassword, ...adminData } = form; // exclude confirmPassword
     onSubmit(adminData);
     setForm({
@@ -47,7 +65,40 @@ function AddAdminForm({ onSubmit }) {
       password: "",
       confirmPassword: "",
       role: "admin",
+      city:[],
     });
+    setErrors({});
+  };
+
+  // Custom styles for react-select
+  const customStyles = {
+    control: (base, state) => ({
+      ...base,
+      borderColor: errors.cities ? '#ef4444' : state.isFocused ? '#9333ea' : '#d1d5db',
+      boxShadow: state.isFocused ? '0 0 0 1px #9333ea' : 'none',
+      '&:hover': {
+        borderColor: errors.cities ? '#ef4444' : '#9333ea',
+      },
+      padding: '2px',
+      borderRadius: '0.5rem',
+    }),
+    multiValue: (base) => ({
+      ...base,
+      backgroundColor: '#f3e8ff',
+    }),
+    multiValueLabel: (base) => ({
+      ...base,
+      color: '#6b21a8',
+      fontWeight: '500',
+    }),
+    multiValueRemove: (base) => ({
+      ...base,
+      color: '#6b21a8',
+      ':hover': {
+        backgroundColor: '#9333ea',
+        color: 'white',
+      },
+    }),
   };
 
   return (
@@ -102,6 +153,37 @@ function AddAdminForm({ onSubmit }) {
         <option value="admin">Admin</option>
         <option value="superadmin">Super Admin</option>
       </select>
+
+       {/* Multi-select Cities with react-select */}
+        {form.role==='admin' &&(<div className="flex flex-col gap-2">
+       {/* <label className="text-sm font-medium text-gray-700">
+          Select Cities *
+        </label> */}
+        <Select
+          isMulti
+          name="cities"
+          value={form.cities}
+          onChange={handleCityChange}
+          options={cityOptions}
+          isLoading={loading}
+          placeholder="Select cities..."
+          noOptionsMessage={() => "No cities available"}
+          className="basic-multi-select"
+          classNamePrefix="select"
+          styles={customStyles}
+          isDisabled={loading}
+        />
+        {errors.cities && <p className="text-red-500 text-sm">{errors.cities}</p>}
+        
+        {/* Show count of selected cities */}
+        {form.cities.length > 0 && (
+          <p className="text-sm text-gray-600">
+            {form.cities.length} {form.cities.length === 1 ? 'city' : 'cities'} selected
+          </p>
+        )}
+      </div>)}
+
+
 
       <button
         type="submit"
