@@ -59,6 +59,24 @@ export const getUsers = createAsyncThunk('/admin/get-users',
     }
 )
 
+export const getCities = createAsyncThunk('/admin/get-cities',
+    async(_,{rejectWithValue})=>{
+        try{
+            const res= await fetch(`${API_BASE_URL}/admin/get-cities`,{
+                method:"GET",
+                headers:{"Content-Type":"application/json"},
+            });
+            const data= await res.json();
+            if(!res.ok){
+                return rejectWithValue(data.message||"Error while getting users data")
+            }
+            return data;
+        }catch(err){
+            return rejectWithValue(err.message)
+        }
+    }
+)
+
 export const getAdmins = createAsyncThunk('/admin/get-admins',
     async({page=1},{rejectWithValue})=>{
         try{
@@ -149,6 +167,7 @@ const userLoadSlice=createSlice({
         drivers:[],
         admins:[],
         page:1,
+        city:[],
         totalPages:0,
     },
     reducers:{
@@ -271,8 +290,6 @@ const userLoadSlice=createSlice({
             state.error = action.payload?.message || "Failed to update admin status"
             state.success = null;
         })
-<<<<<<< Updated upstream
-=======
          .addCase(getCities.pending,(state)=>{
             state.loading=true;
         })
@@ -286,7 +303,6 @@ const userLoadSlice=createSlice({
             state.error=action.payload.message;
             state.city=[];
         })
->>>>>>> Stashed changes
     }
 })
 export const {clearMessages,clearPaginateTerms} =userLoadSlice.actions
