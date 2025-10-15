@@ -10,7 +10,7 @@ const fetchDeliverySummary = async (driverId, fromDate, toDate) => {
             pd.packages,
             pd.no_scanned,
             pd.failed_attempt,
-            pd.fs AS double_stop,
+            pd.ds AS double_stop,
             pd.delivered,
             pd.driver_payment AS earning,
             pd.start_seq,

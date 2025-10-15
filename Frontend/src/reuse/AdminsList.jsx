@@ -17,45 +17,47 @@ function AdminsList() {
     dispatch(getAdmins({ page: currentPage }));
   }, [dispatch, currentPage]);
 
-      function openConfirmToast(id, currentRole) {
-      const newRole = currentRole === "admin" ? "superadmin" : "admin";
-      toast(
-        ({ closeToast }) => (
-          <div>
-            <p className="mb-2 text-sm">
-              Change role from <b>{currentRole.toUpperCase()}</b> to{" "}
-              <b>{newRole.toUpperCase()}</b>?
-            </p>
-            <div className="flex gap-2">
-              <button
-                onClick={() => {
-                  dispatch(toggleAdminRole( id))
-                    .unwrap()
-                    .then(() => {
-                      toast.success(`Role updated to ${newRole.toUpperCase()} successfully!`);
-                      closeToast();
-                    })
-                    .catch((err) => {
-                      toast.error(`Failed to update role: ${err.message || err}`);
-                      closeToast();
-                    });
-                }}
-                className="px-3 py-1 bg-purple-600 text-white rounded hover:bg-purple-700 text-xs"
-              >
-                Confirm
-              </button>
-              <button
-                onClick={closeToast}
-                className="px-3 py-1 border rounded hover:bg-gray-100 text-xs"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        ),
-        { autoClose: false } // keeps it open until user decides
-      );
-    }
+    //   function openConfirmToast(id, currentRole) {
+    //   const newRole = currentRole === "admin" ? "superadmin" : "admin";
+    //   toast(
+    //     ({ closeToast }) => (
+    //       <div>
+    //         <p className="mb-2 text-sm">
+    //           Change role from <b>{currentRole.toUpperCase()}</b> to{" "}
+    //           <b>{newRole.toUpperCase()}</b>?
+    //         </p>
+    //         <div className="flex gap-2">
+    //           <button
+    //             onClick={() => {
+    //               dispatch(toggleAdminRole( id))
+    //                 .unwrap()
+    //                 .then(() => {
+    //                   toast.success(`Role updated to ${newRole.toUpperCase()} successfully!`);
+    //                   closeToast();
+    //                 })
+    //                 .catch((err) => {
+    //                   toast.error(`Failed to update role: ${err.message || err}`);
+    //                   closeToast();
+    //                 });
+    //             }}
+    //             className="px-3 py-1 bg-purple-600 text-white rounded hover:bg-purple-700 text-xs"
+    //           >
+    //             Confirm
+    //           </button>
+    //           <button
+    //             onClick={closeToast}
+    //             className="px-3 py-1 border rounded hover:bg-gray-100 text-xs"
+    //           >
+    //             Cancel
+    //           </button>
+    //         </div>
+    //       </div>
+    //     ),
+    //     { autoClose: false } // keeps it open until user decides
+    //   );
+    // }
+
+    
   function handleToggleChange(id) {
     try {
       dispatch(toggleAvailAdmin(id));
@@ -81,7 +83,7 @@ function AdminsList() {
           <table className="w-full border-collapse text-sm">
             <thead>
               <tr className="bg-gray-50 text-left">
-                {["Sl No", "Name", "Email", "Role", "Status", "Actions","Promote/Demote"].map((head, i) => (
+                {["Sl No", "Name", "Email", "Role", "Status", "Actions"].map((head, i) => (
                   <th key={i} className="px-3 py-2 border-b border-gray-200">
                     {head}
                   </th>
@@ -134,6 +136,7 @@ function AdminsList() {
                       )}
                     </td>
                     <td className="px-3 py-2 border-b">
+                      <div className="flex items-center gap-10">
                       <label className="relative inline-flex items-center cursor-pointer">
                         <input
                           type="checkbox"
@@ -153,8 +156,20 @@ function AdminsList() {
                           ></div>
                         </div>
                       </label>
+
+                      <button
+                          onClick={() => console.log()}
+                          className="group relative px-4 py-1.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xs font-medium rounded-md hover:from-blue-600 hover:to-blue-700 transition-all duration-200 shadow-sm hover:shadow-md flex items-center gap-1.5"
+                          title="Edit City"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                          <span>Edit</span>
+                        </button>
+                      </div>
                     </td>
-                    <td className="px-3 py-2 border-b">
+                    {/* <td className="px-3 py-2 border-b">
                       {a.role === "admin" ? (
                         <button
                           onClick={() => a.is_active && openConfirmToast(a.id, a.role)}
@@ -180,7 +195,7 @@ function AdminsList() {
                           ⏬ Demote
                         </button>
                       )}
-                    </td>
+                    </td> */}
                   </tr>
                 ))
               ) : (

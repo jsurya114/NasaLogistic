@@ -18,7 +18,15 @@ const AddUsers = () => {
     const {isSuperAdmin}= useSelector((state)=>state.admin);
     const [activeTab, setActiveTab] = useState("drivers");
 
+<<<<<<< Updated upstream
     useEffect(()=>{     
+=======
+    useEffect(()=>{
+      dispatch(getCities())
+    },[dispatch]);
+    
+    useEffect(()=>{           
+>>>>>>> Stashed changes
      if (error) {
       toast.error(error);
       dispatch(clearMessages()); // reset state after showing toast

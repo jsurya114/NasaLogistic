@@ -146,8 +146,13 @@ function AddDriverForm({ onSubmit }) {
                   <p className="text-purple-600 font-medium">Loading jobs...</p>
                 </div>
               )}
+<<<<<<< Updated upstream
               {jobsStatus === "failed" && (
                 <p className="text-red-500 mt-1">Error loading jobs: {jobsError || "Unknown error"}</p>
+=======
+              {error && (
+                <p className="text-red-500 mt-1">Error loading jobs</p>
+>>>>>>> Stashed changes
               )}
               {jobsStatus === "succeeded" && (!Array.isArray(cities) || cities.length === 0) && (
                 <p className="text-yellow-500 mt-1">No jobs found</p>

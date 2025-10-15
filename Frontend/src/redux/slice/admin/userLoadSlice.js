@@ -44,7 +44,7 @@ export const addDriver= createAsyncThunk("/admin/create-users",
 export const getUsers = createAsyncThunk('/admin/get-users',
     async({page=1},{rejectWithValue})=>{
         try{
-            const res= await fetch(`${API_BASE_URL}/admin/get-users?page=${page}`,{
+            const res= await fetch(`${API_BASE_URL}/admin/get-users?&page=${page}`,{
                 method:"GET",
                 headers:{"Content-Type":"application/json"},
             });
@@ -165,16 +165,19 @@ const userLoadSlice=createSlice({
         builder
         .addCase(addDriver.pending,(state)=>{
             state.loading=true;  
+            state.error = null;
+            state.success = null;
         })
         .addCase(addDriver.fulfilled,(state,action)=>{
             state.loading= false;            
-            console.log("Driver added ",action.payload);
+            // console.log("Driver added ",action.payload);
             state.drivers.push(action.payload.insertUser);
             state.success= action.payload.message;
             state.error=null;
         })
         .addCase(addDriver.rejected,(state,action)=>{
-            state.error= action.payload.message;
+            state.loading=false;
+            state.error= action.payload|| "Failed to add driver";
             state.success=null;
         })
         .addCase(getUsers.pending,(state)=>{
@@ -268,6 +271,22 @@ const userLoadSlice=createSlice({
             state.error = action.payload?.message || "Failed to update admin status"
             state.success = null;
         })
+<<<<<<< Updated upstream
+=======
+         .addCase(getCities.pending,(state)=>{
+            state.loading=true;
+        })
+        .addCase(getCities.fulfilled,(state,action)=>{
+            console.log("From cities",action.payload.cities);            
+            state.city=action.payload.cities;
+            state.loading=false;
+            state.success= true;
+        })
+        .addCase(getCities.rejected,(state,action)=>{
+            state.error=action.payload.message;
+            state.city=[];
+        })
+>>>>>>> Stashed changes
     }
 })
 export const {clearMessages,clearPaginateTerms} =userLoadSlice.actions
