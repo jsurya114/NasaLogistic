@@ -181,6 +181,11 @@ export const weeklyExcelUpload=async(req,res)=>{
         let tableName="weekly_excel_data";
         await WeeklyExcelQueries.deleteWeeklyTableIfExists(tableName);
         await WeeklyExcelQueries.createWeeklyTable(tableName);
+
+         unlink(file.path,(e)=>{
+      if(e) throw new Error(e)
+        console.log('excel file deleted')
+     })
         let insertedData = await WeeklyExcelQueries.insertBatchDatafromExcel(insertPlaceholders,insertValues);
         
         return res.status(HttpStatus.OK).json({success:true,message:"Excel data processed and stored successfully",insertedData})

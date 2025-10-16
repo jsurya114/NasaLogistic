@@ -4,8 +4,12 @@ import { dbService } from '../../services/admin/dbQueries.js';
 
 export const createAdmins=async(req,res)=>{
     try{
-    const {email,password,name,role}= req.body;
+    const {email,password,name,role,cities}= req.body;
     // console.log("Data from client ",req.body);
+     const city=Array.isArray(cities) ? cities :[];
+    if(role==='admin' && city.length <= 0){
+        return res.status(HttpStatus.UNAUTHORIZED).json({message:"Atleast one city to be provided for Admin User"})
+    }
 
     if(!email || !password|| !name){
         return res.status(HttpStatus.UNAUTHORIZED).json({message:"Email , password & Name is required"})
@@ -15,7 +19,8 @@ export const createAdmins=async(req,res)=>{
     if(admin)
         return res.status(HttpStatus.CONFLICT).json({error:"Admin email already exists"});
     // const hashPassword= await dbService.hashedPassword(password);
-    const insertAdmin= await dbService.insertAdmin({name,email,password,role});
+    const insertAdmin= await dbService.insertAdmin({name,email,password,role,city});    
+
     return res.status(HttpStatus.OK).json({message:"Admin Added Successfully!!",insertAdmin});
     }catch(err){
         console.log("Error while inserting data ",err.message)

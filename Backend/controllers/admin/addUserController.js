@@ -13,12 +13,13 @@ export const createUsers=async(req,res)=>{
 
     const driver= await dbService.getDriverByEmail(email);
     if(driver)
-        return res.status(HttpStatus.CONFLICT).json({error:"User already Exists"});
+        return res.status(HttpStatus.CONFLICT).json({message:"User already Exists"});
     // const hashPassword= await dbService.hashedPassword(password);
     const insertUser= await dbService.insertUser({name,email,password,city,enabled});
     return res.status(HttpStatus.OK).json({message:"User Added Successfull!!",insertUser});
     }catch(err){
         console.log("Error while inserting data ",err.message)
+       return  res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Server error" })
     }
 }
 

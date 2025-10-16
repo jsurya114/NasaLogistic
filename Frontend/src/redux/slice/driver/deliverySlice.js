@@ -79,6 +79,7 @@ const deliverySlice = createSlice({
       })
       .addCase(fetchDeliverySummary.fulfilled, (state, action) => {
         state.status = "succeeded";
+        console.log("Deliveries ",action.payload);
         state.deliveries = action.payload;
         state.error = null;
         state.lastFetch = Date.now();

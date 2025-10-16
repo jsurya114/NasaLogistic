@@ -197,7 +197,7 @@ const Deliveries = () => {
     Failed: summary?.failed_attempt,
     "Not Scanned": summary?.no_scanned,
     "Double Stop": summary?.double_stop,
-    "Total Earning": summary ? `₹${summary.earning.toFixed(2)}` : "₹0.00",
+    "Total Earning": summary ? `$${summary.earning.toFixed(2)}` : "₹0.00",
   }), [summary]);
 
   return (
@@ -331,7 +331,7 @@ const Deliveries = () => {
                       <td className="px-4 py-3 text-sm text-purple-600 text-center">{d.double_stop}</td>
                       <td className="px-4 py-3 text-sm text-green-600 text-center">{d.delivered}</td>
                       <td className="px-4 py-3 text-sm text-indigo-600 font-semibold">
-                        ₹{parseFloat(d.earning || 0).toFixed(2)}
+                        ${parseFloat(d.earning || 0).toFixed(2)}
                       </td>
                     </tr>
                   ))}

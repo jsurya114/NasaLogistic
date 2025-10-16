@@ -42,8 +42,10 @@ function AddAdminForm({ onSubmit }) {
       newErrors.confirmPassword = "Confirm Password is required";
     if (form.password !== form.confirmPassword)
       newErrors.confirmPassword = "Passwords do not match";
-    if (form.cities.length === 0)
+    if(form.role==='admin'){
+      if (form.cities.length === 0)
       newErrors.cities = "At least one city must be selected";
+    }
     return newErrors;
   };
 
@@ -65,7 +67,7 @@ function AddAdminForm({ onSubmit }) {
       password: "",
       confirmPassword: "",
       role: "admin",
-      city:[],
+      cities:[],
     });
     setErrors({});
   };
