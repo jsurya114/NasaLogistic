@@ -3,13 +3,8 @@ import { useSelector, useDispatch } from "react-redux";
 import { getUsers } from "../redux/slice/admin/userLoadSlice";
 
 function AddDriverForm({ onSubmit }) {
-  const { cities, loading, success, error } = useSelector((state) => state.users);
+  const { city, loading, success, error } = useSelector((state) => state.users);
   const dispatch = useDispatch();
-
-  // useEffect(() => {
-  //   // load cities/users when component mounts
-  //   dispatch(getUsers());
-  // }, [dispatch]);
 
   const [form, setForm] = useState({
     name: "",
@@ -112,10 +107,10 @@ function AddDriverForm({ onSubmit }) {
           className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-600 bg-white"
         >
           <option value="">Select City</option>
-          {Array.isArray(cities) && cities.length > 0 ? (
-            cities.map((c) => (
-              <option key={c.id ?? c._id} value={c.name ?? c.job ?? c.city}>
-                {c.name ?? c.job ?? c.city}
+          {Array.isArray(city) && city.length > 0 ? (
+            city.map((c) => (
+              <option key={c.id} value={c.job}>
+                {c.job}
               </option>
             ))
           ) : (

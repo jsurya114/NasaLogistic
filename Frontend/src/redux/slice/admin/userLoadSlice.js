@@ -168,7 +168,6 @@ const userLoadSlice=createSlice({
         admins:[],
         page:1,
         city:[],
-        city:[],
         totalPages:0,
     },
     reducers:{
@@ -288,7 +287,7 @@ const userLoadSlice=createSlice({
         })
         .addCase(addAdmin.rejected,(state,action)=>{
             state.loading = false;
-            state.error = action.payload?.message || "Failed to update admin status"
+            state.error = action.payload || "Failed to add admin"
             state.success = null;
         })
          .addCase(getCities.pending,(state)=>{
