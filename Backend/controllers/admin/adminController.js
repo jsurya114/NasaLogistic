@@ -41,8 +41,10 @@ import HttpStatus from '../../utils/statusCodes.js'
         admin.password=null
       res.cookie("adminToken", token, {
         httpOnly: true,   // cannot be accessed via JS
-        secure: false,    // true in production (HTTPS only)
-        sameSite: "strict",
+        // secure: false,    // true in production (HTTPS only)
+        // sameSite: "strict",
+         secure: true,      // required for HTTPS
+  sameSite: "none", 
         maxAge: 60 * 60 * 1000 // 1 hour
       });
 

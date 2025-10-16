@@ -33,8 +33,10 @@ const driverController = {
 
       res.cookie("driverToken", token, {
         httpOnly: true,
-        secure: false, // change to true in production
-        sameSite: "strict",
+        // secure: false, // change to true in production
+        // sameSite: "strict",
+         secure: true,      // required for HTTPS
+  sameSite: "none", 
         maxAge: 60 * 60 * 1000 // 1 hour
       });
 
