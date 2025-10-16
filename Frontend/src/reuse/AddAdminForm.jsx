@@ -1,7 +1,7 @@
 
 import {useState} from 'react';
 import { useSelector } from 'react-redux';
-import Select from 'react-select';
+// import Select from 'react-select';
 function AddAdminForm({ onSubmit }) {
   const [form, setForm] = useState({
     name: "",
