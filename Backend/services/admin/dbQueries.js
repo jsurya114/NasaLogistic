@@ -79,18 +79,38 @@ export const dbService={
   },
 
   insertAdmin : async(data)=>{    
+      const client= await pool.connect();
       try {
+        await client.query('BEGIN');
+
     const hashedPwd = await dbService.hashedPassword(data.password);
     const result = await pool.query(
       `INSERT INTO admin (name, email, password, role) 
        VALUES ($1, $2, $3, $4) 
-       RETURNING id,name,email,role`,
+       RETURNING id,name,email,role,is_active`,
       [data.name, data.email, hashedPwd, data.role]
     );
-    return result.rows[0];
+    const admin= result.rows[0];
+
+    const cities = Array.isArray(data.city) ? data.city : [];
+    if( data.role==='admin' && cities.length>0){
+      const values=data.city.map((c)=>`(${admin.id},${c.value})`).join(',');
+      const query=`
+      INSERT INTO admin_city_ref(admin_id,city_id)
+      VALUES ${values}
+      ON CONFLICT (admin_id, city_id) DO NOTHING;`
+
+      await client.query(query);
+    }
+
+    await client.query(`COMMIT`);
+    return admin;
   } catch (err) {
+    await client.query('ROLLBACK');
     console.error("Error inserting new admin:", err.message);
     throw err;
+  }finally {
+    client.release();
   }
   },
 

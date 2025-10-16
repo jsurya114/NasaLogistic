@@ -2,12 +2,15 @@ import {useState,useEffect} from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getUsers, toggleAvailUser } from '../redux/slice/admin/userLoadSlice';
 import Pagination from './Pagination';
+import SearchBar from './Search';
+
 
 function DriversList() {
   const dispatch = useDispatch();  
   const {drivers=[],loading:usersLoad,error:usersError,page,totalPages} = useSelector((state) => state.users);   
-
+  const [searchTerm,setSearchTerm]=useState("");
   const [currentPage, setCurrentPage]=useState(1);
+
   useEffect(()=>{
     dispatch(getUsers({page:currentPage}));    
   },[dispatch,currentPage]);
@@ -21,6 +24,7 @@ function DriversList() {
   }
   return (
     <section className="bg-white rounded-xl shadow p-4">
+      <SearchBar value={searchTerm} onChange={(e)=>setSearchTerm(e.target.value)} placeholder={"Search Driver ..."}/>
       <h2 className="font-bold text-lg mb-4">Drivers</h2>
       <table className="w-full border-collapse text-sm">
         <thead>
@@ -63,6 +67,7 @@ function DriversList() {
                 )}
               </td>
               <td className="px-3 py-2 border-b">
+                <div className="flex items-center gap-10">
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
                     type="checkbox"
@@ -82,6 +87,18 @@ function DriversList() {
                     ></div>
                   </div>
                 </label>
+
+                <button
+                          onClick={()=>console.log("Hi")}
+                          className="group relative px-4 py-1.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xs font-medium rounded-md hover:from-blue-600 hover:to-blue-700 transition-all duration-200 shadow-sm hover:shadow-md flex items-center gap-1.5"
+                          title="Edit City"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                          <span>Edit</span>
+                        </button>
+                        </div>
               </td>
             </tr>
           ))
