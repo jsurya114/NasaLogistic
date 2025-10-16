@@ -11,20 +11,8 @@ dotenv.config()
 const PORT = process.env.PORT;
  const app = express();
 
-const allowedOrigins = [
-  "https://nasa-logistic.vercel.app", // production
-  "https://nasa-logistic-76v5c819k-jayasurya-ss-projects-06141d93.vercel.app" // preview / older URL
-];
-
 app.use(cors({
-  origin: function(origin, callback){
-    if(!origin) return callback(null, true); // allow non-browser requests (like Postman)
-    if(allowedOrigins.indexOf(origin) === -1){
-      const msg = "The CORS policy for this site does not allow access from the specified Origin.";
-      return callback(new Error(msg), false);
-    }
-    return callback(null, true);
-  },
+  origin: process.env.FRONTEND_URL,
   credentials: true
 }))
 

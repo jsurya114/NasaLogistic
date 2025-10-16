@@ -43,8 +43,8 @@ import HttpStatus from '../../utils/statusCodes.js'
         httpOnly: true,   // cannot be accessed via JS
         // secure: false,    // true in production (HTTPS only)
         // sameSite: "strict",
-         secure: true,      // required for HTTPS
-  sameSite: "none", 
+          secure: true,       // HTTPS only
+  sameSite: "none",   // allow cross-site
         maxAge: 60 * 60 * 1000 // 1 hour
       });
 
@@ -58,7 +58,13 @@ import HttpStatus from '../../utils/statusCodes.js'
     },
 
     Logout:async(req,res)=>{
-      res.clearCookie("adminToken");
+      res.clearCookie("adminToken", {
+  httpOnly: true,
+  secure: true,
+  sameSite: "none",
+});
+res.status(HttpStatus.OK).json({message:"Logged out successfully"});
+
       res.status(HttpStatus.OK).json({message:"Logged out successfully"});
     },   
     

@@ -35,7 +35,7 @@ const driverController = {
         httpOnly: true,
         // secure: false, // change to true in production
         // sameSite: "strict",
-         secure: true,      // required for HTTPS
+          secure: true,       // HTTPS only
   sameSite: "none", 
         maxAge: 60 * 60 * 1000 // 1 hour
       });
@@ -69,7 +69,11 @@ const driverController = {
     }
   },
   Logout:async(req,res)=>{
-    res.clearCookie("driverToken")
+    res.clearCookie("driverToken" ,{
+  httpOnly: true,
+  secure: true,
+  sameSite: "none",
+})
     res.status(HttpStatus.OK).json({message:"Logged out successfully"})
   }
 };
