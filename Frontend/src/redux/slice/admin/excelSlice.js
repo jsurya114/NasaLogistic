@@ -10,6 +10,7 @@ export const excelDailyFileUpload = createAsyncThunk(
             const res = await fetch(`${API_BASE_URL}/admin/doubleStop/dailyFileUpload`,{
                 method:'POST',
                 body:formData,
+                credentials: 'include',
             })
             const data = await res.json()
             console.log(data,'excel file upload staus')
@@ -32,6 +33,7 @@ export const excelWeeklyFileUpload = createAsyncThunk(
       const res = await fetch(`${API_BASE_URL}/admin/doubleStop/weekly-upload`, {
         method: "POST",
         body: formData,
+        credentials: 'include',
       });
       let data= await res.json();
       console.log(data,"Data from backend for weekly")

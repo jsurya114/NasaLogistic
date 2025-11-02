@@ -15,6 +15,7 @@ export const fetchAccessCodes = createAsyncThunk(
 
       const res = await fetch(`${API_BASE_URL}/admin/access-codes/list?${params}`, {
         method: 'GET',
+        credentials:'include',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -40,6 +41,7 @@ export const createAccessCode = createAsyncThunk(
     try {
       const res = await fetch(`${API_BASE_URL}/admin/access-codes`, {
         method: "POST",
+        credentials:'include',
         headers: { 
           "Content-Type": "application/json",
         },
@@ -76,6 +78,7 @@ export const updateAccessCode = createAsyncThunk(
     try {
       const res = await fetch(`${API_BASE_URL}/admin/access-codes/${id}`, {
         method: "PUT",
+        credentials:'include',
         headers: { 
           "Content-Type": "application/json",
         },
@@ -112,6 +115,7 @@ export const deleteAccessCode = createAsyncThunk(
     try {
       const res = await fetch(`${API_BASE_URL}/admin/access-codes/${id}`, {
         method: "DELETE",
+        credentials:'include',
         headers: { 
           "Content-Type": "application/json",
         },

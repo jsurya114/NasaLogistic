@@ -30,15 +30,18 @@ const driverController = {
         return res.status(HttpStatus.UNAUTHORIZED).json({ message: "UNAUTHORIZED" });
         }
 
-
-      res.cookie("driverToken", token, {
+      const isProd = process.env.NODE_ENV === 'production';
+      const cookieOptions = {
         httpOnly: true,
-        // secure: false, // change to true in production
-        // sameSite: "strict",
-          secure: true,       // HTTPS only
-  sameSite: "none", 
-        maxAge: 60 * 60 * 1000 // 1 hour
-      });
+        secure: isProd,
+        sameSite: isProd ? 'none' : 'lax',
+        maxAge: 60 * 60 * 1000
+      };
+      // Clear any existing cookie to rotate token
+      res.clearCookie("driverToken", { httpOnly: true, secure: cookieOptions.secure, sameSite: cookieOptions.sameSite });
+      res.clearCookie("adminToken", { httpOnly: true, secure: cookieOptions.secure, sameSite: cookieOptions.sameSite });
+
+      res.cookie("driverToken", token, cookieOptions);
 
       res.status(HttpStatus.OK).json({
         message: "Login Successful",
@@ -69,12 +72,10 @@ const driverController = {
     }
   },
   Logout:async(req,res)=>{
-    res.clearCookie("driverToken" ,{
-  httpOnly: true,
-  secure: true,
-  sameSite: "none",
-})
-    res.status(HttpStatus.OK).json({message:"Logged out successfully"})
+    const isProd = process.env.NODE_ENV === 'production';
+    const opts = { httpOnly: true, secure: isProd, sameSite: isProd ? 'none' : 'lax' };
+    res.clearCookie("driverToken", opts);
+    return res.status(HttpStatus.OK).json({message:"Logged out successfully"})
   }
 };
 

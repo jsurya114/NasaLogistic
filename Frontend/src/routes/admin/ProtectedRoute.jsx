@@ -6,9 +6,9 @@ const ProtectedRoutes=()=>{
     const dispatch=useDispatch();
     const {isAuthenticated}=useSelector((state)=>state.admin);
 
-    useEffect(()=>{
-        dispatch(accessAdminUser());
-    },[]);    
+    // useEffect(()=>{
+    //     dispatch(accessAdminUser());
+    // },[]);    
 
     return isAuthenticated ? <Outlet/> : <Navigate to="/admin/login" />
 }

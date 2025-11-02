@@ -39,16 +39,19 @@ import HttpStatus from '../../utils/statusCodes.js'
           return res.status(HttpStatus.UNAUTHORIZED).json({ message: "UNAUTHORIZED" });
         }
         admin.password=null
-      res.cookie("adminToken", token, {
-        httpOnly: true,   // cannot be accessed via JS
-        // secure: false,    // true in production (HTTPS only)
-        // sameSite: "strict",
-          secure: true,       // HTTPS only
-  sameSite: "none",   // allow cross-site
-        maxAge: 60 * 60 * 1000 // 1 hour
-      });
+      const isProd = process.env.NODE_ENV === 'production';
+      const cookieOptions = {
+        httpOnly: true,
+        secure: isProd,
+        sameSite: isProd ? 'none' : 'lax',
+        maxAge: 60 * 60 * 1000
+      };
+      res.clearCookie("adminToken", { httpOnly: true, secure: cookieOptions.secure, sameSite: cookieOptions.sameSite });
+       res.clearCookie("driverToken", { httpOnly: true, secure: cookieOptions.secure, sameSite: cookieOptions.sameSite });
 
-      res.status(HttpStatus.OK).json({ message: "Login successful",admin});
+      res.cookie("adminToken", token, cookieOptions);
+
+     return res.status(HttpStatus.OK).json({ message: "Login successful",admin});
 
        } catch (error) {
         console.error(error.message)
@@ -58,14 +61,10 @@ import HttpStatus from '../../utils/statusCodes.js'
     },
 
     Logout:async(req,res)=>{
-      res.clearCookie("adminToken", {
-  httpOnly: true,
-  secure: true,
-  sameSite: "none",
-});
-res.status(HttpStatus.OK).json({message:"Logged out successfully"});
-
-      res.status(HttpStatus.OK).json({message:"Logged out successfully"});
+      const isProd = process.env.NODE_ENV === 'production';
+      const opts = { httpOnly: true, secure: isProd, sameSite: isProd ? 'none' : 'lax' };
+      res.clearCookie("adminToken", opts);
+      return res.status(HttpStatus.OK).json({message:"Logged out successfully"});
     },   
     
     getUser:async(req,res)=>{
