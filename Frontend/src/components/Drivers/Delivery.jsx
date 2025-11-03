@@ -322,7 +322,7 @@ const Deliveries = () => {
                   {deliveries.map((d, i) => (
                     <tr key={d.id || i} className="hover:bg-gray-50 border-b border-gray-100">
                       <td className="px-4 py-3 text-sm text-gray-900">{formatDate(d.journey_date)}</td>
-                      <td className="px-4 py-3 text-sm">{d.route_id}</td>
+                      <td className="px-4 py-3 text-sm">{d.route_name}</td>
                       <td className="px-4 py-3 text-sm text-center">{d.start_seq}</td>
                       <td className="px-4 py-3 text-sm text-center">{d.end_seq}</td>
                       <td className="px-4 py-3 text-sm text-blue-600 text-center">{d.packages}</td>

@@ -58,7 +58,8 @@ const overlappingJourneys = await AdminJourneyQuery.checkSequenceOverlap(
                 end_seq,
                 journey_date
             })
-            res.status(HttpStatus.CREATED).json({success:true,data:newJourney})
+            const completeJourney = await AdminJourneyQuery.getJourneyById(newJourney.id)
+            res.status(HttpStatus.CREATED).json({success:true,data:completeJourney})
        
       } catch (error) {
          res
@@ -77,6 +78,8 @@ updateJourney: async (req, res) => {
       if (!route_id) errors.route_id = "Route is required";
       if (!start_seq) errors.start_seq = "Start sequence is required";
       if (!end_seq) errors.end_seq = "End sequence is required";
+      if (parseInt(start_seq) <= 0) errors.start_seq = "Start sequence must be greater than zero";
+if (parseInt(end_seq) <= 0) errors.end_seq = "End sequence must be greater than zero";
       if (start_seq && end_seq && parseInt(start_seq) >= parseInt(end_seq)) {
         errors.sequence = "End sequence must be greater than start sequence";
       }
@@ -115,7 +118,9 @@ updateJourney: async (req, res) => {
         journey_id,
         { start_seq, end_seq, route_id }
       );
-      res.status(HttpStatus.OK).json({ success: true, data: updatedJourney });
+                  const completeJourney = await AdminJourneyQuery.getJourneyById(journey_id)
+
+      res.status(HttpStatus.OK).json({ success: true, data: completeJourney });
     } catch (error) {
       res
         .status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -132,6 +137,7 @@ updateJourney: async (req, res) => {
                 message: error.message 
             });
         }
-  }
+  },
+
 }
 export default adminJourneyController

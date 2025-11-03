@@ -2,7 +2,8 @@ import pool from "../../config/db.js";
 const AdminJourneyQuery={
     getAllJourneys:async()=>{
        const query = ` 
-SELECT d.*, r.name AS route_name, dr.name AS driver_name
+SELECT d.*, r.name AS route_name, dr.name AS driver_name,
+     (d.end_seq-d.start_seq+1) AS packages
 FROM dashboard_data d 
 JOIN routes r ON d.route_id = r.id
 JOIN drivers dr ON d.driver_id = dr.id
@@ -12,6 +13,18 @@ ORDER BY d.journey_date DESC, d.start_seq`;
         const result = await pool.query(query)
         return result.rows;
 
+    },
+
+    getJourneyById:async(id)=>{
+     const query =`
+     SELECT d.*,r.name AS route_name, dr.name AS driver_name,
+     (d.end_seq-d.start_seq+1) AS packages
+     FROM dashboard_data d
+     JOIN routes r ON d.route_id= r.id
+     JOIN drivers dr ON d.driver_id=dr.id
+     WHERE d.id =$1`;
+     const result = await pool.query(query,[id])
+     return result.rows[0]
     },
     updateJourneyById:async(id,data)=>{
         const {start_seq,end_seq,route_id}=data

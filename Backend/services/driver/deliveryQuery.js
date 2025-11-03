@@ -7,7 +7,8 @@ const fetchDeliverySummary = async (driverId, fromDate, toDate) => {
             pd.driver_id,
             pd.journey_date,
             pd.route_id,
-            pd.packages,
+            r.name AS route_name,
+           (pd.end_seq - pd.start_seq + 1) AS packages,
             pd.no_scanned,
             pd.failed_attempt,
             pd.ds AS double_stop,
@@ -16,6 +17,7 @@ const fetchDeliverySummary = async (driverId, fromDate, toDate) => {
             pd.start_seq,
             pd.end_seq
         FROM payment_dashboard pd
+        LEFT JOIN routes r ON pd.route_id = r.id
         WHERE pd.driver_id = $1`;
 
     const params = [driverId];
@@ -24,13 +26,13 @@ const fetchDeliverySummary = async (driverId, fromDate, toDate) => {
         query += ` AND pd.journey_date BETWEEN $2 AND $3`;
         params.push(fromDate, toDate);
     }else if(fromDate){
-        query+=`AND pd.journey_date>=2`
+        query+=`AND pd.journey_date>=$2`
         params.push(fromDate)
     }else if (toDate){
-        query+=`AND pd.journey_date<=2`
+        query+=`AND pd.journey_date<=$2`
         params.push(toDate)
     }
-    query+=`  ORDER BY pd.journey_date DESC`
+    query+=` ORDER BY pd.journey_date DESC`
     
   
     

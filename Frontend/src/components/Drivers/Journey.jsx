@@ -22,8 +22,8 @@ const Journey = () => {
   );
 
   // Memoize current date to prevent recalculation
-  const currentDate = useMemo(
-    () => new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }),
+   const currentDate = useMemo(
+    () => new Date().toISOString().split('T')[0],
     []
   );
 
@@ -43,7 +43,7 @@ const Journey = () => {
 
   // ✅ OPTIMIZED: Fetch today's journey only if needed
   useEffect(() => {
-    if (driver?.id && journeyStatus === 'idle') {
+    if (driver?.id ) {
       dispatch(fetchTodayJourney(driver.id))
         .unwrap()
         .then((data) => {
@@ -53,7 +53,7 @@ const Journey = () => {
           setIsJourneySaved(false);
         });
     }
-  }, [dispatch, driver?.id, journeyStatus]);
+  }, [dispatch, driver?.id]);
 
   // Error handling - separated to avoid dependency issues
   useEffect(() => {
@@ -94,6 +94,8 @@ const Journey = () => {
   // ✅ OPTIMIZED: Handle submit without refetching
   const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
+
+    if(isJourneySaved) return
     setErrors({});
 
     const packages = Number(formData.end_sequence) - Number(formData.start_sequence) + 1;
@@ -109,7 +111,10 @@ const Journey = () => {
     };
 
     try {
+      // setIsJourneySaved(true)
       await dispatch(saveJourney(journeyData)).unwrap();
+            setIsJourneySaved(true)
+     await dispatch(fetchTodayJourney(driver.id))
       toast.success("Journey saved successfully!", {
         position: "bottom-center",
         autoClose: 3000,
@@ -125,11 +130,14 @@ const Journey = () => {
       
       // ✅ No need to refetch - Redux slice handles adding to state
     } catch (err) {
+      setIsJourneySaved(false)
       if (err.errors) {
         setErrors(err.errors);
         if (err.errors['sequenceConflict']) {
           toast.error(err.errors['sequenceConflict']);
         }
+      }else{
+        console.error(err.message || "Failed to save journey")
       }
     }
   }, [formData, driver, dispatch]);

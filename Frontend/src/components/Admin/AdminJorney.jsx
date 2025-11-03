@@ -11,6 +11,8 @@ import {
 import { toast } from "react-toastify";
 import Header from "../../reuse/Header.jsx";
 import Nav from "../../reuse/Nav.jsx";
+import Select from "react-select";
+
 
 const AdminJourney = () => {
   const dispatch = useDispatch();
@@ -20,6 +22,7 @@ const AdminJourney = () => {
 
   const [editableJourneyId, setEditableJourneyId] = useState(null);
   const [formData, setFormData] = useState({});
+  const [editValidationErrors, setEditValidationErrors] = useState({});
   const [newJourneyData, setNewJourneyData] = useState({
     driver_id: "",
     route_id: "",
@@ -30,6 +33,12 @@ const AdminJourney = () => {
   
   const [validationErrors, setValidationErrors] = useState({});
   const [errorTimeout, setErrorTimeout] = useState(null);
+
+  // Helper function to format date
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-CA'); // Returns YYYY-MM-DD
+  };
 
   // ✅ Fetch data only once on mount with proper checks
   useEffect(() => {
@@ -84,7 +93,6 @@ const AdminJourney = () => {
 
   const handleRefresh = useCallback(() => {
     dispatch(fetchAllJourneys());
-    toast.info("Refreshing journeys...");
   }, [dispatch]);
 
   const handleEdit = useCallback((journey) => {
@@ -95,17 +103,46 @@ const AdminJourney = () => {
       end_seq: journey.end_seq,
       route_id: journey.route_id,
     });
+    setEditValidationErrors({});
   }, []);
 
   const handleCancel = useCallback(() => {
     setEditableJourneyId(null);
     setFormData({});
+    setEditValidationErrors({});
   }, []);
 
   const handleChange = useCallback((e) => {
     const { name, value } = e.target;
+    
+    // Prevent negative numbers and zero for sequence fields
+    if ((name === 'start_seq' || name === 'end_seq') && value !== '') {
+      const numValue = parseInt(value);
+      if (numValue < 1) {
+        return; // Don't update if less than 1
+      }
+    }
+    
     setFormData((prev) => ({ ...prev, [name]: value }));
-  }, []);
+    
+    // Clear validation error for this field when user starts typing
+    if (editValidationErrors[name]) {
+      setEditValidationErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
+    
+    // Also clear general error when user makes changes
+    if (editValidationErrors.general) {
+      setEditValidationErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors.general;
+        return newErrors;
+      });
+    }
+  }, [editValidationErrors]);
 
   // ✅ Memoize validation function to prevent recreating on every render
   const validateSequenceOverlap = useCallback((driver_id, routeId, startSeq, endSeq, excludeJourneyId = null) => {
@@ -127,11 +164,36 @@ const AdminJourney = () => {
 
   const handleSave = useCallback(
     async (id) => {
+      // Reset validation errors
+      setEditValidationErrors({});
+      
+      // Validate fields
+      const errors = {};
+      
+      if (!formData.start_seq || formData.start_seq === '') {
+        errors.start_seq = "Start sequence is required";
+      }
+      if (!formData.end_seq || formData.end_seq === '') {
+        errors.end_seq = "End sequence is required";
+      }
+      
       const start = parseInt(formData.start_seq);
       const end = parseInt(formData.end_seq);
       
-      if (start >= end) {
-        toast.error("End Sequence must be greater than start sequence");
+      if (formData.start_seq && start < 1) {
+        errors.start_seq = "Must be greater than zero";
+      }
+      if (formData.end_seq && end < 1) {
+        errors.end_seq = "Must be greater than zero";
+      }
+      
+      if (formData.start_seq && formData.end_seq && start >= end) {
+        errors.end_seq = "Must be greater than start";
+      }
+      
+      // If there are validation errors, show them and return
+      if (Object.keys(errors).length > 0) {
+        setEditValidationErrors(errors);
         return;
       }
       
@@ -144,9 +206,9 @@ const AdminJourney = () => {
       );
       
       if (overlapping) {
-        toast.error(
-          `Sequence overlap detected! This driver already has sequences ${overlapping.start_seq}-${overlapping.end_seq} on this route.`
-        );
+        setEditValidationErrors({
+          general: `Overlap! Driver has sequences ${overlapping.start_seq}-${overlapping.end_seq} on this route`
+        });
         return;
       }
 
@@ -154,8 +216,24 @@ const AdminJourney = () => {
         await dispatch(updateJourney({ journey_id: id, updatedData: formData })).unwrap();
         toast.success("Journey updated successfully!");
         setEditableJourneyId(null);
+        setEditValidationErrors({});
       } catch (err) {
-        toast.error(err.message || "Failed to update journey");
+        // Handle backend validation errors
+        if (err.errors) {
+          const backendErrors = {};
+          if (err.errors.sequence) {
+            backendErrors.general = err.errors.sequence;
+          }
+          if (err.errors.start_seq) {
+            backendErrors.start_seq = err.errors.start_seq;
+          }
+          if (err.errors.end_seq) {
+            backendErrors.end_seq = err.errors.end_seq;
+          }
+          setEditValidationErrors(backendErrors);
+        } else {
+          setEditValidationErrors({ general: err.message || "Failed to update journey" });
+        }
       }
     },
     [dispatch, formData, validateSequenceOverlap]
@@ -223,6 +301,15 @@ const AdminJourney = () => {
       const start = parseInt(newJourneyData.start_seq);
       const end = parseInt(newJourneyData.end_seq);
 
+      if (start <= 0) {
+        setValidationErrors({ start_seq: "Start sequence must be greater than zero" });
+        return;
+      }
+      if (end <= 0) {
+        setValidationErrors({ end_seq: "End sequence must be greater than zero" });
+        return;
+      }
+
       if (start >= end) {
         setValidationErrors({ end_seq: "End sequence must be greater than start sequence" });
         return;
@@ -253,6 +340,8 @@ const AdminJourney = () => {
           journey_date: new Date().toISOString().split('T')[0],
         });
         setValidationErrors({});
+        // Refresh the journey list after adding
+        dispatch(fetchAllJourneys());
       } catch (err) {
         setValidationErrors({ general: err.message || "Failed to add journey" });
       }
@@ -275,86 +364,138 @@ const AdminJourney = () => {
 
     return adminJourneys.map((journey) => {
       const displayRouteName = routeMap.get(journey.route_id) || journey.route_name || 'Unknown Route';
+      const displayDate = formatDate(journey.journey_date);
+      const isEditing = editableJourneyId === journey.id;
       
       return (
-        <tr key={journey.id} className="border-t hover:bg-gray-50">
-          <td className="px-4 py-2">{journey.driver_name}</td>
-          <td className="px-4 py-2">{journey.journey_date}</td>
-          <td className="px-4 py-2">
-            {editableJourneyId === journey.id ? (
-              <select
-                name="route_id"
-                value={formData.route_id}
-                onChange={handleChange}
-                className="w-full border rounded px-2 py-1"
-              >
-                <option value="">Select Route</option>
-                {routes.map((routeItem) => (
-                  <option key={routeItem.id} value={routeItem.id}>
-                    {routeItem.route || routeItem.name || `Route ${routeItem.id}`}
-                  </option>
-                ))}
-              </select>
-            ) : (
-              displayRouteName
-            )}
-          </td>
-          <td className="px-4 py-2 text-center">
-            {editableJourneyId === journey.id ? (
-              <input
-                type="number"
-                name="start_seq"
-                value={formData.start_seq}
-                onChange={handleChange}
-                className="w-16 border rounded px-1 py-0.5"
-              />
-            ) : (
-              journey.start_seq
-            )}
-          </td>
-          <td className="px-4 py-2 text-center">
-            {editableJourneyId === journey.id ? (
-              <input
-                type="number"
-                name="end_seq"
-                value={formData.end_seq}
-                onChange={handleChange}
-                className="w-16 border rounded px-1 py-0.5"
-              />
-            ) : (
-              journey.end_seq
-            )}
-          </td>
-          <td className="px-4 py-2 text-center">{journey.packages}</td>
-          <td className="px-4 py-2 space-x-2 text-center">
-            {editableJourneyId === journey.id ? (
-              <>
-                <button
-                  onClick={() => handleSave(journey.id)}
-                  className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
+        <React.Fragment key={journey.id}>
+          <tr className="border-t hover:bg-gray-50">
+            <td className="px-4 py-2">{journey.driver_name}</td>
+            <td className="px-4 py-2">{displayDate}</td>
+            <td className="px-4 py-2">
+              {isEditing ? (
+                <select
+                  name="route_id"
+                  value={formData.route_id}
+                  onChange={handleChange}
+                  className="w-full border rounded px-2 py-1"
                 >
-                  Save
-                </button>
+                  <option value="">Select Route</option>
+                  {routes.map((routeItem) => (
+                    <option key={routeItem.id} value={routeItem.id}>
+                      {routeItem.route || routeItem.name || `Route ${routeItem.id}`}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                displayRouteName
+              )}
+            </td>
+            <td className="px-4 py-2 text-center">
+              {isEditing ? (
+                <div className="flex flex-col items-center">
+                  <input
+                    type="number"
+                    name="start_seq"
+                    value={formData.start_seq}
+                    onChange={handleChange}
+                    className={`w-20 border rounded px-2 py-1 ${
+                      editValidationErrors.start_seq 
+                        ? 'border-red-500 bg-red-50' 
+                        : 'border-gray-300'
+                    }`}
+                    min="1"
+                    onKeyDown={(e) => {
+                      if (e.key === '-' || e.key === 'e' || e.key === 'E' || e.key === '+' || e.key === '.') {
+                        e.preventDefault();
+                      }
+                    }}
+                  />
+                  {editValidationErrors.start_seq && (
+                    <span className="text-xs text-red-500 mt-1 whitespace-nowrap">
+                      {editValidationErrors.start_seq}
+                    </span>
+                  )}
+                </div>
+              ) : (
+                journey.start_seq
+              )}
+            </td>
+            <td className="px-4 py-2 text-center">
+              {isEditing ? (
+                <div className="flex flex-col items-center">
+                  <input
+                    type="number"
+                    name="end_seq"
+                    value={formData.end_seq}
+                    onChange={handleChange}
+                    className={`w-20 border rounded px-2 py-1 ${
+                      editValidationErrors.end_seq 
+                        ? 'border-red-500 bg-red-50' 
+                        : 'border-gray-300'
+                    }`}
+                    min="1"
+                    onKeyDown={(e) => {
+                      if (e.key === '-' || e.key === 'e' || e.key === 'E' || e.key === '+' || e.key === '.') {
+                        e.preventDefault();
+                      }
+                    }}
+                  />
+                  {editValidationErrors.end_seq && (
+                    <span className="text-xs text-red-500 mt-1 whitespace-nowrap">
+                      {editValidationErrors.end_seq}
+                    </span>
+                  )}
+                </div>
+              ) : (
+                journey.end_seq
+              )}
+            </td>
+            <td className="px-4 py-2 text-center">{journey.packages}</td>
+            <td className="px-4 py-2 space-x-2 text-center">
+              {isEditing ? (
+                <>
+                  <button
+                    onClick={() => handleSave(journey.id)}
+                    className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
+                  >
+                    Save
+                  </button>
+                  <button
+                    onClick={handleCancel}
+                    className="bg-gray-400 text-white px-3 py-1 rounded hover:bg-gray-500"
+                  >
+                    Cancel
+                  </button>
+                </>
+              ) : (
                 <button
-                  onClick={handleCancel}
-                  className="bg-gray-400 text-white px-3 py-1 rounded hover:bg-gray-500"
+                  onClick={() => handleEdit(journey)}
+                  className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
                 >
-                  Cancel
+                  Edit
                 </button>
-              </>
-            ) : (
-              <button
-                onClick={() => handleEdit(journey)}
-                className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
-              >
-                Edit
-              </button>
-            )}
-          </td>
-        </tr>
+              )}
+            </td>
+          </tr>
+          {isEditing && editValidationErrors.general && (
+            <tr>
+              <td colSpan="7" className="px-4 py-2">
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-red-600 text-sm">
+                  <div className="flex items-start gap-2">
+                    <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd"/>
+                    </svg>
+                    <span>{editValidationErrors.general}</span>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          )}
+        </React.Fragment>
       );
     });
-  }, [adminJourneys, adminStatus, editableJourneyId, formData, routes, routeMap, handleChange, handleEdit, handleCancel, handleSave]);
+  }, [adminJourneys, adminStatus, editableJourneyId, formData, routes, routeMap, editValidationErrors, handleChange, handleEdit, handleCancel, handleSave]);
 
   // ✅ Memoize route options to prevent recreating on every render
   const routeOptions = useMemo(() => (
@@ -421,23 +562,41 @@ const AdminJourney = () => {
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1">Driver *</label>
-              <select
+              <Select
                 name="driver_id"
-                value={newJourneyData.driver_id}
-                onChange={handleNewJourneyChange}
-                className={`w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 ${
-                  validationErrors.driver_id 
-                    ? 'border-red-500 focus:ring-red-500' 
-                    : 'focus:ring-green-500'
-                }`}
-              >
-                <option value="">Select Driver</option>
-                {drivers.map((driver) => (
-                  <option key={driver.id} value={driver.id}>
-                    {driver.name}
-                  </option>
-                ))}
-              </select>
+                options={drivers.map((driver) => ({
+                  value: driver.id,
+                  label: driver.name,
+                }))}
+                value={
+                  drivers.find(driver => driver.id === newJourneyData.driver_id)
+                    ? {
+                        value: newJourneyData.driver_id,
+                        label: drivers.find(driver => driver.id === newJourneyData.driver_id).name,
+                      }
+                    : null
+                }
+                onChange={(selectedOption) =>
+                  setNewJourneyData(prev => ({ ...prev, driver_id: selectedOption?.value || '' }))
+                }
+                placeholder="Search or select driver..."
+                isClearable
+                isSearchable
+                classNamePrefix="react-select"
+                styles={{
+                  control: (base, state) => ({
+                    ...base,
+                    borderColor: validationErrors.driver_id ? '#ef4444' : '#22c55e',
+                    boxShadow: state.isFocused ? '0 0 0 1px #22c55e' : base.boxShadow,
+                    minHeight: '38px',
+                    borderRadius: '0.375rem',
+                  }),
+                  menu: base => ({
+                    ...base,
+                    zIndex: 9999,
+                  }),
+                }}
+              />
               {validationErrors.driver_id && (
                 <p className="text-xs text-red-500 mt-1">{validationErrors.driver_id}</p>
               )}
@@ -445,19 +604,41 @@ const AdminJourney = () => {
 
             <div>
               <label className="block text-sm font-medium mb-1">Route *</label>
-              <select
+              <Select
                 name="route_id"
-                value={newJourneyData.route_id}
-                onChange={handleNewJourneyChange}
-                className={`w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 ${
-                  validationErrors.route_id 
-                    ? 'border-red-500 focus:ring-red-500' 
-                    : 'focus:ring-green-500'
-                }`}
-              >
-                <option value="">Select Route</option>
-                {routeOptions}
-              </select>
+                options={routes.map((route) => ({
+                  value: route.id,
+                  label: route.route || route.name || `Route ${route.id}`,
+                }))}
+                value={
+                  routes.find(route => route.id === newJourneyData.route_id)
+                    ? {
+                        value: newJourneyData.route_id,
+                        label: routes.find(route => route.id === newJourneyData.route_id).route || routes.find(route => route.id === newJourneyData.route_id).name,
+                      }
+                    : null
+                }
+                onChange={(selectedOption) =>
+                  setNewJourneyData(prev => ({ ...prev, route_id: selectedOption?.value || '' }))
+                }
+                placeholder="Search or select route..."
+                isClearable
+                isSearchable
+                classNamePrefix="react-select"
+                styles={{
+                  control: (base, state) => ({
+                    ...base,
+                    borderColor: validationErrors.route_id ? '#ef4444' : '#22c55e',
+                    boxShadow: state.isFocused ? '0 0 0 1px #22c55e' : base.boxShadow,
+                    minHeight: '38px',
+                    borderRadius: '0.375rem',
+                  }),
+                  menu: base => ({
+                    ...base,
+                    zIndex: 9999,
+                  }),
+                }}
+              />
               {validationErrors.route_id && (
                 <p className="text-xs text-red-500 mt-1">{validationErrors.route_id}</p>
               )}
@@ -561,7 +742,15 @@ const AdminJourney = () => {
             <tbody>
               {adminStatus === "loading" ? (
                 <tr>
-                  <td colSpan="7" className="text-center py-4">Loading...</td>
+                  <td colSpan="7" className="text-center py-8">
+                    <div className="flex flex-col items-center justify-center gap-3">
+                      <div className="relative w-12 h-12">
+                        <div className="absolute top-0 left-0 w-full h-full border-4 border-blue-200 rounded-full"></div>
+                        <div className="absolute top-0 left-0 w-full h-full border-4 border-blue-500 rounded-full border-t-transparent animate-spin"></div>
+                      </div>
+                      <span className="text-gray-600 font-medium">Loading journeys...</span>
+                    </div>
+                  </td>
                 </tr>
               ) : adminJourneys.length === 0 ? (
                 <tr>
