@@ -28,6 +28,7 @@ export const addDriver= createAsyncThunk("/admin/create-users",
                 method:"POST",
                 headers:{"Content-Type":"application/json"},
                 body:JSON.stringify(formData),
+                credentials: 'include',
             })
             const data = await res.json();
             // console.log("Response from server ",data);
@@ -47,6 +48,7 @@ export const getUsers = createAsyncThunk('/admin/get-users',
             const res= await fetch(`${API_BASE_URL}/admin/get-users?&page=${page}`,{
                 method:"GET",
                 headers:{"Content-Type":"application/json"},
+                credentials: 'include',
             });
             const data= await res.json();
             if(!res.ok){
@@ -65,6 +67,7 @@ export const getCities = createAsyncThunk('/admin/get-cities',
             const res= await fetch(`${API_BASE_URL}/admin/get-cities`,{
                 method:"GET",
                 headers:{"Content-Type":"application/json"},
+                credentials: 'include',
             });
             const data= await res.json();
             if(!res.ok){
@@ -83,6 +86,7 @@ export const getAdmins = createAsyncThunk('/admin/get-admins',
             const res= await fetch(`${API_BASE_URL}/admin/get-admins?page=${page}`,{
                 method:"GET",
                 headers:{"Content-Type":"application/json"},
+                credentials: 'include',
             });
             const data= await res.json();
             if(!res.ok){
@@ -101,7 +105,8 @@ export const toggleAvailUser= createAsyncThunk(`/admin/toggle-user`,async(id,{re
         // console.log("Entered toggle User route ",id);
         const res = await fetch(`${API_BASE_URL}/admin/toggle-user/${id}`,{
             method:'PATCH',
-            headers:{"Content-Type":"application/json"}
+            headers:{"Content-Type":"application/json"},
+            credentials: 'include'
         });
         const data= await res.json();
         // console.log("Data from server in toggle ",data);
@@ -119,7 +124,8 @@ export const toggleAvailAdmin= createAsyncThunk(`/admin/toggle-admin`,async(id,{
         // console.log("Entered toggle User route ",id);
         const res = await fetch(`${API_BASE_URL}/admin/toggle-admin/${id}`,{
             method:'PATCH',
-            headers:{"Content-Type":"application/json"}
+            headers:{"Content-Type":"application/json"},
+            credentials: 'include'
         });
         const data= await res.json();
         // console.log("Data from server in toggle ",data);
@@ -141,6 +147,7 @@ export const addAdmin= createAsyncThunk(`/admin/create-admin`,
                 method:"POST",
                 headers:{"Content-Type":"application/json"},
                 body:JSON.stringify(formData),
+                credentials: 'include',
             })
             const data = await res.json();
             // console.log("Response from server ",data);

@@ -1,17 +1,16 @@
 import HttpStatus from '../utils/statusCodes.js';
 import { verifyToken } from '../services/jwtservice.js';
 
-export default function adminAuth(req, res, next) {
-    const token = req.cookies?.adminToken;
+export default function driverAuth(req, res, next) {
   try {
+    const token = req.cookies?.driverToken;
     if (!token) {
       return res.status(HttpStatus.UNAUTHORIZED).json({ message: 'UNAUTHORIZED' });
     }
     const decoded = verifyToken(token);
-    req.admin = decoded;
+    req.driver = decoded;
     next();
   } catch (err) {
-    console.log(err.message,token,'err in admin middleware')
     return res.status(HttpStatus.UNAUTHORIZED).json({ message: 'UNAUTHORIZED' });
   }
 }

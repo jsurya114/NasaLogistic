@@ -6,11 +6,11 @@ const PublicRoutes=()=>{
     const dispatch=useDispatch();
     const {isAuthenticated}=useSelector((state)=>state.admin);
 
-    useEffect(()=>{
-        dispatch(accessAdminUser());
-    },[]);
+    // useEffect(()=>{
+    //     dispatch(accessAdminUser());
+    // },[]);
 
     return isAuthenticated ? <Navigate to="/admin/dashboard" /> : <Outlet/> ; 
 }
 
-export default PublicRoutes;
+export default PublicRoutes;    

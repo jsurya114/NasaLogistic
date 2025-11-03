@@ -11,8 +11,11 @@ import { getAccessCodes,updateAccessCode, } from '../controllers/admin/accessCod
 import { changeRoleAdmin, changeStatusAdmin, createAdmins, getAdmins } from '../controllers/admin/addAdminController.js';
 import { getPaymentDashboardData, updatePaymentData,updateWeeklyTempDataToDashboard } from '../controllers/admin/dashboardController.js';
 import adminJourneyController from '../controllers/admin/adminJourneyController.js';
+import adminAuth from '../middlewares/adminAuth.js';
 router.post('/login',adminController.Login);
 
+// Protect all routes below this line
+router.use(adminAuth);
 
 //Job creation
 // router.get("/jobs",jobController.getJob)

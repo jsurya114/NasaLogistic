@@ -1,6 +1,7 @@
 import statusCode from "../../utils/statusCodes.js";
 import { dbService } from "../../services/admin/dbQueries.js";
 import { generateToken } from "../../services/jwtservice.js";
+import pool from "../../config/db.js";
 import HttpStatus from "../../utils/statusCodes.js";
 import XLSX from "xlsx";
 // import XlsxPopulate from 'xlsx-populate';
@@ -22,16 +23,24 @@ import { buildInsertData} from "../../utils/matchFns.js";
 // const sheetName = "dup";
 const sheetName = "result";
 export const getUpdatedTempDashboardData = async(req,res)=>{
+  const client = await pool.connect()
   try {
-    const result = await ExcelFileQueries.getTempDashboardData()
+    client.query('BEGIN')
+    const result = await ExcelFileQueries.getTempDashboardData(client)
+    client.query('COMMIT')
     return res.status(statusCode.OK).json({success:true,data:result})
   } catch (error) {
     console.error(error)
+    client.query('ROLLBACK')
     return res.status(statusCode.INTERNAL_SERVER_ERROR).json({message:'error in server',error})
+  }
+  finally{
+    client.release()
   }
 }
 
 export const DailyExcelUpload = async (req, res) => {
+  const client = await pool.connect()
   try {
     console.log(req.body,'dated')
    if(!req.file) {
@@ -56,15 +65,18 @@ export const DailyExcelUpload = async (req, res) => {
     // const dd = String(now.getDate()).padStart(2,'0');
     // const mm = String(now.getMonth()).padStart(2,'0');
     const tableName = `todays_excel_data`;
-    await ExcelFileQueries.deleteIfTableAlreadyExists(tableName)
-    await ExcelFileQueries.createDailyTable(tableName);
-    await ExcelFileQueries.insertDataIntoDailyTable(tableName,rows)
-    await ExcelFileQueries.mergeDeliveriesAndExcelData()
-    await ExcelFileQueries.setUntouchedRowsAsNoScannedAndUpdateFailedAttempt()
-    await ExcelFileQueries.updateFirstStopAndDoubleStop()
-    await ExcelFileQueries.addEachDriversCount()
 
+    await client.query('BEGIN');
 
+    await ExcelFileQueries.deleteIfTableAlreadyExists(tableName,client)
+    await ExcelFileQueries.createDailyTable(tableName,client);
+    await ExcelFileQueries.insertDataIntoDailyTable(tableName,rows,client)
+    await ExcelFileQueries.mergeDeliveriesAndExcelData(client)
+    await ExcelFileQueries.setUntouchedRowsAsNoScannedAndUpdateFailedAttempt(client)
+    await ExcelFileQueries.updateFirstStopAndDoubleStop(client)
+    await ExcelFileQueries.addEachDriversCount(client)
+
+    await client.query('COMMIT')
      unlink(fileName.path,(e)=>{
       if(e) throw new Error(e)
         console.log('excel file deleted')
@@ -72,7 +84,12 @@ export const DailyExcelUpload = async (req, res) => {
     return res.status(statusCode.OK).json({ message: "code endeddd" });
   } catch (error) {
     console.error(error)
+    await client.query('ROLLBACK')
+    console.log('Tracsaction method failed in file controller')
     return res.status(statusCode.INTERNAL_SERVER_ERROR).json({message:'Error Occured while processing Excel'})
+  }
+  finally{
+     client.release()
   }
 };
 
@@ -179,3 +196,7 @@ export const getWeeklyTempData=async(req,res)=>{
 //       }
   
 
+
+
+
+      
