@@ -43,7 +43,7 @@ function Nav() {
       <nav className="fixed left-0 right-0 bottom-0 bg-[#462976] border-t border-white/10">
         <div className="grid grid-flow-col gap-4 justify-center px-4 py-3 max-w-[1200px] mx-auto">
           <NavLink
-            to="/driver/driver-dashboard"
+            to="/driver/dashboard"
             className={({ isActive }) =>
               `bg-white text-[#1f2633] rounded-xl px-4 py-2 min-w-[105px] flex flex-col items-center gap-2 shadow-md ${
                 isActive ? "bg-opacity-90" : ""

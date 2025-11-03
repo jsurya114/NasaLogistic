@@ -61,7 +61,7 @@ function App() {
          </Route>
          
          <Route element={<DProtectRoutes/>}>
-          <Route path="/driver/driver-dashboard" element={ <Journey/>} />
+          <Route path="/driver/dashboard" element={ <Journey/>} />
           <Route path="/driver/access-codes" element={<DriverAccessCodePage />} />
           <Route path="/driver/delivery" element={<Devlivery/>}/>
           
