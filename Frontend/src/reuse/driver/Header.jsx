@@ -13,7 +13,7 @@ function Header() {
 
   useEffect(() => {
     dispatch(accessDriver());
-    console.log("Available user ", driver);
+    // console.log("Available user ", driver);
   }, [dispatch]);
 
   const handleLogout = () => {

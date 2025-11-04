@@ -12,7 +12,7 @@ function DPublicRoutes(){
         dispatch(accessDriver())
     },[]);
 
-    return isAuthenticated ? <Navigate to ="/driver/driver-dashboard" /> :<Outlet/>
+    return isAuthenticated ? <Navigate to ="/driver/dashboard" /> :<Outlet/>
 }
 
 export default DPublicRoutes
