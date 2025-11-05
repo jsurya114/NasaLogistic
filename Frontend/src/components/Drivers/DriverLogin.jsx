@@ -43,7 +43,7 @@ useEffect(()=>{
           pauseOnHover: true,
           draggable: true,
         });
-        navigate("/driver/driver-dashboard");
+        navigate("/driver/dashboard");
       }
     } catch (err) {
       if (err.errors) {

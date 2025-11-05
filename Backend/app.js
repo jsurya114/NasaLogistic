@@ -26,10 +26,13 @@ app.use(cors({
  // Global rate limit (per IP per base path)
  app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 1000 }));
  app.use('/admin',(req,_,next)=>{
-  // console.log(req.originalUrl,'##',req.headers?.cookie?.slice(0,15) ?? 'no-Cookie','**',Date().toString().slice(16,25))
+  console.log(req.originalUrl,'##',req.headers?.cookie?.slice(0,15) ?? 'no-Cookie','**',Date().toString().slice(16,25))
   next()
  },adminRoutes);
- app.use('/driver',driverRoutes)
+ app.use('/driver',(req,_,next)=>{
+  console.log(req.originalUrl,'##',req.headers?.cookie?.slice(0,15) ?? 'no-Cookie','**',Date().toString().slice(16,25))
+  next()
+ },driverRoutes)
  
  // 404 for unmatched routes
  app.use(notFound);
