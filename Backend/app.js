@@ -8,6 +8,7 @@ import cookieParser from 'cookie-parser';
 import sanitizeMiddleware from './middlewares/sanitize.js';
 import { notFound, errorHandler } from './middlewares/errorHandler.js';
 import rateLimit from './middlewares/rateLimit.js';
+
 dotenv.config()
 
 
