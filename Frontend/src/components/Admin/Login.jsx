@@ -16,31 +16,91 @@ const dispatch  = useDispatch();
 const navigate = useNavigate();
 
 const {loading,error,isAuthenticated}=useSelector((state)=>state.admin);
+  const handleSubmit = async (e) => {
+  e.preventDefault();
 
-const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const result = await dispatch(adminLogin({ email, password })).unwrap();
-      if (result.admin) {
-        toast.success("Login successful!", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: false,
-          pauseOnHover: true,
-          draggable: false,
-        });
-        navigate("/admin/dashboard");
-      }
-    } catch (err) {
-      if (err.errors) {
-        setFieldErrors({
-          email: err.errors.email || "",
-          password: err.errors.password || "",
-        });
-      }
+  // simple frontend validation
+  let errors = {};
+
+  if (!email.trim()) {
+    errors.email = "Email is required";
+  }
+
+  if (!password.trim()) {
+    errors.password = "Password is required";
+  }
+
+  // if errors exist, show toast and stop API call
+  if (Object.keys(errors).length > 0) {
+    setFieldErrors(errors);
+    Object.values(errors).forEach((msg) => {
+      toast.error(msg, {
+        position: "top-right",
+        autoClose: 3000,
+      });
+    });
+    return; // 🚫 stop API call
+  }
+
+  try {
+    const result = await dispatch(adminLogin({ email, password })).unwrap();
+
+    if (result.admin) {
+      toast.success("Login successful!", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+      navigate("/admin/dashboard");
     }
-  };
+  } catch (err) {
+    // backend validation or server error
+    if (err.errors) {
+      setFieldErrors({
+        email: err.errors.email || "",
+        password: err.errors.password || "",
+      });
+      Object.values(err.errors).forEach((msg) => {
+        if (msg) {
+          toast.error(msg, {
+            position: "top-right",
+            autoClose: 3000,
+          });
+        }
+      });
+    } else {
+      toast.error(err.message || "Login failed. Please try again.", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+    }
+  }
+};
+
+// const handleSubmit = async (e) => {
+//     e.preventDefault();
+//     if(Object.keys(fieldErrors).length>0) console.log(fieldErrors)
+//     try {
+//       const result = await dispatch(adminLogin({ email, password })).unwrap();
+//       if (result.admin) {
+//         toast.success("Login successful!", {
+//           position: "top-right",
+//           autoClose: 3000,
+//           hideProgressBar: false,
+//           closeOnClick: false,
+//           pauseOnHover: true,
+//           draggable: false,
+//         });
+//         navigate("/admin/dashboard");
+//       }
+//     } catch (err) {
+//       if (err.errors) {
+//         setFieldErrors({
+//           email: err.errors.email || "",
+//           password: err.errors.password || "",
+//         });
+//       }
+//     }
+//   };
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 font-poppins">
       <div className="bg-white rounded-2xl shadow-lg w-full max-w-md">

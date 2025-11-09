@@ -8,7 +8,7 @@ export const fetchPaginatedJobs = createAsyncThunk(
     try {
       const res = await fetch(
         `${API_BASE_URL}/admin/jobs?page=${page}&limit=${limit}&search=${encodeURIComponent(search)}`,
-        { signal } // Support request cancellation
+        { signal, credentials: "include" } // Support request cancellation and send cookies
       );
 
       if (!res.ok) {
@@ -34,7 +34,8 @@ export const fetchJobs = createAsyncThunk(
   "jobs/fetchJobs",
   async (_, { rejectWithValue }) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/admin/jobs`);
+      const res = await fetch(`${API_BASE_URL}/admin/jobs`, { credentials: "include" });
+
       if (!res.ok) {
         const error = await res.json();
         return rejectWithValue(error.error || "Failed to fetch jobs");
@@ -57,6 +58,7 @@ export const addJob = createAsyncThunk(
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ job, city_code, enabled }),
+        credentials: "include",
       });
 
       if (!res.ok) {
@@ -82,6 +84,7 @@ export const updateJob = createAsyncThunk(
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ job, city_code }),
+        credentials: "include",
       });
 
       if (!res.ok) {
@@ -105,6 +108,7 @@ export const deleteJob = createAsyncThunk(
     try {
       const res = await fetch(`${API_BASE_URL}/admin/deletejob/${id}`, {
         method: "DELETE",
+        credentials: "include",
       });
 
       if (!res.ok) {
@@ -127,6 +131,7 @@ export const jobStatus = createAsyncThunk(
     try {
       const res = await fetch(`${API_BASE_URL}/admin/${id}/status`, {
         method: "PATCH",
+        credentials: "include",
       });
 
       if (!res.ok) {

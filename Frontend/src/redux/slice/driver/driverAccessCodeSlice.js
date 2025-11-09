@@ -16,6 +16,7 @@ export const fetchAccessCodes = createAsyncThunk(
 
       const res = await fetch(`${API_BASE_URL}/driver/access-codes/list?${params}`, {
         method: 'GET',
+        credentials:"include",
         headers: {
           'Content-Type': 'application/json',
         },
@@ -41,9 +42,11 @@ export const createAccessCode = createAsyncThunk(
     try {
       const res = await fetch(`${API_BASE_URL}/driver/access-codes`, {
         method: "POST",
+        credentials:"include",
         headers: { 
           "Content-Type": "application/json",
         },
+        
         body: JSON.stringify(accessCodeData),
       });
       

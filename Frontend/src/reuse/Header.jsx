@@ -11,10 +11,10 @@ function Header() {
   const { admin } = useSelector((state) => state.admin);
   const [menuOpen, setMenuOpen] = useState(false);
 
-  useEffect(() => {
-    dispatch(accessAdminUser());
-    console.log("Available user ", admin);
-  }, [dispatch]);
+  // useEffect(() => {
+  //   dispatch(accessAdminUser());
+  //   console.log("Available user ", admin);
+  // }, [dispatch]);
 
   const handleLogout = () => {
     dispatch(adminLogout());

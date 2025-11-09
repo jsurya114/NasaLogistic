@@ -5,7 +5,10 @@ import { API_BASE_URL } from "../../../config";
 export const fetchRoutes = createAsyncThunk("routes/fetchRoutes", async ({ page, limit,search="" }) => {
   try {
     console.log("Fetching routes from ",API_BASE_URL,"/admin/routes..."); // Debug log
-    const res = await fetch(`${API_BASE_URL}/admin/routes?page=${page}&limit=${limit}&search=${search}`);
+    const res = await fetch(`${API_BASE_URL}/admin/routes?page=${page}&limit=${limit}&search=${search}`,
+      { credentials: "include" }
+    );
+
     console.log("Fetching routes from http://localhost:3251/admin/routes..."); // Debug log
     if (!res.ok) {
       const error = await res.json();
@@ -28,7 +31,9 @@ export const addRoute = createAsyncThunk("routes/addRoute", async (routeData) =>
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(routeData),
+      credentials: "include",
     });
+
     if (!res.ok) {
       const error = await res.json();
       throw new Error(error.error || "Failed to add route");
@@ -46,7 +51,8 @@ export const addRoute = createAsyncThunk("routes/addRoute", async (routeData) =>
 export const toggleRouteStatus = createAsyncThunk("routes/toggleRouteStatus", async (id) => {
   try {
     console.log(`Toggling status for route id: ${id}`); // Debug log
-    const res = await fetch(`${API_BASE_URL}/admin/routes/${id}/status`, { method: "PATCH" });
+    const res = await fetch(`${API_BASE_URL}/admin/routes/${id}/status`, { method: "PATCH", credentials: "include" });
+
     if (!res.ok) {
       const error = await res.json();
       throw new Error(error.error || "Failed to toggle route status");
@@ -64,7 +70,8 @@ export const toggleRouteStatus = createAsyncThunk("routes/toggleRouteStatus", as
 export const deleteRoute = createAsyncThunk("routes/deleteRoute", async (id) => {
   try {
     console.log(`Deleting route id: ${id}`); // Debug log
-    const res = await fetch(`${API_BASE_URL}/admin/routes/${id}`, { method: "DELETE" });
+    const res = await fetch(`${API_BASE_URL}/admin/routes/${id}`, { method: "DELETE", credentials: "include" });
+
     if (!res.ok) {
       const error = await res.json();
       throw new Error(error.error || "Failed to delete route");
@@ -81,10 +88,12 @@ export const updateRoute=createAsyncThunk("routes/updateRoute",async({id,routeDa
   try {
     const res = await fetch(`${API_BASE_URL}/admin/routes/${id}`,{
       method:"PUT",
- headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(routeData),
+      credentials: "include",
     })
- if (!res.ok) {
+
+    if (!res.ok) {
       const error = await res.json();
       throw new Error(error.error || "Failed to update route");
     }

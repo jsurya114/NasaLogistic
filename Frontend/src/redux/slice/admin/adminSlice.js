@@ -15,6 +15,7 @@ export const adminLogin=createAsyncThunk(
         try {
             const res=await fetch(`${API_BASE_URL}/admin/login`,{
                 method:"POST",
+                credentials:'include',
                 headers:{"Content-Type":"application/json"},
                 body:JSON.stringify(credentials),
                 credentials:"include"
@@ -37,6 +38,7 @@ export const accessAdminUser=createAsyncThunk(
         try {
             const res=await fetch(`${API_BASE_URL}/admin/access-admin`,{
                 method:"GET",
+                
                 // headers:{"Content-Type":"application/json"},   
                 credentials:"include"             
             })
@@ -119,7 +121,7 @@ const adminSlice = createSlice({
             state.loading=false;
             state.error=action.payload;
         })
-           .addCase(accessAdminUser.pending,(state)=>{
+        .addCase(accessAdminUser.pending,(state)=>{
             state.loading=true
             state.error=null
         })

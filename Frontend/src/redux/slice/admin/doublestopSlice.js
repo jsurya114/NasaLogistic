@@ -63,7 +63,7 @@ const dashboardSlice = createSlice({
       .addCase(fetchWeeklyTempData.fulfilled, (state, action) => {
         state.loading = false;
         // console.log("Data from weeklt Temp ",action.payload.data);
-        state.data .weeklyData= action.payload.data;
+        state.data.weeklyData= action.payload.data;
       })
       .addCase(fetchWeeklyTempData.rejected, (state, action) => {
         state.loading = false;

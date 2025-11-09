@@ -10,8 +10,11 @@ import HttpStatus from "../../utils/statusCodes.js";
 
 export const saveJourney = async (req, res) => {
   try {
-    const { driver_id, route_id, packages, start_seq, end_seq,journey_date } = req.body;
-
+    let { driver_id, route_id, packages, start_seq, end_seq } = req.body;
+    packages = Number(packages)
+    start_seq = Number(start_seq)
+    end_seq = Number(end_seq)
+    console.log(driver_id, route_id, packages, start_seq, end_seq )
     const errors = {};
     if (!driver_id) errors.driver_id = "Driver ID is required";
     if (!route_id) errors.route_id = "Route is required";
@@ -19,7 +22,7 @@ export const saveJourney = async (req, res) => {
       errors.start_seq = "Start sequence must be Greater Than 0";
     if (!end_seq || end_seq < start_seq)
       errors.end_seq =
-        "End sequence must be Greater Or Equal to start sequence";
+        "End sequence must be Greater Or Equal1 to start sequence";
     if (!packages || packages <= 0) errors.packages = "Packages must be > 0";
     // route_id = Number(route_id)
     const conflictSequences = await checkSequenceConflict(route_id,start_seq,end_seq)

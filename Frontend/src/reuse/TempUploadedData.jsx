@@ -36,15 +36,17 @@ console.log(data,'data in dailyyy')
           <tr className="bg-gray-50 text-left">
             {[
               "SlNo",
-              "Driver",
               "Date",
+              "Driver",
+              "Driver Code",              
               "Route",
-              "Sequence",
-              "Packages",
-              "Deliveries",
+              // "Sequence",
+              // "Packages",              
+              "FS",
               "DS",
-              "No Scanned",
-              "Failed Attempt",
+              "Total Deliveries",
+              // "No Scanned",
+              // "Failed Attempt",
             ].map((head, i) => (
               <th key={i} className="px-3 py-2 border-b border-gray-200">
                 {head}
@@ -57,17 +59,17 @@ console.log(data,'data in dailyyy')
             data.weeklyData.map((item, idx) => (
               <tr key={idx}>
                 <td className="px-3 py-2 border-b">{idx + 1}</td>
-                <td className="px-3 py-2 border-b">{item.match_name}</td>
+                <td className="px-3 py-2 border-b">{new Date(item.del_date).toLocaleDateString()}</td>
                 <td className="px-3 py-2 border-b">
-                  {new Date(item.date).toLocaleDateString()}
+                  {item.courier_name}
                 </td>
-                <td className="px-3 py-2 border-b">{item.route}</td>
-                <td className="px-3 py-2 border-b">{item.start_seq} - {item.end_seq}</td>
-                <td className="px-3 py-2 border-b">{item.deliveries}</td>
-                <td className="px-3 py-2 border-b">{item.deliveries}</td>
-                <td className="px-3 py-2 border-b">{item.doublestop}</td>
-                <td className="px-3 py-2 border-b">{item.no_scanned}</td>
-                <td className="px-3 py-2 border-b">{item.failedattempt}</td>
+                <td className="px-3 py-2 border-b">{item.driver_id}</td>
+                {/* <td className="px-3 py-2 border-b">{item.start_seq} - {item.end_seq}</td> */}
+                <td className="px-3 py-2 border-b">{item.del_route}</td>                
+                <td className="px-3 py-2 border-b">{item.fs}</td>
+                <td className="px-3 py-2 border-b">{item.ds}</td>
+                <td className="px-3 py-2 border-b">{item.total_deliveries}</td>
+                {/* <td className="px-3 py-2 border-b">{item.failedattempt}</td> */}
               </tr>
             ))
           ) : (

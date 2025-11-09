@@ -6,7 +6,7 @@ export const fetchRoutes = createAsyncThunk(
   "routes/fetchRoutes", 
   async (_, { signal, rejectWithValue }) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/driver/routes-list`, { signal });
+      const res = await fetch(`${API_BASE_URL}/driver/routes-list`, { signal, credentials: 'include' });
       
       if (!res.ok) {
         const error = await res.json().catch(() => ({}));
@@ -37,7 +37,7 @@ export const fetchAdminRoutes = createAsyncThunk(
   "routes/fetchAdminRoutes", 
   async (_, { signal, rejectWithValue }) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/admin/routes-list`, { signal });
+      const res = await fetch(`${API_BASE_URL}/admin/routes-list`, { signal, credentials: 'include' });
       
       if (!res.ok) {
         const error = await res.json().catch(() => ({}));
@@ -71,7 +71,7 @@ export const fetchTodayJourney = createAsyncThunk(
         return rejectWithValue("Driver ID is required");
       }
 
-      const res = await fetch(`${API_BASE_URL}/driver/journey/${driver_id}`, { signal });
+      const res = await fetch(`${API_BASE_URL}/driver/journey/${driver_id}`, { signal, credentials: 'include' });
       
       if (!res.ok) {
         const error = await res.json().catch(() => ({}));
@@ -98,7 +98,8 @@ export const saveJourney = createAsyncThunk(
       const res = await fetch(`${API_BASE_URL}/driver/journey`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(journeyData)
+        body: JSON.stringify(journeyData),
+        credentials: 'include',
       });
       
       const data = await res.json();
@@ -120,7 +121,7 @@ export const fetchAllJourneys = createAsyncThunk(
   "journeys/fetchAllJourneys",
   async (_, { signal, rejectWithValue }) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/admin/journeys`, { signal });
+      const res = await fetch(`${API_BASE_URL}/admin/journeys`, { signal, credentials: 'include' });
       
       if (!res.ok) {
         return rejectWithValue("Failed to fetch all journeys");
@@ -147,6 +148,7 @@ export const addJourney = createAsyncThunk(
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(journeyData),
+        credentials: 'include',
       });
       
       const data = await res.json();
@@ -168,7 +170,7 @@ export const fetchAllDrivers = createAsyncThunk(
   "drivers/fetchAll",
   async (_, { signal, rejectWithValue }) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/admin/drivers`, { signal });
+      const res = await fetch(`${API_BASE_URL}/admin/drivers`, { signal, credentials: 'include' });
       
       if (!res.ok) {
         return rejectWithValue("Failed to fetch drivers");
@@ -201,6 +203,7 @@ export const updateJourney = createAsyncThunk(
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updatedData),
+        credentials: 'include',
       });
       
       const data = await res.json();

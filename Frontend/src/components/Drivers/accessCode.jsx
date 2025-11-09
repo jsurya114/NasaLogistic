@@ -12,8 +12,8 @@ import {
   setSearchTerm,
   setZipCodeFilter,
 } from "../../redux/slice/driver/driverAccessCodeSlice";
-import Header from "../../reuse/Header";
-import Nav from "../../reuse/Nav";
+import Header from "../../reuse/driver/Header";
+import Nav from "../../reuse/driver/Nav";
 import { toast } from "react-toastify";
 
 export default function DriverAccessCodePage() {
