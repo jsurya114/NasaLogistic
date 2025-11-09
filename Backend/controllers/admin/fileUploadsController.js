@@ -75,7 +75,7 @@ export const DailyExcelUpload = async (req, res) => {
     await ExcelFileQueries.setUntouchedRowsAsNoScannedAndUpdateFailedAttempt(client)
     await ExcelFileQueries.updateFirstStopAndDoubleStop(client)
     await ExcelFileQueries.addEachDriversCount(client)
-
+    // throw new Error("error")
     await client.query('COMMIT')
      unlink(fileName.path,(e)=>{
       if(e) throw new Error(e)

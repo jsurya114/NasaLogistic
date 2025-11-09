@@ -1,25 +1,35 @@
-import { useState,useEffect } from "react";
+import { useState, useRef, forwardRef, useImperativeHandle } from "react";
 
 // import { X } from "lucide-react";
 
-export default function FileUpload({ onFileSelect }) {
+const FileUpload = forwardRef(function FileUpload({ onFileSelect }, ref) {
   const [file, setFile] = useState(null);
   const [error, setError] = useState("");
+  const inputRef = useRef(null);
 
-  
   const allowedTypes = [
     "application/vnd.ms-excel", // .xls
     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xlsx
     "text/csv", // optional .csv
   ];
 
+  const clearInput = () => {
+    setFile(null);
+    setError("");
+    if (inputRef.current) inputRef.current.value = "";
+    onFileSelect(null);
+  };
+
+  useImperativeHandle(ref, () => ({
+    clear: clearInput,
+  }));
+
   const handleChange = (e) => {
     const selectedFile = e.target.files[0];
     if (selectedFile) {
       if (!allowedTypes.includes(selectedFile.type)) {
         setError("Please upload a valid Excel file (.xls, .xlsx, .csv)");
-        setFile(null);
-        onFileSelect(null); // reset in parent too
+        clearInput();
       } else {
         setError("");
         setFile(selectedFile);
@@ -28,17 +38,12 @@ export default function FileUpload({ onFileSelect }) {
     }
   };
 
-  const removeFile = () => {
-    setFile(null);
-    setError("");
-    onFileSelect(null);
-  };
-
   return (
     <div>
       <label className="block mb-1 font-medium">Excel File</label>
       <div className="relative flex items-center">
         <input
+          ref={inputRef}
           type="file"
           name="file"
           accept=".xls,.xlsx,.csv"
@@ -50,10 +55,10 @@ export default function FileUpload({ onFileSelect }) {
         {file && (
           <button
             type="button"
-            onClick={removeFile}
+            onClick={clearInput}
             className="absolute right-2 bg-gray-200 hover:bg-gray-300 p-1 rounded-full"
           >
-            <span size={16} >❌</span>
+            <span size={16}>❌</span>
           </button>
         )}
       </div>
@@ -63,4 +68,6 @@ export default function FileUpload({ onFileSelect }) {
       )}
     </div>
   );
-}
+});
+
+export default FileUpload;

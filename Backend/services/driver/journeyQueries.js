@@ -115,6 +115,7 @@ export const getTodayJourney = async (driver_id) => {
       ORDER BY d.start_seq ASC;
     `;
     const result = await pool.query(query, [driver_id]);
+    console.log(result.rows,'journey data of driver')
     return result.rows;
   } catch (error) {
     console.error("❌ getTodayJourney failed:", error.message);

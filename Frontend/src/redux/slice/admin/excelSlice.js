@@ -1,6 +1,5 @@
 import {createSlice,createAsyncThunk} from "@reduxjs/toolkit"
 import { API_BASE_URL } from "../../../config"
-
 export const excelDailyFileUpload = createAsyncThunk(
     'admin/uploadExcel',
     async(formData,{rejectWithValue})=>{
