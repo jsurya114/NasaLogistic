@@ -246,4 +246,111 @@ deleteWeeklyData: async () => {
   }
 },
 
+// getEntriesfromWeeklyCount :async()=>{
+//   try{
+//     let res=await pool.query(`
+//           SELECT 
+//         wc.id,
+//         wc.del_date,
+//         wc.driver_id,
+//         d.name AS driver_name,
+//         wc.courier_name,
+//         wc.del_route AS original_route_code,
+        
+//         -- Extract city code and route number from del_route
+//         SUBSTRING(wc.del_route FROM '^[A-Z]+') AS city_prefix,  -- "DFW"
+//         LTRIM(SUBSTRING(wc.del_route FROM '\d+$'), '0') AS route_number,  -- "009" -> "9"
+        
+//         -- City information
+//         c.id AS city_id,
+//         c.job AS city_job,
+//         c.city_code,
+        
+//         -- Route information
+//         r.id AS route_id,
+//         r.name AS route_name,
+//         r.job AS route_job,
+        
+//         -- Delivery counts
+//         wc.total_deliveries,
+//         wc.fs AS first_stops,
+//         wc.ds AS double_stops,
+        
+//         -- Payment rates
+//         r.driver_route_price AS rate_per_first_stop,
+//         r.driver_doublestop_price AS rate_per_double_stop,
+        
+//         -- Payment calculations
+//         (wc.fs * r.driver_route_price) AS first_stop_payment,
+//         (wc.ds * r.driver_doublestop_price) AS double_stop_payment,
+//         ((wc.fs * r.driver_route_price) + (wc.ds * r.driver_doublestop_price)) AS total_payment
+        
+//     FROM 
+//         weeklycount wc
+//     INNER JOIN 
+//         drivers d ON wc.driver_id = d.driver_code
+//     LEFT JOIN 
+//         city c ON SUBSTRING(wc.del_route FROM '^[A-Z]+') = c.city_code
+//     LEFT JOIN 
+//         routes r ON LTRIM(SUBSTRING(wc.del_route FROM '\d+$'), '0') = r.name
+//                 AND r.job = c.job
+//                 AND r.enabled = true
+//     WHERE 
+//         d.enabled = true
+//     ORDER BY 
+//         wc.del_date DESC, d.name, wc.del_route;
+//       `);
+//       return res.rows;
+//   }catch(err){
+//     console.error('Error deleting weekly data:', err);
+//     throw err;
+//   }
+// },
+
+  createEntriesFromWeeklyCount:async(data)=>{
+    try{
+        await pool.query(`
+          INSERT INTO dashboard_data (
+    driver_id,
+    journey_date,
+    route_id,
+    packages,
+    first_stop,
+    ds,
+    delivered,
+    driver_payment,
+    closed,
+    paid
+)
+SELECT 
+    d.id AS driver_id,
+    wc.del_date AS journey_date,
+    r.id AS route_id,
+    wc.total_deliveries AS packages,
+    wc.fs AS first_stop,
+    wc.ds AS ds,
+    wc.total_deliveries AS delivered,  -- Assuming all packages are delivered
+    ((wc.fs * r.driver_route_price) + (wc.ds * r.driver_doublestop_price)) AS driver_payment,
+    false AS closed,
+    false AS paid
+    FROM 
+        weeklycount wc
+    INNER JOIN 
+        drivers d ON wc.driver_id = d.driver_code
+    LEFT JOIN 
+        city c ON SUBSTRING(wc.del_route FROM '^[A-Za-z]+') = c.city_code
+    INNER JOIN 
+        routes r ON LTRIM(SUBSTRING(wc.del_route FROM '\d+$'), '0') = r.name
+                AND r.job = c.job
+                AND r.enabled = true
+    WHERE 
+        d.enabled = true
+        AND r.id IS NOT NULL  -- Only insert where route is found
+    ON CONFLICT DO NOTHING;  -- Prevents duplicates if you run it multiple times`)
+    }catch(err){
+        console.error('Error inserting dashboard from weekly data:', err);
+    throw err;
+    }
+  }
+
 }

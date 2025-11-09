@@ -26,9 +26,10 @@ export const updatePaymentData = async (req,res)=>{
 
 export const updateWeeklyTempDataToDashboard=async(req,res)=>{
     try {
-        console.log("Reached Update of Temp data to dashboard")
-        const updateData =  await WeeklyExcelQueries.processWeeklyData();
-        return res.status(HttpStatus.OK).json({updateData});        
+        console.log("Reached Update of Temp data to dashboard");        
+        let insertData= await WeeklyExcelQueries.createEntriesFromWeeklyCount();
+
+        return res.status(HttpStatus.OK).json({insertData});        
     } catch (err) {
         console.error(err)
         return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({success:false});
