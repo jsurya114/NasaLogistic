@@ -15,6 +15,7 @@ import adminAuth from '../middlewares/adminAuth.js';
 router.post('/login',adminController.Login);
 
 // Protect all routes below this line
+
 router.use(adminAuth);
 
 //Job creation

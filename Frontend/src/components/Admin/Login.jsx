@@ -50,6 +50,7 @@ const {loading,error,isAuthenticated}=useSelector((state)=>state.admin);
         position: "top-right",
         autoClose: 3000,
       });
+      console.log('login suc, navigate to dashboard')
       navigate("/admin/dashboard");
     }
   } catch (err) {
