@@ -3,6 +3,7 @@ import statusCode from '../../utils/statusCodes.js'
 import { dbService } from '../../services/admin/dbQueries.js'
 import { generateToken, verifyToken } from '../../services/jwtservice.js'
 import HttpStatus from '../../utils/statusCodes.js'
+import { blackListToken } from '../../services/redis-jwt-service.js'
 
  const adminController={
     Login:async(req,res)=>{
@@ -63,7 +64,12 @@ import HttpStatus from '../../utils/statusCodes.js'
     Logout:async(req,res)=>{
       const isProd = process.env.NODE_ENV === 'production';
       const opts = { httpOnly: true, secure: isProd, sameSite: isProd ? 'none' : 'lax' };
+      const token = req.cookies.adminToken;
+      if(token){
+        blackListToken(token)
+      }
       res.clearCookie("adminToken", opts);
+
       return res.status(HttpStatus.OK).json({message:"Logged out successfully"});
     },   
     

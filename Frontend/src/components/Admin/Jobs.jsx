@@ -10,7 +10,7 @@ import Pagination from "../../reuse/Pagination.jsx";
 
 function Jobs() {
   const dispatch = useDispatch();
-  const { cities, page, totalPages } = useSelector((state) => state.jobs);
+  const { cities, page, totalPages, status } = useSelector((state) => state.jobs);
 
   const [form, setForm] = useState({ job: "", city_code: "", enabled: true });
   const [errors, setErrors] = useState({});
@@ -18,17 +18,18 @@ function Jobs() {
   const [isEditing, setIsEditing] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   
-  // Use ref to track if initial fetch is done
   const initialFetchDone = useRef(false);
   const limit = 3;
 
-  // Memoized fetch function to prevent recreation
+  // Check if loading
+  const isLoading = status === 'loading' || isRefreshing;
+
   const fetchData = useCallback((pageNum, search) => {
     dispatch(fetchPaginatedJobs({ page: pageNum, limit, search }));
   }, [dispatch]);
 
-  // Initial fetch on mount
   useEffect(() => {
     if (!initialFetchDone.current) {
       fetchData(1, "");
@@ -36,25 +37,32 @@ function Jobs() {
     }
   }, [fetchData]);
 
-  // Debounced search - REMOVED dispatch from dependencies
   useEffect(() => {
-    if (!initialFetchDone.current) return; // Skip on initial mount
+    if (!initialFetchDone.current) return;
     
     const timer = setTimeout(() => {
-      setCurrentPage(1); // Reset to page 1 on search
+      setCurrentPage(1);
       fetchData(1, searchTerm);
     }, 400);
     
     return () => clearTimeout(timer);
-  }, [searchTerm, fetchData]); // dispatch removed!
+  }, [searchTerm, fetchData]);
 
-  // Page change handler
   const handlePageChange = useCallback((newPage) => {
     setCurrentPage(newPage);
     fetchData(newPage, searchTerm);
   }, [fetchData, searchTerm]);
+
+  // Refresh handler
+const handleRefresh = useCallback(async () => {
+  setIsRefreshing(true);
+  try {
+    await dispatch(fetchPaginatedJobs({ page: currentPage, limit, search: searchTerm }));
+  } finally {
+    setIsRefreshing(false);
+  }
+}, [dispatch, currentPage, searchTerm]);
   
-  // Form change handler
   const handleChange = useCallback((e) => {
     const { name, value, type, checked } = e.target;
     setForm((prev) => ({ 
@@ -64,7 +72,6 @@ function Jobs() {
     setErrors((prev) => ({ ...prev, [name]: "" }));
   }, []);
 
-  // Validation function
   const validate = useCallback(() => {
     const newErrors = {};
     if (!form.job.trim()) newErrors.job = "Job name is required";
@@ -73,7 +80,6 @@ function Jobs() {
     return newErrors;
   }, [form.job, form.city_code, form.enabled, isEditing]);
 
-  // Edit handler
   const handleEdit = useCallback((city) => {
     setForm({
       job: city.job,
@@ -86,7 +92,6 @@ function Jobs() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
 
-  // Cancel edit handler
   const handleCancelEdit = useCallback(() => {
     setForm({ job: "", city_code: "", enabled: true });
     setEditingId(null);
@@ -94,7 +99,6 @@ function Jobs() {
     setErrors({});
   }, []);
 
-  // Submit handler - with proper dependency management
   const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
 
@@ -121,7 +125,6 @@ function Jobs() {
           });
           
           handleCancelEdit();
-          // Refetch current page after update
           fetchData(currentPage, searchTerm);
         }
       } else {
@@ -137,7 +140,6 @@ function Jobs() {
           
           setForm({ job: "", city_code: "", enabled: true });
           setErrors({});
-          // Refetch page 1 after adding new item
           setCurrentPage(1);
           fetchData(1, searchTerm);
         }
@@ -152,7 +154,6 @@ function Jobs() {
     }
   }, [validate, isEditing, editingId, form, dispatch, currentPage, searchTerm, handleCancelEdit, fetchData]);
 
-  // Toggle status handler with refetch
   const handleToggleStatus = useCallback(async (id) => {
     try {
       const actionResult = await dispatch(jobStatus(id));
@@ -163,7 +164,6 @@ function Jobs() {
           autoClose: 2000,
         });
         
-        // Refetch to ensure data consistency
         fetchData(currentPage, searchTerm);
       }
     } catch (err) {
@@ -175,12 +175,10 @@ function Jobs() {
     }
   }, [dispatch, currentPage, searchTerm, fetchData]);
 
-  // Memoized table headers
   const tableHeaders = useMemo(() => 
     ["ID", "City", "City Code", "Status", "Actions"],
   []);
 
-  // Memoized check if cities exist
   const hasCities = useMemo(() => 
     cities && cities.length > 0,
   [cities]);
@@ -262,9 +260,33 @@ function Jobs() {
 
         {/* Table Section */}
         <section className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-x-auto">
-          <h2 className="font-bold text-gray-900 bg-gray-50 border-b border-gray-200 px-4 py-3 rounded-t-xl">
-            City List
-          </h2>
+          <div className="flex items-center justify-between bg-gray-50 border-b border-gray-200 px-4 py-3 rounded-t-xl">
+  <h2 className="font-bold text-gray-900">City List</h2>
+  
+ <button
+  onClick={handleRefresh}
+  disabled={isLoading}
+  className={`flex items-center gap-2 px-4 py-2 bg-purple-700 text-white rounded-lg shadow hover:bg-purple-800 transition-colors ${
+    isLoading ? 'opacity-50 cursor-not-allowed' : ''
+  }`}
+  title="Refresh"
+>
+  <svg 
+    className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`}
+    fill="none" 
+    stroke="currentColor" 
+    viewBox="0 0 24 24"
+  >
+    <path 
+      strokeLinecap="round" 
+      strokeLinejoin="round" 
+      strokeWidth={2} 
+      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" 
+    />
+  </svg>
+  <span>Refresh</span>
+</button>
+</div>
           
           <SearchBar
             value={searchTerm}
@@ -272,67 +294,88 @@ function Jobs() {
             placeholder="Search city..."
           />
           
-          <table className="w-full border-collapse text-sm">
-            <thead>
-              <tr className="bg-gray-50 text-left">
-                {tableHeaders.map((head, i) => (
-                  <th key={i} className="px-3 py-2 border-b border-gray-200 font-semibold text-gray-800">{head}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {hasCities ? (
-                cities.map((city, index) => (
-                  <tr key={city.id} className={index % 2 === 0 ? "bg-gray-50" : "bg-white"}>
-                    <td className="px-3 py-2 border-b border-gray-200">{city.id}</td>
-                    <td className="px-3 py-2 border-b border-gray-200">{city.job}</td>
-                    <td className="px-3 py-2 border-b border-gray-200">{city.city_code}</td>
-                    <td className="px-3 py-2 border-b border-gray-200">
-                      <span className={`px-2 py-1 rounded-full text-sm font-medium ${city.enabled ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
-                        {city.enabled ? "Enabled" : "Disabled"}
-                      </span>
-                    </td>
-                    <td className="px-3 py-2 border-b border-gray-200">
-                      <div className="flex items-center gap-10">
-                        <label className="relative inline-flex items-center cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={city.enabled}
-                            onChange={() => handleToggleStatus(city.id)}
-                            className="sr-only"
-                          />
-                          <div className={`w-11 h-6 rounded-full transition-colors duration-200 ease-in-out ${
-                            city.enabled ? 'bg-purple-600' : 'bg-gray-300'
-                          }`}>
-                            <div className={`w-5 h-5 bg-white rounded-full shadow-lg transform transition-transform duration-200 ease-in-out ${
-                              city.enabled ? 'translate-x-5' : 'translate-x-0.5'
-                            } mt-0.5`}></div>
-                          </div>
-                        </label>
-                        
-                        <button
-                          onClick={() => handleEdit(city)}
-                          className="group relative px-4 py-1.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xs font-medium rounded-md hover:from-blue-600 hover:to-blue-700 transition-all duration-200 shadow-sm hover:shadow-md flex items-center gap-1.5"
-                          title="Edit City"
-                        >
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                          </svg>
-                          <span>Edit</span>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="5" className="text-center py-4 text-gray-500 font-medium">
-                    No Cities added yet
-                  </td>
+       <div className="relative min-h-[300px] px-6">
+            {/* Loader Overlay */}
+            {isLoading && (
+              <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10">
+                <div className="flex flex-col items-center gap-3">
+                  <div className="w-12 h-12 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
+                  <p className="text-gray-600 font-medium">Loading...</p>
+                </div>
+              </div>
+            )}
+
+            <table className="w-full border-collapse text-sm">
+              <thead>
+                <tr className="bg-gray-50 text-left">
+                  {tableHeaders.map((head, i) => (
+                    <th key={i} className="px-3 py-2 border-b border-gray-200 font-semibold text-gray-800">{head}</th>
+                  ))}
                 </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+  {isLoading ? (
+    <tr>
+      <td colSpan="5" className="text-center py-8">
+        <div className="flex items-center justify-center gap-2">
+          <div className="w-5 h-5 border-2 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
+          <span className="text-gray-500 text-sm">Loading...</span>
+        </div>
+      </td>
+    </tr>
+  ) : hasCities ? (
+    cities.map((city, index) => (
+      <tr key={city.id} className={index % 2 === 0 ? "bg-gray-50" : "bg-white"}>
+        <td className="px-3 py-2 border-b border-gray-200">{city.id}</td>
+        <td className="px-3 py-2 border-b border-gray-200">{city.job}</td>
+        <td className="px-3 py-2 border-b border-gray-200">{city.city_code}</td>
+        <td className="px-3 py-2 border-b border-gray-200">
+          <span className={`px-2 py-1 rounded-full text-sm font-medium ${city.enabled ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+            {city.enabled ? "Enabled" : "Disabled"}
+          </span>
+        </td>
+        <td className="px-3 py-2 border-b border-gray-200">
+          <div className="flex items-center gap-10">
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={city.enabled}
+                onChange={() => handleToggleStatus(city.id)}
+                className="sr-only"
+              />
+              <div className={`w-11 h-6 rounded-full transition-colors duration-200 ease-in-out ${
+                city.enabled ? 'bg-purple-600' : 'bg-gray-300'
+              }`}>
+                <div className={`w-5 h-5 bg-white rounded-full shadow-lg transform transition-transform duration-200 ease-in-out ${
+                  city.enabled ? 'translate-x-5' : 'translate-x-0.5'
+                } mt-0.5`}></div>
+              </div>
+            </label>
+            
+            <button
+              onClick={() => handleEdit(city)}
+              className="group relative px-4 py-1.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xs font-medium rounded-md hover:from-blue-600 hover:to-blue-700 transition-all duration-200 shadow-sm hover:shadow-md flex items-center gap-1.5"
+              title="Edit City"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              <span>Edit</span>
+            </button>
+          </div>
+        </td>
+      </tr>
+    ))
+  ) : (
+    <tr>
+      <td colSpan="5" className="text-center py-4 text-gray-500 font-medium">
+        No Cities added yet
+      </td>
+    </tr>
+  )}
+</tbody>
+            </table>
+          </div>
         </section>
         
         <Pagination page={page} totalPages={totalPages} onPageChange={handlePageChange} />

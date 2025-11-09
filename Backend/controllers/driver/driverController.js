@@ -1,7 +1,7 @@
 import HttpStatus from '../../utils/statusCodes.js';
 import { loginService } from "../../services/driver/loginQueries.js";
 import { generateToken, verifyToken } from '../../services/jwtservice.js';
-
+import {blackListToken} from '../../services/redis-jwt-service.js'
 const driverController = {
   Login: async (req, res) => {
     try {
@@ -74,6 +74,10 @@ const driverController = {
   Logout:async(req,res)=>{
     const isProd = process.env.NODE_ENV === 'production';
     const opts = { httpOnly: true, secure: isProd, sameSite: isProd ? 'none' : 'lax' };
+    const token = req.cookies.driverToken;
+    if(token){
+      blackListToken(token)
+    }
     res.clearCookie("driverToken", opts);
     return res.status(HttpStatus.OK).json({message:"Logged out successfully"})
   }

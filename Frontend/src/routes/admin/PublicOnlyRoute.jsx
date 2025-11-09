@@ -16,11 +16,11 @@ function AdminPublicOnlyRoute() {
   useEffect(() => {
     if (!loading && isAuthenticated) {
       // Cancel this navigation by going back if possible; otherwise, go to dashboard
-      if (window.history.length > 1) {
-        navigate(-1);
-      } else {
+      // if (window.history.length > 1) {
+      //   navigate(-1);
+      // } else {
         navigate("/admin/dashboard", { replace: true });
-      }
+      // }e
     }
   }, [loading, isAuthenticated, navigate]);
 

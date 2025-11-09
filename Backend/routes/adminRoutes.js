@@ -12,14 +12,16 @@ import { changeRoleAdmin, changeStatusAdmin, createAdmins, getAdmins } from '../
 import { getPaymentDashboardData, updatePaymentData,updateWeeklyTempDataToDashboard } from '../controllers/admin/dashboardController.js';
 import adminJourneyController from '../controllers/admin/adminJourneyController.js';
 import adminAuth from '../middlewares/adminAuth.js';
+import { getAllData } from '../controllers/admin/dashController.js';
 import { getWeeklyTempData, weeklyExcelUpload } from '../controllers/admin/weeklyUploadsController.js';
+
+
 router.post('/login',adminController.Login);
 
 // Protect all routes below this line
 router.use(adminAuth);
 
 //Job creation
-// router.get("/jobs",jobController.getJob)
 router.post('/addjob', jobController.addJob);
 router.put('/updatejob/:id',jobController.updateJob)
 router.delete('/deletejob/:id',jobController.deleteJob)
@@ -47,11 +49,8 @@ router.get('/get-admins',getAdmins);
 router.patch('/toggle-admin/:id',changeStatusAdmin);
 router.patch('/toggle-admin-role/:id',changeRoleAdmin);
 
-
 //DoubleStop and file upload
-// for fileuploads use upload.single('file') as middleware
 router.post('/doubleStop/dailyFileUpload',upload.single('file'),DailyExcelUpload)
-// router.get('/doubleStop/calculatePayment',updateDriverPayment)
 
 //admin journey
 router.get("/journeys",adminJourneyController.fetchAllJourneys)
@@ -59,10 +58,10 @@ router.post("/journey", adminJourneyController.addJourney);
 router.put("/journey/:journey_id",adminJourneyController.updateJourney)
 router.get("/drivers",adminJourneyController.fetchAllDrivers)
 
-//payment
-router.get('/dashboard/paymentTable',getPaymentDashboardData)
+//payment and dashboard - IMPORTANT: These routes must be in this order
+router.get('/dashboard/data', getAllData) // For dropdown data (cities, drivers, routes)
+router.get('/dashboard/paymentTable', getPaymentDashboardData) // For table data with filters
 
-// router.post('/ds',DailyExcelUpload)
 //Weekly Upload 
 router.post('/doubleStop/weekly-upload',upload.single('file'),weeklyExcelUpload);
 router.get('/doubleStop/fetchWeeklyTempData',getWeeklyTempData);
@@ -70,8 +69,6 @@ router.put('/doubleStop/update-weekly-excel-to-dashboard',updateWeeklyTempDataTo
 
 router.get('/doubleStop/tempDashboardData',getUpdatedTempDashboardData);
 router.get('/doubleStop/calculatePayment',updatePaymentData);
-
-// router.get('/admin/check-for-user',checkforSuperAdminOrNot)
 
 //logout from Admin
 router.post('/logout',adminController.Logout);
@@ -82,7 +79,5 @@ router.get('/access-admin',adminController.getUser);
 router.post("/access-codes",createAccessCode)
 router.get("/access-codes/list", getAccessCodes)
 router.put("/access-codes/:id", updateAccessCode)
-
-
 
 export default router;

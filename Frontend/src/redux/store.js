@@ -12,6 +12,7 @@ import AdminDashboardReducer from './slice/admin/dashboardUpdateSlice.js'
 import paymentDashboardReducer from './slice/admin/paymentDashboardSlice.js'
 import DeliveryReducer from "./slice/driver/deliverySlice.js"
 import journeyReducer from "../redux/slice/driver/journeySlice.js"
+import dashboardReducer from "../redux/slice/admin/dashSlice.js"
 export const store = configureStore({
     reducer: {
         admin: adminReducer,
@@ -25,7 +26,8 @@ export const store = configureStore({
         ds:doubleStop,
         dashboard:AdminDashboardReducer,
         paymentDashboard:paymentDashboardReducer,
-        delivery:DeliveryReducer
+        delivery:DeliveryReducer,
+       dash:dashboardReducer
 
     
     }

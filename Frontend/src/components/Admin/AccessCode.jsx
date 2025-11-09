@@ -454,7 +454,7 @@ export default function AddAccessCodePage() {
                 </div>
               </div>
 
-              <div className="w-full md:w-48">
+              {/* <div className="w-full md:w-48">
                 <input
                   type="text"
                   placeholder="Filter by zip code..."
@@ -462,7 +462,7 @@ export default function AddAccessCodePage() {
                   onChange={(e) => handleFilterChange(e.target.value)}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-sm"
                 />
-              </div>
+              </div> */}
             </div>
           </div>
 

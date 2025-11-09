@@ -1,28 +1,55 @@
-import {AdminDashboardQueries} from "../../services/admin/dashboardQueries.js"
-import { WeeklyExcelQueries } from "../../services/admin/weeklyExcelQueries.js"
-import HttpStatus from "../../utils/statusCodes.js"
+import { AdminDashboardQueries } from "../../services/admin/dashboardQueries.js";
+import { WeeklyExcelQueries } from "../../services/admin/weeklyExcelQueries.js";
+import HttpStatus from "../../utils/statusCodes.js";
 
+export const getPaymentDashboardData = async (req, res) => {
+  try {
+    console.log("getPaymentDashboardData called");
+    console.log("Query params:", req.query);
 
+    // Extract query parameters for filtering
+    const { job, driver, route, startDate, endDate, paymentStatus, companyEarnings } = req.query;
 
-export const getPaymentDashboardData = async (req,res)=>{
-    try {
-        const result = await AdminDashboardQueries.PaymentDashboardTable()
-        return res.status(HttpStatus.OK).json({sucess:true,data:result})
-        
-    } catch (error) {
-        console.error(error)
-    }
-}
+    // Build filters object - only include non-null/non-"All" values
+    const filters = {};
+    
+    if (job && job !== "All") filters.job = job;
+    if (driver && driver !== "All") filters.driver = driver;
+    if (route && route !== "All") filters.route = route;
+    if (startDate) filters.startDate = startDate;
+    if (endDate) filters.endDate = endDate;
+    if (paymentStatus && paymentStatus !== "All") filters.paymentStatus = paymentStatus;
+    if (companyEarnings === "true") filters.companyEarnings = true;
 
-export const updatePaymentData = async (req,res)=>{
-    try {
-        await AdminDashboardQueries.updatePaymentTable()
-        res.status(HttpStatus.OK).json({success:true})
-    } catch (error) {
-        console.error(error)
-        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({success:false})
-    }
-}
+    console.log("Processed filters:", filters);
+
+    // Fetch filtered data
+    const result = await AdminDashboardQueries.PaymentDashboardTable(filters);
+    
+    console.log("Query successful, returning", result.length, "rows");
+    
+    return res.status(HttpStatus.OK).json({ success: true, data: result });
+  } catch (error) {
+    console.error("Error in getPaymentDashboardData:", error);
+    console.error("Error message:", error.message);
+    console.error("Error stack:", error.stack);
+    
+    return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ 
+      success: false, 
+      message: error.message || "Failed to fetch payment dashboard data" 
+    });
+  }
+};
+
+export const updatePaymentData = async (req, res) => {
+  try {
+    await AdminDashboardQueries.updatePaymentTable();
+    res.status(HttpStatus.OK).json({ success: true });
+  } catch (error) {
+    console.error("Error in updatePaymentData:", error);
+    return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ success: false });
+  }
+};
 
 export const updateWeeklyTempDataToDashboard=async(req,res)=>{
     try {
