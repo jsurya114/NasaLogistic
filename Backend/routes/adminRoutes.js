@@ -6,12 +6,13 @@ import jobController from '../controllers/admin/jobController.js';
 import { createRoute,getRoutes,getRouteById, updateRoute, deleteRoute,toggleRouteStatus, fetchPaginatedRoutes} from "../controllers/admin/routeController.js"
 import { changeStatusUser, createUsers, getUsers } from '../controllers/admin/addUserController.js';
 import { createAccessCode } from '../controllers/admin/accessCodeControllers.js';
-import {DailyExcelUpload, getUpdatedTempDashboardData, getWeeklyTempData} from '../controllers/admin/fileUploadsController.js';
+import {DailyExcelUpload, getUpdatedTempDashboardData} from '../controllers/admin/fileUploadsController.js';
 import { getAccessCodes,updateAccessCode, } from '../controllers/admin/accessCodeControllers.js';
 import { changeRoleAdmin, changeStatusAdmin, createAdmins, getAdmins } from '../controllers/admin/addAdminController.js';
 import { getPaymentDashboardData, updatePaymentData,updateWeeklyTempDataToDashboard } from '../controllers/admin/dashboardController.js';
 import adminJourneyController from '../controllers/admin/adminJourneyController.js';
 import adminAuth from '../middlewares/adminAuth.js';
+import { getWeeklyTempData, weeklyExcelUpload } from '../controllers/admin/weeklyUploadsController.js';
 router.post('/login',adminController.Login);
 
 // Protect all routes below this line
@@ -63,7 +64,7 @@ router.get('/dashboard/paymentTable',getPaymentDashboardData)
 
 // router.post('/ds',DailyExcelUpload)
 //Weekly Upload 
-// router.post('/doubleStop/weekly-upload',upload.single('file'),weeklyExcelUpload);
+router.post('/doubleStop/weekly-upload',upload.single('file'),weeklyExcelUpload);
 router.get('/doubleStop/fetchWeeklyTempData',getWeeklyTempData);
 router.put('/doubleStop/update-weekly-excel-to-dashboard',updateWeeklyTempDataToDashboard);
 
