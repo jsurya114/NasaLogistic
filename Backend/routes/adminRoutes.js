@@ -13,6 +13,8 @@ import { getPaymentDashboardData, updatePaymentData,updateWeeklyTempDataToDashbo
 import adminJourneyController from '../controllers/admin/adminJourneyController.js';
 import adminAuth from '../middlewares/adminAuth.js';
 import { getAllData } from '../controllers/admin/dashController.js';
+import { getWeeklyTempData, weeklyExcelUpload } from '../controllers/admin/weeklyUploadsController.js';
+
 
 router.post('/login',adminController.Login);
 
