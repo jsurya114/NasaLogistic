@@ -231,7 +231,9 @@ export const ExcelFileQueries = {
             join 
                 routes r on dd.route_id = r.id
             join 
-                drivers d on d.id = dd.driver_id;
+                drivers d on d.id = dd.driver_id
+            where
+                dd.journey_date between CURRENT_DATE - INTERVAL '1 day' and CURRENT_DATE;
 
             `)
             return res.rows
