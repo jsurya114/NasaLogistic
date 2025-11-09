@@ -64,9 +64,42 @@
 
 
 import pool from "../../config/db.js";
+export const getTodayJourney = async (driver_id) => {
+  try {
+    const query = `
+      SELECT 
+        d.driver_id, 
+        TO_CHAR(d.journey_date, 'YYYY-MM-DD') as journey_date,
+        d.route_id, 
+     (d.end_seq - d.start_seq + 1) AS packages,
+        d.start_seq, 
+        d.end_seq,
+        r.name AS route_name
+      FROM dashboard_data d
+      JOIN routes r ON d.route_id = r.id
+      WHERE driver_id = $1 AND journey_date = CURRENT_DATE
+      ORDER BY d.start_seq ASC;
+    `;
+    const result = await pool.query(query, [driver_id]);
+    return result.rows;
+  } catch (error) {
+    console.error("❌ getTodayJourney failed:", error.message);
+    return { success: false, message: "Error fetching today's journey", error: error.message };
+  }
+};
 
 export const insertJourney = async (data) => {
-  const { driver_id, route_id, packages, start_seq, end_seq } = data;
+  const { driver_id, route_id, packages, start_seq, end_seq, journey_date } = data;
+
+  // ✅ ADD THIS VALIDATION
+  if (!journey_date) {
+    console.error("❌ journey_date is required but not provided");
+    return { 
+      success: false, 
+      message: "journey_date is required", 
+      error: "Missing journey_date parameter" 
+    };
+  }
 
   try {
     const query = `
@@ -82,15 +115,26 @@ export const insertJourney = async (data) => {
         start_seq,
         end_seq;
     `;
-    const values = [driver_id, route_id, packages, start_seq, end_seq];
+    const values = [driver_id, journey_date, route_id, packages, start_seq, end_seq];
+
+    console.log("values",values)
 
     const result = await pool.query(query, values);
+    console.log('result',result.rows[0])
     return result.rows[0];
-  } catch (error) {
+  }catch (error) {
     console.error("❌ insertJourney failed:", error.message);
-    return { success: false, message: "Error inserting journey", error: error.message };
+    // ✅ ADD more error details
+    console.error("SQL Error Details:", error.detail);
+    return { 
+      success: false, 
+      message: "Error inserting journey", 
+      error: error.message,
+      detail: error.detail 
+    };
   }
 };
+
 
 export const checkSequenceConflict = async (route_id, start_seq, end_seq) => {
   try {

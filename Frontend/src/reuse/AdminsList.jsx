@@ -83,7 +83,7 @@ function AdminsList() {
           <table className="w-full border-collapse text-sm">
             <thead>
               <tr className="bg-gray-50 text-left">
-                {["Sl No", "Name", "Email", "Role", "Status", "Actions"].map((head, i) => (
+                {["Sl No", "Name", "Email", "Role","Cities","Status", "Actions"].map((head, i) => (
                   <th key={i} className="px-3 py-2 border-b border-gray-200">
                     {head}
                   </th>
@@ -119,15 +119,16 @@ function AdminsList() {
                 admins.map((a, i) => (
                   <tr key={a.id}>
                     <td className="px-3 py-2 border-b">{i + 1}</td>
-                    <td className="px-3 py-2 border-b">{a.name}</td>
-                    <td className="px-3 py-2 border-b">{a.email}</td>
+                    <td className="px-3 py-2 border-b">{a.admin_name}</td>
+                    <td className="px-3 py-2 border-b">{a.admin_email}</td>
                     <td className="px-3 py-2 border-b">
                       {a.role === "superadmin" ? (
-                        <span className="text-blue-600 font-semibold">{a.role.toUpperCase()}</span>
+                        <span className="text-blue-600 font-semibold">{a.admin_role.toUpperCase()}</span>
                       ) : (
-                        <span className="text-gray-700">{a.role.toUpperCase()}</span>
+                        <span className="text-gray-700">{a.admin_role.toUpperCase()}</span>
                       )}
                     </td>
+                    <td className="px-3 py-2 border-b">{a.cities || ""}</td>
                     <td className="px-3 py-2 border-b">
                       {a.is_active ? (
                         <span className="text-green-600">Enabled</span>

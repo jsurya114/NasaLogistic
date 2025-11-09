@@ -54,17 +54,41 @@ export const saveJourney = async (req, res) => {
       packages,
       start_seq,
       end_seq,
+      journey_date: journey_date || new Date().toISOString().split('T')[0]
     });
+    
+    if(journey.success===false){
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        success:false,
+        message:journey.message,
+        error:journey.error
+      })
+    }
+
+
     // const routes = await ge
     const sequence = await addRangeOfSqeunceToDeliveries(driver_id,route_id,start_seq,end_seq)
+    
+    if(sequence.success===false){
+      console.error("failed to add sequences",sequence.message)
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        success:false,
+        message:"journey saved but failed to add delivery sequences",
+        error:sequence.error
+      })
+    }
+
     console.log(sequence.length,'nos sequnce added...')
     await updateSeqRouteCodeToDeliveriesTable()
     res.status(HttpStatus.CREATED).json({ success: true, data: journey });
   } catch (error) {
-    console.log('error inserting journey,',error.message)
-    res
-      .status(HttpStatus.INTERNAL_SERVER_ERROR)
-      .json({ success: false, message: "Error inserting journey",error });
+    console.error('❌ Error inserting journey:', error.message);
+    console.error('Stack trace:', error.stack);
+    res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ 
+      success: false, 
+      message: "Error inserting journey",
+      error: error.message 
+    });
   }
 };
 

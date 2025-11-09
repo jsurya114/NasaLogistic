@@ -25,22 +25,17 @@ import pool from "../../config/db.js";
         createWeeklyTable:async(table_name)=>{
         try {
             await pool.query(`
-                        CREATE TABLE ${table_name}(
-                                id SERIAL PRIMARY KEY,
-                                orig_name varchar(25),
-                                match_name varchar(25),
-                                date DATE,
-                                deliveries INT,
-                                fullStop INT,
-                                doubleStop INT,
-                                route TEXT,
-                                start_seq INT,
-                                end_seq INT,
-                                ambiguous boolean,
-                                failedAttempt INT,
-                                no_scanned INT DEFAULT 0,
-                                upload_date TIMESTAMP DEFAULT NOW()
-                        );
+                        CREATE TABLE ${table_name} (
+                          id SERIAL PRIMARY KEY,
+                          courier_name VARCHAR(100) NOT NULL,
+                          driver_id INT NOT NULL,
+                          del_route VARCHAR(100),
+                          total_deliveries INT DEFAULT 0,
+                          fs INT DEFAULT 0,
+                          ds INT DEFAULT 0,
+                          del_date DATE NOT NULL,
+                          CONSTRAINT weeklycount_unique UNIQUE (driver_id, del_date, del_route)
+                      );
                     `);
             console.log(`✅ Table ${table_name} created successfully`);
             } catch (error) {
@@ -78,7 +73,7 @@ import pool from "../../config/db.js";
       SELECT EXISTS (
         SELECT FROM information_schema.tables 
         WHERE table_schema = 'public'
-        AND table_name = 'weekly_excel_data'
+        AND table_name = 'weeklycount'
       )
     `);
     
@@ -88,8 +83,8 @@ import pool from "../../config/db.js";
     
     // Table exists, fetch data
     const res = await pool.query(`
-      SELECT * FROM weekly_excel_data 
-      ORDER BY upload_date DESC
+      SELECT * FROM weeklycount 
+      ORDER BY del_date DESC
     `);
     
     return { exists: true, data: res.rows };

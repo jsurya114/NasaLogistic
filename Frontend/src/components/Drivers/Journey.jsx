@@ -46,7 +46,7 @@ const Journey = () => {
 
   // ✅ Fetch today's journey only if needed
   useEffect(() => {
-    if (driver?.id && journeyStatus === 'idle') {
+    if (driver?.id ) {
       dispatch(fetchTodayJourney(driver.id))
         .unwrap()
         .then((data) => {
@@ -56,7 +56,7 @@ const Journey = () => {
           setIsJourneySaved(false);
         });
     }
-  }, [dispatch, driver?.id, journeyStatus]);
+  }, [dispatch, driver?.id]);
 
   // Error handling
   useEffect(() => {
@@ -105,6 +105,8 @@ const Journey = () => {
   // Handle submit
   const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
+
+    if(isJourneySaved) return
     setErrors({});
 
     // ✅ Calculate packages here in frontend
@@ -121,7 +123,10 @@ const Journey = () => {
     };
 
     try {
+      // setIsJourneySaved(true)
       await dispatch(saveJourney(journeyData)).unwrap();
+            setIsJourneySaved(true)
+     await dispatch(fetchTodayJourney(driver.id))
       toast.success("Journey saved successfully!", {
         position: "bottom-center",
         autoClose: 3000,
@@ -135,11 +140,14 @@ const Journey = () => {
       }));
       setIsJourneySaved(true);
     } catch (err) {
+      setIsJourneySaved(false)
       if (err.errors) {
         setErrors(err.errors);
         if (err.errors['sequenceConflict']) {
           toast.error(err.errors['sequenceConflict']);
         }
+      }else{
+        console.error(err.message || "Failed to save journey")
       }
     }
   }, [formData, driver, dispatch]);
