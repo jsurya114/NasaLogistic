@@ -21,11 +21,14 @@ const Journey = () => {
     (state) => state.journey
   );
 
-  // Memoize current date to prevent recalculation
-  const currentDate = useMemo(
-    () => new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }),
-    []
-  );
+  // ✅ Get date in YYYY-MM-DD format without timezone conversion
+  const currentDate = useMemo(() => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }, []);
 
   const [formData, setFormData] = useState({
     journey_date: currentDate,
@@ -34,14 +37,14 @@ const Journey = () => {
     route: "",
   });
 
-  // ✅ OPTIMIZED: Fetch routes only once if not already loaded
+  // ✅ Fetch routes only once if not already loaded
   useEffect(() => {
     if (routesStatus === 'idle') {
       dispatch(fetchRoutes());
     }
   }, [dispatch, routesStatus]);
 
-  // ✅ OPTIMIZED: Fetch today's journey only if needed
+  // ✅ Fetch today's journey only if needed
   useEffect(() => {
     if (driver?.id && journeyStatus === 'idle') {
       dispatch(fetchTodayJourney(driver.id))
@@ -55,7 +58,7 @@ const Journey = () => {
     }
   }, [dispatch, driver?.id, journeyStatus]);
 
-  // Error handling - separated to avoid dependency issues
+  // Error handling
   useEffect(() => {
     if (routesError) {
       toast.error(routesError);
@@ -80,7 +83,7 @@ const Journey = () => {
     return fieldMap[name] || name;
   }, []);
 
-  // Optimized handleChange with useCallback
+  // Optimized handleChange
   const handleChange = useCallback((e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -91,11 +94,20 @@ const Journey = () => {
     });
   }, [getErrorField]);
 
-  // ✅ OPTIMIZED: Handle submit without refetching
+  // ✅ Calculate packages in frontend
+  const calculatePackages = useCallback((journey) => {
+    if (journey.end_seq && journey.start_seq) {
+      return journey.end_seq - journey.start_seq + 1;
+    }
+    return journey.packages || 0;
+  }, []);
+
+  // Handle submit
   const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
     setErrors({});
 
+    // ✅ Calculate packages here in frontend
     const packages = Number(formData.end_sequence) - Number(formData.start_sequence) + 1;
 
     const journeyData = {
@@ -122,8 +134,6 @@ const Journey = () => {
         route: "",
       }));
       setIsJourneySaved(true);
-      
-      // ✅ No need to refetch - Redux slice handles adding to state
     } catch (err) {
       if (err.errors) {
         setErrors(err.errors);
@@ -134,7 +144,7 @@ const Journey = () => {
     }
   }, [formData, driver, dispatch]);
 
-  // Memoize filtered routes to prevent recalculation
+  // Memoize filtered routes
   const enabledRoutes = useMemo(
     () => routes.filter((route) => route.enabled),
     [routes]
@@ -286,7 +296,7 @@ const Journey = () => {
                         {row.end_seq}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium text-gray-900">
-                        {row.packages}
+                        {calculatePackages(row)}
                       </td>
                     </tr>
                   ))}

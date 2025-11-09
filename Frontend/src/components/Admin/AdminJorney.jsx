@@ -33,7 +33,6 @@ const AdminJourney = () => {
 
   // ✅ Fetch data only once on mount with proper checks
   useEffect(() => {
-    // Only fetch if not already loaded or loading
     if (adminStatus === "idle" || (adminStatus === "failed" && adminJourneys.length === 0)) {
       dispatch(fetchAllJourneys());
     }
@@ -48,19 +47,16 @@ const AdminJourney = () => {
   // ✅ Auto-clear validation errors after 5 seconds
   useEffect(() => {
     if (Object.keys(validationErrors).length > 0) {
-      // Clear any existing timeout
       if (errorTimeout) {
         clearTimeout(errorTimeout);
       }
       
-      // Set new timeout to clear errors after 5 seconds
       const timeout = setTimeout(() => {
         setValidationErrors({});
       }, 5000);
       
       setErrorTimeout(timeout);
       
-      // Cleanup function
       return () => {
         if (timeout) clearTimeout(timeout);
       };
@@ -127,11 +123,23 @@ const AdminJourney = () => {
 
   const handleSave = useCallback(
     async (id) => {
+      // Validate start sequence
       const start = parseInt(formData.start_seq);
-      const end = parseInt(formData.end_seq);
+      if (isNaN(start) || start <= 0) {
+        toast.error("Start sequence must be a positive number greater than 0");
+        return;
+      }
       
+      // Validate end sequence
+      const end = parseInt(formData.end_seq);
+      if (isNaN(end) || end <= 0) {
+        toast.error("End sequence must be a positive number greater than 0");
+        return;
+      }
+      
+      // Check if end > start
       if (start >= end) {
-        toast.error("End Sequence must be greater than start sequence");
+        toast.error("End sequence must be greater than start sequence");
         return;
       }
       
@@ -165,7 +173,6 @@ const AdminJourney = () => {
     const { name, value } = e.target;
     setNewJourneyData((prev) => ({ ...prev, [name]: value }));
     
-    // Clear validation error for this field when user starts typing
     if (validationErrors[name]) {
       setValidationErrors((prev) => {
         const newErrors = { ...prev };
@@ -174,7 +181,6 @@ const AdminJourney = () => {
       });
     }
     
-    // Also clear general error when user makes changes
     if (validationErrors.general) {
       setValidationErrors((prev) => {
         const newErrors = { ...prev };
@@ -186,16 +192,13 @@ const AdminJourney = () => {
 
   const handleAddJourney = useCallback(
     async () => {
-      // Clear any existing timeout
       if (errorTimeout) {
         clearTimeout(errorTimeout);
         setErrorTimeout(null);
       }
       
-      // Reset validation errors
       setValidationErrors({});
       
-      // Validate all fields
       const errors = {};
       
       if (!newJourneyData.driver_id) {
@@ -206,25 +209,39 @@ const AdminJourney = () => {
       }
       if (!newJourneyData.start_seq) {
         errors.start_seq = "Start sequence is required";
+      } else {
+        // Validate start_seq is positive
+        const start = parseInt(newJourneyData.start_seq);
+        if (isNaN(start) || start <= 0) {
+          errors.start_seq = "Start sequence must be a positive number greater than 0";
+        }
       }
+      
       if (!newJourneyData.end_seq) {
         errors.end_seq = "End sequence is required";
+      } else {
+        // Validate end_seq is positive
+        const end = parseInt(newJourneyData.end_seq);
+        if (isNaN(end) || end <= 0) {
+          errors.end_seq = "End sequence must be a positive number greater than 0";
+        }
       }
+      
       if (!newJourneyData.journey_date) {
         errors.journey_date = "Journey date is required";
       }
       
-      // If there are validation errors, show them and return
+      // Check if end > start only if both are valid
+      if (newJourneyData.start_seq && newJourneyData.end_seq && !errors.start_seq && !errors.end_seq) {
+        const start = parseInt(newJourneyData.start_seq);
+        const end = parseInt(newJourneyData.end_seq);
+        if (start >= end) {
+          errors.end_seq = "End sequence must be greater than start sequence";
+        }
+      }
+      
       if (Object.keys(errors).length > 0) {
         setValidationErrors(errors);
-        return;
-      }
-
-      const start = parseInt(newJourneyData.start_seq);
-      const end = parseInt(newJourneyData.end_seq);
-
-      if (start >= end) {
-        setValidationErrors({ end_seq: "End sequence must be greater than start sequence" });
         return;
       }
       
@@ -245,6 +262,10 @@ const AdminJourney = () => {
       try {
         await dispatch(addJourney(newJourneyData)).unwrap();
         toast.success("Journey added successfully!");
+        
+        // Refresh the journeys list to get the correct formatted date
+        dispatch(fetchAllJourneys());
+        
         setNewJourneyData({
           driver_id: "",
           route_id: "",
@@ -260,7 +281,7 @@ const AdminJourney = () => {
     [dispatch, newJourneyData, validateSequenceOverlap, errorTimeout]
   );
 
-  // ✅ Memoize route lookup map for O(1) lookup instead of O(n) for each row
+  // ✅ Memoize route lookup map for O(1) lookup
   const routeMap = useMemo(() => {
     const map = new Map();
     routes.forEach(route => {
@@ -276,10 +297,17 @@ const AdminJourney = () => {
     return adminJourneys.map((journey) => {
       const displayRouteName = routeMap.get(journey.route_id) || journey.route_name || 'Unknown Route';
       
+      // Format date without timezone issues
+      const formatDate = (dateString) => {
+        if (!dateString) return '';
+        const date = new Date(dateString + 'T00:00:00'); // Add time to prevent timezone shift
+        return date.toLocaleDateString('en-CA'); // Returns YYYY-MM-DD format
+      };
+      
       return (
         <tr key={journey.id} className="border-t hover:bg-gray-50">
           <td className="px-4 py-2">{journey.driver_name}</td>
-          <td className="px-4 py-2">{journey.journey_date}</td>
+          <td className="px-4 py-2">{formatDate(journey.journey_date)}</td>
           <td className="px-4 py-2">
             {editableJourneyId === journey.id ? (
               <select
@@ -306,6 +334,7 @@ const AdminJourney = () => {
                 name="start_seq"
                 value={formData.start_seq}
                 onChange={handleChange}
+                min="1"
                 className="w-16 border rounded px-1 py-0.5"
               />
             ) : (
@@ -319,13 +348,17 @@ const AdminJourney = () => {
                 name="end_seq"
                 value={formData.end_seq}
                 onChange={handleChange}
+                min="1"
                 className="w-16 border rounded px-1 py-0.5"
               />
             ) : (
               journey.end_seq
             )}
           </td>
-          <td className="px-4 py-2 text-center">{journey.packages}</td>
+        <td className="px-4 py-2 text-center">
+  {journey.packages || (journey.end_seq - journey.start_seq + 1)}
+
+</td>
           <td className="px-4 py-2 space-x-2 text-center">
             {editableJourneyId === journey.id ? (
               <>
@@ -406,7 +439,6 @@ const AdminJourney = () => {
         <div className="bg-white rounded-xl shadow-sm p-6 mb-4 border-2 border-green-200">
           <h2 className="text-lg font-semibold mb-4 text-green-700">Add New Journey</h2>
           
-          {/* General Error Message with fade animation */}
           {validationErrors.general && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm animate-fade-in">
               <div className="flex items-start gap-2">

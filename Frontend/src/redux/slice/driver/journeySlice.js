@@ -37,7 +37,11 @@ export const fetchAdminRoutes = createAsyncThunk(
   "routes/fetchAdminRoutes", 
   async (_, { signal, rejectWithValue }) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/admin/routes-list`, { signal, credentials: 'include' });
+      // Use routes-list endpoint instead of paginated routes endpoint
+      const res = await fetch(`${API_BASE_URL}/admin/routes-list`, { 
+        signal, 
+        credentials: 'include' 
+      });
       
       if (!res.ok) {
         const error = await res.json().catch(() => ({}));
@@ -45,7 +49,8 @@ export const fetchAdminRoutes = createAsyncThunk(
       }
       
       const data = await res.json();
-      return data;
+      // Handle different response formats
+      return data.routes || data.data || data || [];
     } catch (error) {
       if (error.name === 'AbortError') {
         return rejectWithValue('Request cancelled');
