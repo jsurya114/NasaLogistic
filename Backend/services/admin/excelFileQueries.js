@@ -176,7 +176,8 @@ export const ExcelFileQueries = {
       	failed_attempt = sub.failed_attempt_count,
         ds = sub.double_stop_count,
         first_stop = sub.first_stop_count,
-        delivered = sub.first_stop_count + sub.double_stop_count
+        delivered = sub.first_stop_count + sub.double_stop_count,
+        is_deliveries_count_added = true
 
       FROM (
           SELECT driver_id,
@@ -187,7 +188,7 @@ export const ExcelFileQueries = {
               FROM deliveries
           GROUP BY driver_id
       ) AS sub
-      WHERE d.driver_id = sub.driver_id;`
+      WHERE d.driver_id = sub.driver_id AND d.is_deliveries_count_added = false;`
         await client.query(queryStr  )
     } catch (error) {
         console.error(error)
