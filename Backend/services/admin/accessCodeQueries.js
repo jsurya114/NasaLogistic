@@ -98,7 +98,21 @@ const accessCodeQueries = {
     }
   },
 
-  updateAccessCode: async (id, zipCode, address, accessCode) => {
+  getAccessCodeById: async (id) => {
+    try {
+      const result = await pool.query(
+        'SELECT id, zip_code, address, access_code, image_url1, image_url2, image_url3 FROM public.access_codes WHERE id = $1',
+        [id]
+      );
+      if (result.rowCount === 0) throw new Error('Access code not found');
+      return result.rows[0];
+    } catch (error) {
+      console.error('Database error in getAccessCodeById:', error);
+      throw error;
+    }
+  },
+
+  updateAccessCode: async (id, zipCode, address, accessCode, imageUrls = null) => {
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
@@ -113,12 +127,24 @@ const accessCodeQueries = {
         if (check.rowCount > 0) throw new Error('Access code already exists');
       }
       
-      const result = await client.query(`
-        UPDATE public.access_codes
-        SET zip_code = $1, address = $2, access_code = $3
-        WHERE id = $4
-        RETURNING *;
-      `, [zipCode, address, accessCode, id]);
+      let result;
+      if (imageUrls) {
+        const [u1, u2, u3] = imageUrls;
+        result = await client.query(`
+          UPDATE public.access_codes
+          SET zip_code = $1, address = $2, access_code = $3,
+              image_url1 = $4, image_url2 = $5, image_url3 = $6
+          WHERE id = $7
+          RETURNING *;
+        `, [zipCode, address, accessCode, u1 || null, u2 || null, u3 || null, id]);
+      } else {
+        result = await client.query(`
+          UPDATE public.access_codes
+          SET zip_code = $1, address = $2, access_code = $3
+          WHERE id = $4
+          RETURNING *;
+        `, [zipCode, address, accessCode, id]);
+      }
       
       await client.query('COMMIT');
       return result.rows[0];

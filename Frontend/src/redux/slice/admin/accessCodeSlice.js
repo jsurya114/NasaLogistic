@@ -63,7 +63,7 @@ export const createAccessCode = createAsyncThunk(
         zipCodeFilter 
       }));
       
-      return data.data;
+      return data;
     } catch (error) {
       return rejectWithValue(error.message);
     }
@@ -73,15 +73,21 @@ export const createAccessCode = createAsyncThunk(
 // Update an access code
 export const updateAccessCode = createAsyncThunk(
   "accessCodes/updateAccessCode",
-  async ({ id, zip_code, address, access_code }, { rejectWithValue, dispatch, getState }) => {
+  async (payload, { rejectWithValue, dispatch, getState }) => {
     try {
+      const isFormData = typeof FormData !== 'undefined' && payload instanceof FormData;
+      const id = isFormData ? payload.get('id') : payload.id;
+      if (!id) throw new Error('Missing id for updating access code');
+
       const res = await fetch(`${API_BASE_URL}/admin/access-codes/${id}`, {
         method: "PUT",
         credentials:'include',
-        headers: { 
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ zip_code, address, access_code }),
+        headers: isFormData ? undefined : { "Content-Type": "application/json" },
+        body: isFormData ? payload : JSON.stringify({
+          zip_code: payload.zip_code,
+          address: payload.address,
+          access_code: payload.access_code,
+        }),
       });
       
       if (!res.ok) {

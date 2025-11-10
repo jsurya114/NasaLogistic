@@ -1,6 +1,7 @@
 // controllers/admin/accessCodeControllers.js
 import accessCodeQueries from "../../services/admin/accessCodeQueries.js";
 import path from "path";
+import fs from "fs";
 
 export const getAccessCodes = async (req, res) => {
   try {
@@ -73,7 +74,7 @@ export const createAccessCode = async (req, res) => {
 
 export const updateAccessCode = async (req, res) => {
   const { id } = req.params;
-  const { zip_code, address, access_code } = req.body;
+  const { zip_code, address, access_code, deletedImages } = req.body;
   const files = Array.isArray(req.files) ? req.files : [];
 
   if (!zip_code || !address || !access_code) {
@@ -90,8 +91,49 @@ export const updateAccessCode = async (req, res) => {
 
   try {
     console.log("Controller: Updating access code with id:", id, "and data:", { zip_code, address, access_code });
-    const updatedAccessCode = await accessCodeQueries.updateAccessCode(id, zip_code, address, access_code);
-    res.json({ message: "Access code updated successfully", data: updatedAccessCode });
+
+    // Get current record for existing image URLs
+    const current = await accessCodeQueries.getAccessCodeById(id);
+    const existingUrls = [current.image_url1, current.image_url2, current.image_url3].filter(Boolean);
+
+    // Parse deleted images list (URLs)
+    let toDelete = [];
+    if (deletedImages) {
+      try {
+        toDelete = Array.isArray(deletedImages) ? deletedImages : JSON.parse(deletedImages);
+      } catch (_) {
+        // allow comma separated
+        toDelete = String(deletedImages).split(",").map(s => s.trim()).filter(Boolean);
+      }
+    }
+
+    // Keep only those not marked for deletion
+    const kept = existingUrls.filter(u => !toDelete.includes(u));
+
+    // New uploaded images -> URLs
+    const newUrls = files.map(f => `/uploads/accessCodeImages/${f.filename}`);
+
+    // Compose final up to 3
+    const finalUrls = [...kept, ...newUrls].slice(0, 3);
+
+    const updatedAccessCode = await accessCodeQueries.updateAccessCode(id, zip_code, address, access_code, finalUrls);
+
+    // Physically remove deleted files
+    for (const url of toDelete) {
+      const filename = url.split('/').pop();
+      if (!filename) continue;
+      const abs = path.join(process.cwd(), 'Backend', 'uploads', 'accessCodeImages', filename);
+      fs.unlink(abs, (err) => {
+        if (err && err.code !== 'ENOENT') {
+          console.warn('Failed to delete file:', abs, err.message);
+        }
+      });
+    }
+
+    // counts
+    const addedCount = finalUrls.filter(u => newUrls.includes(u)).length;
+    const removedCount = existingUrls.filter(u => toDelete.includes(u)).length;
+    res.json({ message: "Access code updated successfully", data: updatedAccessCode, counts: { added: addedCount, removed: removedCount } });
   } catch (err) {
     console.error("Controller error in updateAccessCode:", err);
     if (err.message === "Access code not found" || err.message === "Access code already exists") {

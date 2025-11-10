@@ -82,7 +82,7 @@ router.get('/access-admin',adminController.getUser);
 
 router.post("/access-codes", uploadAccessCodeImages.array('images', 3), createAccessCode)
 router.get("/access-codes/list", getAccessCodes)
-router.put("/access-codes/:id", updateAccessCode)
+router.put("/access-codes/:id", uploadAccessCodeImages.array('images', 3), updateAccessCode)
 
 
 
