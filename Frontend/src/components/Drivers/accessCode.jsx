@@ -40,6 +40,9 @@ export default function DriverAccessCodePage() {
   const [localZipCodeFilter, setLocalZipCodeFilter] = useState("");
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [selectedAccessCode, setSelectedAccessCode] = useState(null);
+  const [newImages, setNewImages] = useState([]);
+  const [fileError, setFileError] = useState("");
+  const [fileInfo, setFileInfo] = useState("");
 
   useEffect(() => {
     if (status === "idle") {
@@ -128,7 +131,7 @@ export default function DriverAccessCodePage() {
 
     try {
       await dispatch(
-        createAccessCode({ zip_code: zipCode.trim(), address: address.trim(), access_code: accessCode.trim() }),
+        createAccessCode({ zip_code: zipCode.trim(), address: address.trim(), access_code: accessCode.trim(), images: newImages }),
       ).unwrap();
 
       toast.success("Access code created successfully!", { position: "top-right", autoClose: 3000 });
@@ -138,9 +141,31 @@ export default function DriverAccessCodePage() {
       setZipCode("");
       setErrors({});
       setTouched({});
+      setNewImages([]);
+      setFileError("");
+      setFileInfo("");
     } catch (err) {
       toast.error(err || "Failed to create access code", { position: "top-right", autoClose: 4000 });
     }
+  };
+
+  const onFilesChange = (e) => {
+    const files = Array.from(e.target.files || []);
+    const allowed = ["image/jpeg", "image/png", "image/webp", "image/jpg"];
+    const invalids = files.filter((f) => !allowed.includes(f.type));
+    if (invalids.length > 0) {
+      setFileError("Only JPEG, PNG, or WEBP images are allowed");
+      return;
+    }
+    setFileError("");
+    setFileInfo("");
+
+    let selected = files;
+    if (files.length > 3) {
+      selected = files.slice(0, 3);
+      setFileInfo("You can add only 3 images. Extra file(s) ignored.");
+    }
+    setNewImages(selected);
   };
 
   const handleSearch = () => {
@@ -295,6 +320,31 @@ export default function DriverAccessCodePage() {
                 </p>
               )}
               <p className="text-xs text-gray-500 mt-1">Only letters and numbers, minimum 4 characters</p>
+            </div>
+
+            {/* Images Upload (Max 3) */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="block text-sm font-semibold text-gray-800">Images</label>
+                <span className="text-xs text-gray-500">Max 3 images</span>
+              </div>
+              <input
+                type="file"
+                multiple
+                accept="image/jpeg,image/png,image/webp,image/jpg"
+                onChange={onFilesChange}
+                className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-purple-100 focus:border-[#8200db] bg-white text-gray-900 transition-all"
+                disabled={status === "loading"}
+              />
+              {fileError && <p className="text-red-500 text-sm mt-1">{fileError}</p>}
+              {fileInfo && <p className="text-gray-600 text-sm mt-1">{fileInfo}</p>}
+              {newImages.length > 0 && (
+                <ul className="text-xs text-gray-600 list-disc pl-5 mt-1">
+                  {newImages.map((f, i) => (
+                    <li key={i}>{f.name}</li>
+                  ))}
+                </ul>
+              )}
             </div>
 
             {/* Submit Button */}
@@ -476,12 +526,12 @@ export default function DriverAccessCodePage() {
                             </td>
                             <td className="px-2 sm:px-4 lg:px-6 py-3 sm:py-5 whitespace-nowrap">
                               <span className="inline-flex items-center px-2 sm:px-3 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 border border-indigo-200">
-                                {ac.imageCount}
+                                {ac.access_code}
                               </span>
                             </td>
                             <td className="px-2 sm:px-4 lg:px-6 py-3 sm:py-5 whitespace-nowrap">
                               <span className="inline-flex items-center px-2 sm:px-3 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 border border-indigo-200">
-                                {ac.access_code}
+                                {ac.imageCount}
                               </span>
                             </td>
                             <td className="px-2 sm:px-4 lg:px-6 py-3 sm:py-5 whitespace-nowrap hidden lg:table-cell">

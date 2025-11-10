@@ -40,14 +40,27 @@ export const createAccessCode = createAsyncThunk(
   "driverAccessCodes/createAccessCode",
   async (accessCodeData, { rejectWithValue, dispatch, getState }) => {
     try {
+      let body;
+      let headers = {};
+      if (typeof FormData !== 'undefined' && accessCodeData instanceof FormData) {
+        body = accessCodeData; // browser will set multipart boundaries
+      } else {
+        const form = new FormData();
+        if (accessCodeData && typeof accessCodeData === 'object') {
+          if (accessCodeData.zip_code) form.append('zip_code', accessCodeData.zip_code);
+          if (accessCodeData.address) form.append('address', accessCodeData.address);
+          if (accessCodeData.access_code) form.append('access_code', accessCodeData.access_code);
+          const images = accessCodeData.images || [];
+          images.slice(0,3).forEach((f) => form.append('images', f));
+        }
+        body = form;
+      }
+
       const res = await fetch(`${API_BASE_URL}/driver/access-codes`, {
         method: "POST",
         credentials:"include",
-        headers: { 
-          "Content-Type": "application/json",
-        },
-        
-        body: JSON.stringify(accessCodeData),
+        headers,
+        body,
       });
       
       if (!res.ok) {

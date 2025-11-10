@@ -29,6 +29,7 @@ export const getAccessCodes = async (req, res) => {
 
 export const createAccessCode = async (req, res) => {
   const { zip_code, address, access_code } = req.body;
+  const files = Array.isArray(req.files) ? req.files : [];
 
   // Validation
   if (!zip_code || !address || !access_code) {
@@ -45,8 +46,16 @@ export const createAccessCode = async (req, res) => {
 
   try {
     console.log("Driver Controller: Creating access code with data:", { zip_code, address, access_code });
-    const newAccessCode = await accessCodeQueries.createAccessCode(zip_code, address, access_code);
-    res.status(201).json({ message: "Access code saved successfully", data: newAccessCode });
+    const imageUrls = files.map((f) => `/uploads/accessCodeImages/${f.filename}`);
+    const newAccessCode = await accessCodeQueries.createAccessCode(zip_code, address, access_code, imageUrls);
+    const imageFiles = files.map((f) => ({
+      fieldname: f.fieldname,
+      filename: f.filename,
+      mimetype: f.mimetype,
+      path: f.path,
+      url: `/uploads/accessCodeImages/${f.filename}`,
+    }));
+    res.status(201).json({ message: "Access code saved successfully", data: newAccessCode, images: imageFiles });
   } catch (err) {
     console.error("Driver Controller error in createAccessCode:", err);
     if (err.message === "Access code already exists") {
