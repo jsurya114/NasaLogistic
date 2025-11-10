@@ -113,8 +113,40 @@ export const updateAccessCode = async (req, res) => {
     // New uploaded images -> URLs
     const newUrls = files.map(f => `/uploads/accessCodeImages/${f.filename}`);
 
+    // Determine remaining slots
+    const remainingSlots = Math.max(0, 3 - kept.length);
+
+    // If no slots left and uploads attempted, cleanup uploaded files and error
+    if (remainingSlots === 0 && newUrls.length > 0) {
+      for (const f of files) {
+        const abs = path.join(process.cwd(), 'uploads', 'accessCodeImages', f.filename);
+        fs.unlink(abs, (err) => {
+          if (err && err.code !== 'ENOENT') {
+            console.warn('Failed to delete excess uploaded file:', abs, err.message);
+          }
+        });
+      }
+      return res.status(400).json({ message: 'Already 3 images present. Remove one to add a new image.' });
+    }
+
+    // Keep only up to remainingSlots from new uploads; delete the rest immediately
+    const keptNewUrls = newUrls.slice(0, remainingSlots);
+    const discardedNew = newUrls.slice(remainingSlots);
+    if (discardedNew.length > 0) {
+      for (const url of discardedNew) {
+        const filename = url.split('/').pop();
+        if (!filename) continue;
+        const abs = path.join(process.cwd(), 'uploads', 'accessCodeImages', filename);
+        fs.unlink(abs, (err) => {
+          if (err && err.code !== 'ENOENT') {
+            console.warn('Failed to delete excess uploaded file:', abs, err.message);
+          }
+        });
+      }
+    }
+
     // Compose final up to 3
-    const finalUrls = [...kept, ...newUrls].slice(0, 3);
+    const finalUrls = [...kept, ...keptNewUrls].slice(0, 3);
 
     const updatedAccessCode = await accessCodeQueries.updateAccessCode(id, zip_code, address, access_code, finalUrls);
 
@@ -122,7 +154,7 @@ export const updateAccessCode = async (req, res) => {
     for (const url of toDelete) {
       const filename = url.split('/').pop();
       if (!filename) continue;
-      const abs = path.join(process.cwd(), 'Backend', 'uploads', 'accessCodeImages', filename);
+      const abs = path.join(process.cwd(), 'uploads', 'accessCodeImages', filename);
       fs.unlink(abs, (err) => {
         if (err && err.code !== 'ENOENT') {
           console.warn('Failed to delete file:', abs, err.message);
@@ -131,7 +163,7 @@ export const updateAccessCode = async (req, res) => {
     }
 
     // counts
-    const addedCount = finalUrls.filter(u => newUrls.includes(u)).length;
+    const addedCount = finalUrls.filter(u => keptNewUrls.includes(u)).length;
     const removedCount = existingUrls.filter(u => toDelete.includes(u)).length;
     res.json({ message: "Access code updated successfully", data: updatedAccessCode, counts: { added: addedCount, removed: removedCount } });
   } catch (err) {
