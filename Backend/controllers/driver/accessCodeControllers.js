@@ -11,7 +11,14 @@ export const getAccessCodes = async (req, res) => {
     console.log("Driver Controller: Fetching access codes with pagination...", { page, limit, search, zipCodeFilter });
     
     const result = await accessCodeQueries.getAccessCodes(page, limit, search, zipCodeFilter);
-    
+    // add imageCount for convenience on client
+    result.data.map((access_code) => {
+      access_code.imageCount = 0;
+      if (access_code.image_url1) access_code.imageCount++;
+      if (access_code.image_url2) access_code.imageCount++;
+      if (access_code.image_url3) access_code.imageCount++;
+    });
+
     console.log("Driver Controller: Access codes fetched:", result);
     res.json(result);
   } catch (err) {

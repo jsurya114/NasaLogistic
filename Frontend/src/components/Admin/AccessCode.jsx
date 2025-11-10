@@ -16,7 +16,7 @@ import Header from "../../reuse/Header";
 import Nav from "../../reuse/Nav";
 import Swal from "sweetalert2";
 import { toast } from "react-toastify";
-import AccessCodeDetailsDialog from "./AccessCodeDetailsDialog";
+import AccessCodeDetailsDialog from "../AccessCodeDetailsDialog";
 import AccessCodeEditDialog from "./AccessCodeEditDialog";
 
 export default function AddAccessCodePage() {

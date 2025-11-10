@@ -15,6 +15,7 @@ import {
 import Header from "../../reuse/driver/Header";
 import Nav from "../../reuse/driver/Nav";
 import { toast } from "react-toastify";
+import AccessCodeDetailsDialog from "../AccessCodeDetailsDialog.jsx";
 
 export default function DriverAccessCodePage() {
   const dispatch = useDispatch();
@@ -37,6 +38,8 @@ export default function DriverAccessCodePage() {
   const [touched, setTouched] = useState({});
   const [localSearch, setLocalSearch] = useState("");
   const [localZipCodeFilter, setLocalZipCodeFilter] = useState("");
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [selectedAccessCode, setSelectedAccessCode] = useState(null);
 
   useEffect(() => {
     if (status === "idle") {
@@ -161,6 +164,15 @@ export default function DriverAccessCodePage() {
   const handleLimitChange = (newLimit) => {
     dispatch(setPageLimit(newLimit));
     dispatch(fetchAccessCodes({ page: 1, limit: newLimit, search: searchTerm, zipCodeFilter }));
+  };
+
+  const openDetails = (ac) => {
+    setSelectedAccessCode(ac);
+    setDetailsOpen(true);
+  };
+
+  const closeDetails = () => {
+    setDetailsOpen(false);
   };
 
   return (
@@ -437,6 +449,9 @@ export default function DriverAccessCodePage() {
                           <th className="px-2 sm:px-4 lg:px-6 py-3 sm:py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
                             Access Code
                           </th>
+                          <th className="px-2 sm:px-4 lg:px-6 py-3 sm:py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
+                            Images
+                          </th>
                           <th className="px-2 sm:px-4 lg:px-6 py-3 sm:py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider hidden lg:table-cell">
                             Created At
                           </th>
@@ -446,7 +461,8 @@ export default function DriverAccessCodePage() {
                         {accessCodes.map((ac, index) => (
                           <tr
                             key={ac.id}
-                            className={`hover:bg-gray-50 transition-colors ${index % 2 === 0 ? "bg-white" : "bg-gray-50/50"}`}
+                            onClick={() => openDetails(ac)}
+                            className={`hover:bg-gray-50 transition-colors cursor-pointer ${index % 2 === 0 ? "bg-white" : "bg-gray-50/50"}`}
                           >
                             <td className="px-2 sm:px-4 lg:px-6 py-3 sm:py-5 whitespace-nowrap">
                               <span className="text-xs sm:text-sm font-semibold text-gray-900">
@@ -457,6 +473,11 @@ export default function DriverAccessCodePage() {
                               <div className="text-xs sm:text-sm text-gray-900 break-words max-w-xs lg:max-w-none">
                                 {ac.address}
                               </div>
+                            </td>
+                            <td className="px-2 sm:px-4 lg:px-6 py-3 sm:py-5 whitespace-nowrap">
+                              <span className="inline-flex items-center px-2 sm:px-3 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 border border-indigo-200">
+                                {ac.imageCount}
+                              </span>
                             </td>
                             <td className="px-2 sm:px-4 lg:px-6 py-3 sm:py-5 whitespace-nowrap">
                               <span className="inline-flex items-center px-2 sm:px-3 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 border border-indigo-200">
@@ -490,7 +511,11 @@ export default function DriverAccessCodePage() {
                           `}
                         >
                           <svg className="w-4 h-4 mr-2 transition-transform duration-200 group-hover:-translate-x-0.5" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                            <path
+                              fillRule="evenodd"
+                              d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+                              clipRule="evenodd"
+                            />
                           </svg>
                           <span>Previous</span>
                         </button>
@@ -536,7 +561,11 @@ export default function DriverAccessCodePage() {
                         >
                           <span>Next</span>
                           <svg className="w-4 h-4 ml-2 transition-transform duration-200 group-hover:translate-x-0.5" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                            <path
+                              fillRule="evenodd"
+                              d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                              clipRule="evenodd"
+                            />
                           </svg>
                         </button>
                       </div>
@@ -550,6 +579,11 @@ export default function DriverAccessCodePage() {
       </main>
 
       <Nav />
+      <AccessCodeDetailsDialog
+        open={detailsOpen}
+        onClose={closeDetails}
+        accessCode={selectedAccessCode}
+      />
     </div>
   );
 }

@@ -36,7 +36,14 @@ const accessCodeQueries = {
 
       // Get paginated data
       const dataQuery = `
-        SELECT ac.id, ac.zip_code, ac.address, ac.access_code, ac.created_at 
+        SELECT ac.id,
+               ac.zip_code,
+               ac.address,
+               ac.access_code,
+               ac.image_url1,
+               ac.image_url2,
+               ac.image_url3,
+               ac.created_at 
         FROM public.access_codes ac
         ${whereClause}
         ORDER BY ac.created_at DESC

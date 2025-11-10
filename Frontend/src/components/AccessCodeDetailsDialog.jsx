@@ -1,6 +1,6 @@
 import React from "react";
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from "@headlessui/react";
-import { API_BASE_URL } from "../../config";
+import { API_BASE_URL } from "../config";
 
 export default function AccessCodeDetailsDialog({ open, onClose, accessCode }) {
   return (
