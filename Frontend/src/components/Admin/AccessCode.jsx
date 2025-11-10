@@ -16,7 +16,7 @@ import Header from "../../reuse/Header";
 import Nav from "../../reuse/Nav";
 import Swal from "sweetalert2";
 import { toast } from "react-toastify";
-import { API_BASE_URL } from "../../config";
+import AccessCodeDetailsDialog from "./AccessCodeDetailsDialog";
 
 export default function AddAccessCodePage() {
   const dispatch = useDispatch();
@@ -601,7 +601,8 @@ export default function AddAccessCodePage() {
                         {accessCodes.map((ac, index) => (
                           <tr
                             key={ac.id}
-                            className={`hover:bg-gray-50 transition-colors ${index % 2 === 0 ? "bg-white" : "bg-gray-50/50"}`}
+                            onClick={() => { setSelectedAC(ac); setShowDetails(true); }}
+                            className={`cursor-pointer hover:bg-gray-50 transition-colors ${index % 2 === 0 ? "bg-white" : "bg-gray-50/50"}`}
                           >
                             <td className="px-2 sm:px-4 lg:px-6 py-3 sm:py-5 whitespace-nowrap">
                               <span className="text-xs sm:text-sm font-semibold text-gray-900">
@@ -630,7 +631,7 @@ export default function AddAccessCodePage() {
                             </td>
                             <td className="px-2 sm:px-4 lg:px-6 py-3 sm:py-5 whitespace-nowrap">
                               <button
-                                onClick={() => handleEdit(ac)}
+                                onClick={(e) => { e.stopPropagation(); handleEdit(ac); }}
                                 className="inline-flex items-center justify-center px-2 sm:px-3 py-2 bg-[#8200db] text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-[#7300c4] transition-all"
                               >
                                 <svg
@@ -729,6 +730,12 @@ export default function AddAccessCodePage() {
           </div>
         </div>
       </main>
+
+      <AccessCodeDetailsDialog
+        open={showDetails}
+        onClose={() => { setShowDetails(false); setSelectedAC(null); }}
+        accessCode={selectedAC}
+      />
 
       <Nav />
     </div>
