@@ -1,5 +1,5 @@
 import express from 'express'
-import { upload } from "../middlewares/multerConfig.js"
+import { upload, uploadAccessCodeImages } from "../middlewares/multerConfig.js"
 const router = express.Router()
 import adminController from '../controllers/admin/adminController.js'
 import jobController from '../controllers/admin/jobController.js';
@@ -12,6 +12,7 @@ import { changeRoleAdmin, changeStatusAdmin, createAdmins, getAdmins } from '../
 import { getPaymentDashboardData, updatePaymentData,updateWeeklyTempDataToDashboard } from '../controllers/admin/dashboardController.js';
 import adminJourneyController from '../controllers/admin/adminJourneyController.js';
 import adminAuth from '../middlewares/adminAuth.js';
+
 router.post('/login',adminController.Login);
 
 // Protect all routes below this line
@@ -79,7 +80,7 @@ router.post('/logout',adminController.Logout);
 //Check for admin User
 router.get('/access-admin',adminController.getUser);
 
-router.post("/access-codes",createAccessCode)
+router.post("/access-codes", uploadAccessCodeImages.array('images', 3), createAccessCode)
 router.get("/access-codes/list", getAccessCodes)
 router.put("/access-codes/:id", updateAccessCode)
 

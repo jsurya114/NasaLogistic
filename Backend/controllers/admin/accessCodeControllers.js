@@ -1,5 +1,6 @@
 // controllers/admin/accessCodeControllers.js
 import accessCodeQueries from "../../services/admin/accessCodeQueries.js";
+import path from "path";
 
 export const getAccessCodes = async (req, res) => {
   try {
@@ -11,7 +12,18 @@ export const getAccessCodes = async (req, res) => {
     console.log("Controller: Fetching access codes with pagination...", { page, limit, search, zipCodeFilter });
     
     const result = await accessCodeQueries.getAccessCodes(page, limit, search, zipCodeFilter);
-    
+    result.data.map((access_code)=>{
+      access_code.imageCount = 0
+      if(access_code.image_url1){
+        access_code.imageCount++
+      }
+      if(access_code.image_url2){
+        access_code.imageCount++
+      }
+      if(access_code.image_url3){
+        access_code.imageCount++
+      }
+    })
     console.log("Controller: Access codes fetched:", result);
     res.json(result);
   } catch (err) {
@@ -22,6 +34,7 @@ export const getAccessCodes = async (req, res) => {
 
 export const createAccessCode = async (req, res) => {
   const { zip_code, address, access_code } = req.body;
+  const files = Array.isArray(req.files) ? req.files : [];
 
   // Validation
   if (!zip_code || !address || !access_code) {
@@ -38,8 +51,16 @@ export const createAccessCode = async (req, res) => {
 
   try {
     console.log("Controller: Creating access code with data:", { zip_code, address, access_code });
-    const newAccessCode = await accessCodeQueries.createAccessCode(zip_code, address, access_code);
-    res.status(201).json({ message: "Access code saved successfully", data: newAccessCode });
+    const imageUrls = files.map((f) => `/uploads/accessCodeImages/${f.filename}`);
+    const newAccessCode = await accessCodeQueries.createAccessCode(zip_code, address, access_code, imageUrls);
+    const imageFiles = files.map((f) => ({
+      fieldname: f.fieldname,
+      filename: f.filename,
+      mimetype: f.mimetype,
+      path: f.path,
+      url: `/uploads/accessCodeImages/${f.filename}`,
+    }));
+    res.status(201).json({ message: "Access code saved successfully", data: newAccessCode, images: imageFiles });
   } catch (err) {
     console.error("Controller error in createAccessCode:", err);
     if (err.message === "Access code already exists") {
@@ -53,6 +74,7 @@ export const createAccessCode = async (req, res) => {
 export const updateAccessCode = async (req, res) => {
   const { id } = req.params;
   const { zip_code, address, access_code } = req.body;
+  const files = Array.isArray(req.files) ? req.files : [];
 
   if (!zip_code || !address || !access_code) {
     return res.status(400).json({ message: "All fields (zip_code, address, access_code) are required" });

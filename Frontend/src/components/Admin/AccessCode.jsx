@@ -16,6 +16,7 @@ import Header from "../../reuse/Header";
 import Nav from "../../reuse/Nav";
 import Swal from "sweetalert2";
 import { toast } from "react-toastify";
+import { API_BASE_URL } from "../../config";
 
 export default function AddAccessCodePage() {
   const dispatch = useDispatch();
@@ -38,6 +39,10 @@ export default function AddAccessCodePage() {
   const [touched, setTouched] = useState({});
   const [localSearch, setLocalSearch] = useState("");
   const [localZipCodeFilter, setLocalZipCodeFilter] = useState("");
+  const [images, setImages] = useState([]);
+  const [imageError, setImageError] = useState("");
+  const [showDetails, setShowDetails] = useState(false);
+  const [selectedAC, setSelectedAC] = useState(null);
 
   useEffect(() => {
     if (status === "idle") {
@@ -124,20 +129,52 @@ export default function AddAccessCodePage() {
       return;
     }
 
+    // Validate images (optional): max 3 and valid types
+    if (images.length > 3) {
+      setImageError("You can upload up to 3 images only");
+      toast.error("You can upload up to 3 images only", { position: "top-right" });
+      return;
+    }
+    const allowed = ["image/jpeg", "image/png", "image/webp", "image/jpg"];
+    for (const f of images) {
+      if (!allowed.includes(f.type)) {
+        setImageError("Only JPEG, PNG, or WEBP images are allowed");
+        toast.error("Only JPEG, PNG, or WEBP images are allowed", { position: "top-right" });
+        return;
+      }
+    }
+
     try {
-      await dispatch(
-        createAccessCode({ zip_code: zipCode.trim(), address: address.trim(), access_code: accessCode.trim() }),
-      ).unwrap();
+      const formData = new FormData();
+      formData.append("zip_code", zipCode.trim());
+      formData.append("address", address.trim());
+      formData.append("access_code", accessCode.trim());
+      images.forEach((file) => formData.append("images", file));
+
+      await dispatch(createAccessCode(formData)).unwrap();
 
       toast.success("Access code created successfully!", { position: "top-right", autoClose: 3000 });
 
       setAddress("");
       setAccessCode("");
       setZipCode("");
+      setImages([]);
+      setImageError("");
       setErrors({});
       setTouched({});
     } catch (err) {
       toast.error(err || "Failed to create access code", { position: "top-right", autoClose: 4000 });
+    }
+  };
+
+  const onImagesChange = (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length > 3) {
+      setImageError("You can upload up to 3 images only");
+      setImages(files.slice(0, 3));
+    } else {
+      setImageError("");
+      setImages(files);
     }
   };
 
@@ -370,6 +407,33 @@ export default function AddAccessCodePage() {
               <p className="text-xs text-gray-500 mt-1">Only letters and numbers, minimum 4 characters</p>
             </div>
 
+            {/* Images Upload */}
+            <div className="space-y-2">
+              <label htmlFor="images" className="block text-sm font-semibold text-gray-800 mb-2">
+                Upload Images (optional, up to 3)
+              </label>
+              <input
+                id="images"
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/jpg"
+                multiple
+                onChange={onImagesChange}
+                className="block w-full text-sm text-gray-900 border-2 border-gray-200 rounded-xl cursor-pointer bg-white focus:outline-none focus:ring-4 focus:ring-purple-100 focus:border-[#8200db]"
+                disabled={status === "loading"}
+              />
+              <p className="text-xs text-gray-500">Allowed types: JPG, JPEG, PNG, WEBP. Max 3 images.</p>
+              {imageError && (
+                <p className="text-red-500 text-sm mt-1">{imageError}</p>
+              )}
+              {images && images.length > 0 && (
+                <ul className="text-xs text-gray-600 list-disc pl-5">
+                  {images.map((f, i) => (
+                    <li key={i}>{f.name}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
             {/* Submit Button */}
             <div className="flex justify-end pt-4">
               <button
@@ -522,6 +586,9 @@ export default function AddAccessCodePage() {
                           <th className="px-2 sm:px-4 lg:px-6 py-3 sm:py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
                             Access Code
                           </th>
+                          <th className="px-2 sm:px-4 lg:px-6 py-3 sm:py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
+                            Images
+                          </th>
                           <th className="px-2 sm:px-4 lg:px-6 py-3 sm:py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider hidden lg:table-cell">
                             Created At
                           </th>
@@ -549,6 +616,11 @@ export default function AddAccessCodePage() {
                             <td className="px-2 sm:px-4 lg:px-6 py-3 sm:py-5 whitespace-nowrap">
                               <span className="inline-flex items-center px-2 sm:px-3 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 border border-indigo-200">
                                 {ac.access_code}
+                              </span>
+                            </td>
+                            <td className="px-2 sm:px-4 lg:px-6 py-3 sm:py-5 whitespace-nowrap">
+                              <span className="inline-flex items-center px-2 sm:px-3 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 border border-indigo-200">
+                                {ac.imageCount ?? 0}
                               </span>
                             </td>
                             <td className="px-2 sm:px-4 lg:px-6 py-3 sm:py-5 whitespace-nowrap hidden lg:table-cell">

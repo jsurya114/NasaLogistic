@@ -39,13 +39,12 @@ export const createAccessCode = createAsyncThunk(
   "accessCodes/createAccessCode",
   async (accessCodeData, { rejectWithValue, dispatch, getState }) => {
     try {
+      const isFormData = typeof FormData !== 'undefined' && accessCodeData instanceof FormData;
       const res = await fetch(`${API_BASE_URL}/admin/access-codes`, {
         method: "POST",
         credentials:'include',
-        headers: { 
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(accessCodeData),
+        headers: isFormData ? undefined : { "Content-Type": "application/json" },
+        body: isFormData ? accessCodeData : JSON.stringify(accessCodeData),
       });
       
       if (!res.ok) {
