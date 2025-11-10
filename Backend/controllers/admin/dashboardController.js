@@ -51,14 +51,26 @@ export const updatePaymentData = async (req, res) => {
   }
 };
 
-export const updateWeeklyTempDataToDashboard=async(req,res)=>{
-    try {
-        console.log("Reached Update of Temp data to dashboard");        
-        let insertData= await WeeklyExcelQueries.createEntriesFromWeeklyCount();
+// export const updateWeeklyTempDataToDashboard=async(req,res)=>{
+//     try {
+//         console.log("Reached Update of Temp data to dashboard");        
+//         let insertData= await WeeklyExcelQueries.createEntriesFromWeeklyCount();
 
-        return res.status(HttpStatus.OK).json({insertData});        
+//         return res.status(HttpStatus.OK).json({insertData});        
+//     } catch (err) {
+//         console.error(err)
+//         return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({success:false});
+//     }
+// }
+
+export const updateWeeklyTempDataToDashboard = async (req, res) => {
+    try {
+        console.log("Reached Update of Temp data to dashboard");
+        const rowsInserted = await WeeklyExcelQueries.createEntriesFromWeeklyCount();
+        console.log(`Total rows inserted: ${rowsInserted}`);
+        return res.status(200).json({ success: true, rowsInserted });
     } catch (err) {
-        console.error(err)
-        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({success:false});
+        console.error('Route handler error:', err);
+        return res.status(500).json({ success: false, error: err.message });
     }
-}
+};

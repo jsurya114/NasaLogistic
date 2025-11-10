@@ -307,50 +307,142 @@ deleteWeeklyData: async () => {
 //   }
 // },
 
-  createEntriesFromWeeklyCount:async(data)=>{
-    try{
-        await pool.query(`
-          INSERT INTO dashboard_data (
-    driver_id,
-    journey_date,
-    route_id,
-    packages,
-    first_stop,
-    ds,
-    delivered,
-    driver_payment,
-    closed,
-    paid
-)
-SELECT 
-    d.id AS driver_id,
-    wc.del_date AS journey_date,
-    r.id AS route_id,
-    wc.total_deliveries AS packages,
-    wc.fs AS first_stop,
-    wc.ds AS ds,
-    wc.total_deliveries AS delivered,  -- Assuming all packages are delivered
-    ((wc.fs * r.driver_route_price) + (wc.ds * r.driver_doublestop_price)) AS driver_payment,
-    false AS closed,
-    false AS paid
-    FROM 
-        weeklycount wc
-    INNER JOIN 
-        drivers d ON wc.driver_id = d.driver_code
-    LEFT JOIN 
-        city c ON SUBSTRING(wc.del_route FROM '^[A-Za-z]+') = c.city_code
-    INNER JOIN 
-        routes r ON LTRIM(SUBSTRING(wc.del_route FROM '\d+$'), '0') = r.name
-                AND r.job = c.job
-                AND r.enabled = true
-    WHERE 
-        d.enabled = true
-        AND r.id IS NOT NULL  -- Only insert where route is found
-    ON CONFLICT DO NOTHING;  -- Prevents duplicates if you run it multiple times`)
-    }catch(err){
-        console.error('Error inserting dashboard from weekly data:', err);
-    throw err;
+  // createEntriesFromWeeklyCount:async()=>{
+  //   try{
+  //        let res=await pool.query(`
+  //         INSERT INTO dashboard_data (
+  //                         driver_id,
+  //                         journey_date,
+  //                         route_id,
+  //                         packages,
+  //                         first_stop,
+  //                         ds,
+  //                         delivered,
+  //                         driver_payment,
+  //                         closed,
+  //                         paid
+  //                     )
+  //       SELECT 
+  //           d.id AS driver_id,
+  //           wc.del_date AS journey_date,
+  //           r.id AS route_id,
+  //           wc.total_deliveries AS packages,
+  //           wc.fs AS first_stop,
+  //           wc.ds AS ds,
+  //           wc.total_deliveries AS delivered,  -- Assuming all packages are delivered
+  //           ((wc.fs * r.driver_route_price) + (wc.ds * r.driver_doublestop_price)) AS driver_payment,
+  //           false AS closed,
+  //           false AS paid
+  //           FROM 
+  //               weeklycount wc
+  //           INNER JOIN 
+  //               drivers d ON wc.driver_id = d.driver_code
+  //           LEFT JOIN 
+  //               city c ON SUBSTRING(wc.del_route FROM '^[A-Za-z]+') = c.city_code
+  //           INNER JOIN 
+  //               routes r ON LTRIM(SUBSTRING(wc.del_route FROM '\d+$'), '0') = r.name
+  //                       AND r.job = c.job
+  //                       AND r.enabled = true
+  //           WHERE 
+  //               d.enabled = true
+  //               AND r.id IS NOT NULL  -- Only insert where route is found
+  //           ON CONFLICT DO NOTHING;  -- Prevents duplicates if you run it multiple times`);
+  //           console.log("Query completed and data inserted");
+  //           return res.rows;
+  //   }catch(err){
+  //       console.error('Error inserting dashboard from weekly data:', err);
+  //   throw err;
+  //   }
+  // }
+
+
+  createEntriesFromWeeklyCount: async () => {
+
+    console.log("Entered insert query");
+    const client = await pool.connect();  
+    try {
+        await client.query('BEGIN'); 
+
+       
+        const insertResult = await client.query(`
+            INSERT INTO dashboard_data (
+                driver_id,
+                journey_date,
+                route_id,
+                packages,
+                first_stop,
+                ds,
+                delivered,
+                driver_payment,
+                closed,
+                paid,
+                is_deliveries_count_added
+            )
+            SELECT 
+                d.id AS driver_id,
+                wc.del_date AS journey_date,
+                r.id AS route_id,
+                wc.total_deliveries AS packages,
+                wc.fs AS first_stop,
+                wc.ds AS ds,
+                wc.total_deliveries AS delivered,
+                ((wc.fs * r.driver_route_price) + (wc.ds * r.driver_doublestop_price)) AS driver_payment,
+                false AS closed,
+                false AS paid,
+                false AS is_deliveries_count_added 
+            FROM 
+                weeklycount wc
+            INNER JOIN 
+                drivers d ON wc.driver_id = d.driver_code
+            LEFT JOIN 
+                city c ON SUBSTRING(wc.del_route FROM '^[A-Za-z]+') = c.city_code
+            INNER JOIN 
+                routes r ON LTRIM(SUBSTRING(wc.del_route FROM '\d+$'), '0') = r.name
+                        AND r.job = c.job
+                        AND r.enabled = true
+            WHERE 
+                d.enabled = true
+                AND r.id IS NOT NULL
+            ON CONFLICT DO NOTHING
+            RETURNING id;  -- Return the IDs of newly inserted rows
+        `);
+
+        console.log(`Inserted ${insertResult.rowCount} rows into dashboard_data`);
+
+        
+        if (insertResult.rows.length > 0) {
+            const ids = insertResult.rows.map(row => row.id).join(', ');  
+            await client.query(`
+                UPDATE payment_dashboard
+                SET 
+                    packages = dd.packages,
+                    fs = dd.first_stop,  -- Map first_stop to fs
+                    ds = dd.ds,
+                    delivered = dd.delivered,
+                    driver_payment = dd.driver_payment,
+                    closed = dd.closed,
+                    paid = dd.paid,
+                    start_seq = dd.start_seq,
+                    end_seq = dd.end_seq,
+                    first_stop = dd.first_stop
+                FROM dashboard_data dd
+                WHERE payment_dashboard.dashboard_data_id = dd.id
+                  AND dd.id IN (${ids});  -- Only update the newly inserted rows
+            `);
+            console.log(`Updated ${insertResult.rows.length} rows in payment_dashboard`);
+        }
+
+        await client.query('COMMIT');  
+        console.log(`Query executed successfully`);
+        return insertResult.rowCount;  
+    } catch (err) {
+        await client.query('ROLLBACK');  
+        console.error('Error in createEntriesFromWeeklyCount:', err);
+        throw err;
+    } finally {
+        client.release();  
     }
-  }
+},
+
 
 }
