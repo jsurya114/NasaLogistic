@@ -4,7 +4,7 @@ import {
   getTodayJourney,
   addRangeOfSqeunceToDeliveries,
   checkSequenceConflict,
-  updateSeqRouteCodeToDeliveriesTable
+  // updateSeqRouteCodeToDeliveriesTable
 } from "../../services/driver/journeyQueries.js";
 import HttpStatus from "../../utils/statusCodes.js";
 
@@ -79,7 +79,7 @@ export const saveJourney = async (req, res) => {
     }
 
     console.log(sequence.length,'nos sequnce added...')
-    await updateSeqRouteCodeToDeliveriesTable()
+    // await updateSeqRouteCodeToDeliveriesTable()
     res.status(HttpStatus.CREATED).json({ success: true, data: journey });
   } catch (error) {
     console.error('❌ Error inserting journey:', error.message);

@@ -59,7 +59,7 @@ export const DailyExcelUpload = async (req, res) => {
     }
     const rows = XLSX.utils.sheet_to_json(sheet);
 
-      console.log(rows[205])
+      console.log(rows[20])
     
     // const now = new Date()
     // const dd = String(now.getDate()).padStart(2,'0');
@@ -75,7 +75,7 @@ export const DailyExcelUpload = async (req, res) => {
     await ExcelFileQueries.setUntouchedRowsAsNoScannedAndUpdateFailedAttempt(client)
     await ExcelFileQueries.updateFirstStopAndDoubleStop(client)
     await ExcelFileQueries.addEachDriversCount(client)
-
+    // throw new Error("error")
     await client.query('COMMIT')
      unlink(fileName.path,(e)=>{
       if(e) throw new Error(e)

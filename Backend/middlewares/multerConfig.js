@@ -1,6 +1,7 @@
 import multer from "multer";
 import path from "path";
 import { Worker } from "worker_threads";
+import fs from "fs";
 // Storage config
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -30,3 +31,31 @@ const fileFilter = (req, file, cb) => {
 
 // Export a configured multer instance
 export const upload = multer({ storage, fileFilter });
+
+// Ensure destination dir exists
+function ensureDir(dirPath){
+  if (!fs.existsSync(dirPath)) {
+    fs.mkdirSync(dirPath, { recursive: true });
+  }
+}
+
+// Dedicated storage and filter for access code images
+const imagesDir = path.join("uploads", "accessCodeImages");
+const imageStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    ensureDir(imagesDir);
+    cb(null, imagesDir);
+  },
+  filename: (req, file, cb) => {
+    const safeBase = path.parse(file.originalname).name.replace(/[^a-z0-9_-]/gi, "_");
+    cb(null, `${Date.now()}_${safeBase}${path.extname(file.originalname)}`);
+  },
+});
+
+const imageFileFilter = (req, file, cb) => {
+  const allowed = ["image/jpeg", "image/png", "image/webp", "image/jpg"];
+  if (allowed.includes(file.mimetype)) return cb(null, true);
+  return cb(new Error("Only image files (jpeg, jpg, png, webp) are allowed"), false);
+};
+
+export const uploadAccessCodeImages = multer({ storage: imageStorage, fileFilter: imageFileFilter });

@@ -36,7 +36,14 @@ const accessCodeQueries = {
 
       // Get paginated data
       const dataQuery = `
-        SELECT ac.id, ac.zip_code, ac.address, ac.access_code, ac.created_at 
+        SELECT ac.id,
+               ac.zip_code,
+               ac.address,
+               ac.access_code,
+               ac.image_url1,
+               ac.image_url2,
+               ac.image_url3,
+               ac.created_at 
         FROM public.access_codes ac
         ${whereClause}
         ORDER BY ac.created_at DESC
@@ -68,7 +75,7 @@ const accessCodeQueries = {
     }
   },
 
-  createAccessCode: async (zipCode, address, accessCode) => {
+  createAccessCode: async (zipCode, address, accessCode, imageUrls = []) => {
     try {
       // Check if access code already exists
       const checkQuery = `
@@ -81,11 +88,14 @@ const accessCodeQueries = {
 
       // Insert new access code
       const insertQuery = `
-        INSERT INTO public.access_codes (zip_code, address, access_code)
-        VALUES ($1, $2, $3)
+        INSERT INTO public.access_codes (
+          zip_code, address, access_code, image_url1, image_url2, image_url3
+        )
+        VALUES ($1, $2, $3, $4, $5, $6)
         RETURNING *;
       `;
-      const result = await pool.query(insertQuery, [zipCode, address, accessCode]);
+      const [u1, u2, u3] = imageUrls;
+      const result = await pool.query(insertQuery, [zipCode, address, accessCode, u1 || null, u2 || null, u3 || null]);
       console.log('Driver Created access code:', result.rows[0]);
       return result.rows[0];
     } catch (error) {

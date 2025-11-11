@@ -231,7 +231,7 @@
 
 // export default DoubleStop
 
-import React, { useState,useCallback } from "react";
+import React, { useState,useCallback, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   excelDailyFileUpload,
@@ -245,6 +245,7 @@ import Header from "../../reuse/Header";
 import Nav from "../../reuse/Nav";
 import DriverPaymentSection from "./DriverPaymentUpdate";
 import TempUploadedData from "../../reuse/TempUploadedData";
+import { toast } from "react-toastify";
 
 const DoubleStop = () => {
   
@@ -261,6 +262,7 @@ const DoubleStop = () => {
     file: null,
   });
   const [dailyErrors, setDailyErrors] = useState({});
+  const dailyFileRef = useRef(null);
 
   // Daily input handler
   const handleDailyChange = (e) => {
@@ -298,7 +300,20 @@ const DoubleStop = () => {
 
     const formData = new FormData();
     formData.append("file", dailyForm.file);
-    dispatch(excelDailyFileUpload(formData));
+    dispatch(excelDailyFileUpload(formData))
+      .unwrap()
+      .then(() => {
+        toast.success("Daily file uploaded successfully");
+        // Clear only on success
+        if (dailyFileRef.current && typeof dailyFileRef.current.clear === "function") {
+          dailyFileRef.current.clear();
+        }
+        setDailyForm((prev) => ({ ...prev, file: null }));
+      })
+      .catch((err) => {
+        const msg = typeof err === "string" ? err : err?.message || "Upload failed";
+        toast.error(msg);
+      });
   };
   const loadWeeklyData = useCallback(()=>{
     dispatch(fetchWeeklyTempData())
@@ -389,6 +404,7 @@ const DoubleStop = () => {
              
               <div>
                 <FileUpload
+                  ref={dailyFileRef}
                   onFileSelect={(f) => setDailyForm({ ...dailyForm, file: f })}
                 />
                 {dailyErrors.file && (

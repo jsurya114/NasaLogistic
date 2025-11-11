@@ -22,6 +22,8 @@ app.use(cors({
 
  app.use(express.json())
  app.use(cookieParser());
+ // Serve static uploads (e.g., access code images)
+ app.use('/uploads', express.static('uploads'));
  // Global input sanitization for all requests
  app.use(sanitizeMiddleware);
  // Global rate limit (per IP per base path)
