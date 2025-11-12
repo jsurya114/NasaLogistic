@@ -10,7 +10,7 @@ import HttpStatus from "../../utils/statusCodes.js";
 
 export const saveJourney = async (req, res) => {
   try {
-    let { driver_id, route_id, packages, start_seq, end_seq } = req.body;
+    let { driver_id, route_id, packages, start_seq, end_seq,journey_date } = req.body;
     packages = Number(packages)
     start_seq = Number(start_seq)
     end_seq = Number(end_seq)

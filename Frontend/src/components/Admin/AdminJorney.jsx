@@ -198,26 +198,34 @@ const AdminJourney = () => {
       try {
         await dispatch(updateJourney({ journey_id: id, updatedData: formData })).unwrap();
         toast.success("Journey updated successfully!");
+        dispatch(fetchAllJourneys())
         setEditableJourneyId(null);
         setEditValidationErrors({});
+        
       } catch (err) {
-        // Handle backend validation errors
-        if (err.errors) {
-          const backendErrors = {};
-          if (err.errors.sequence) {
-            backendErrors.general = err.errors.sequence;
-          }
-          if (err.errors.start_seq) {
-            backendErrors.start_seq = err.errors.start_seq;
-          }
-          if (err.errors.end_seq) {
-            backendErrors.end_seq = err.errors.end_seq;
-          }
-          setEditValidationErrors(backendErrors);
-        } else {
-          setEditValidationErrors({ general: err.message || "Failed to update journey" });
-        }
-      }
+  if (err.errors) {
+    // If overlap error → only show toast (no inline message)
+    if (err.errors.sequence) {
+      toast.error(err.errors.sequence); // 🔥 red toast
+      setEditValidationErrors({}); // clear inline
+      return; // stop here
+    }
+
+    // Otherwise, handle field validation errors inline
+    const backendErrors = {};
+    if (err.errors.start_seq) backendErrors.start_seq = err.errors.start_seq;
+    if (err.errors.end_seq) backendErrors.end_seq = err.errors.end_seq;
+    if (err.errors.driver_id) backendErrors.driver_id = err.errors.driver_id;
+    if (err.errors.route_id) backendErrors.route_id = err.errors.route_id;
+
+    setEditValidationErrors(backendErrors);
+  } else {
+    const message = err.message || "Failed to update journey";
+    toast.error(message);
+    setEditValidationErrors({ general: message });
+  }
+}
+
     },
     [dispatch, formData, validateSequenceOverlap]
   );

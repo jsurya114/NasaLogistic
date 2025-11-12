@@ -17,7 +17,7 @@ export const insertJourney = async (data) => {
     const query = `
       INSERT INTO dashboard_data 
         (driver_id, journey_date, route_id, packages, start_seq, end_seq)
-      VALUES ($1, CURRENT_DATE, $2, $3, $4, $5)
+      VALUES ($1, $2, $3, $4, $5,$6)
       RETURNING 
         id,
         driver_id,

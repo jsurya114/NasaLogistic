@@ -94,7 +94,7 @@ export default function PaymentDashboardTable() {
                   <td className="px-3 py-2 border-b border-gray-200">
                     {new Date(row.journey_date).toLocaleDateString()}
                   </td>
-                  <td className="px-3 py-2 border-b border-gray-200">{row.route_id}</td>
+                 <td className="px-3 py-2 border-b border-gray-200">{row.route_name || row.route_id}</td>
                   <td className="px-3 py-2 border-b border-gray-200">
                     {row.start_seq}-{row.end_seq}
                   </td>
