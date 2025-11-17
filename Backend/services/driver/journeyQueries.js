@@ -17,7 +17,7 @@ export const insertJourney = async (data) => {
     const query = `
       INSERT INTO dashboard_data 
         (driver_id, journey_date, route_id, packages, start_seq, end_seq)
-      VALUES ($1, CURRENT_DATE, $2, $3, $4, $5)
+      VALUES ($1, $2, $3, $4, $5,$6)
       RETURNING 
         id,
         driver_id,
@@ -80,6 +80,7 @@ export const getTodayJourney = async (driver_id) => {
       ORDER BY d.start_seq ASC;
     `;
     const result = await pool.query(query, [driver_id]);
+    console.log(result.rows,'journey data of driver')
     return result.rows;
   } catch (error) {
     console.error("❌ getTodayJourney failed:", error.message);
@@ -92,39 +93,46 @@ export const addRangeOfSqeunceToDeliveries = async (driver_id, route_id, start_s
   try {
     const query = `
       INSERT INTO deliveries (
-          driver_id, driver_set_date, route_id, sequence_number
+          driver_id,
+          driver_set_date,
+          route_id,
+		  sequence_number,
+		  seq_route_code
       )
-      SELECT 
+      SELECT
           $1 AS driver_id,
           CURRENT_DATE AS driver_set_date,
-          $2 AS route_id,
-          seq AS sequence_number
-      FROM generate_series($3::int, $4::int) AS seq 
+          r.id AS route_id,
+          seq AS sequence_number,
+          seq || '-' || r.route_code_in_string AS seq_route_code
+      FROM generate_series($3::int, $4::int) AS seq
+      JOIN routes r ON r.id = $2
       RETURNING *;
     `;
+
     const values = [Number(driver_id), Number(route_id), Number(start_seq), Number(end_seq)];
     const result = await pool.query(query, values);
     return result.rows;
+
   } catch (error) {
     console.error("❌ addRangeOfSqeunceToDeliveries failed:", error.message);
     return { success: false, message: "Error inserting deliveries", error: error.message };
   }
 };
 
-// ✅ Update Seq Route Code
-export const updateSeqRouteCodeToDeliveriesTable = async () => {
-  try {
-    const query = `
-      UPDATE deliveries d
-      SET seq_route_code = d.sequence_number || '-' || r.route_code_in_string
-      FROM routes r
-      WHERE d.route_id = r.id;
-    `;
-    await pool.query(query);
-  } catch (error) {
-    console.error(error, 'error in updation seq_route_code for deliveries table');
-  }
-};
+
+// export const updateSeqRouteCodeToDeliveriesTable = async ()=>{
+//     try {
+//       const query = ` UPDATE deliveries d
+//         SET seq_route_code = d.sequence_number || '-' || r.route_code_in_string
+//         FROM routes r
+//         WHERE d.route_id = r.id;
+//       `
+//       await pool.query(query)
+//     } catch (error) {
+//       console.error(error,'error in updation seq_route_code for deliveries table')
+//     }
+// }
 
 // ✅ Mark No Address as No Scanned
 export const markNoAddressAsNoScanned = async () => {

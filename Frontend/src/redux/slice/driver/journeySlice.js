@@ -210,13 +210,14 @@ export const updateJourney = createAsyncThunk(
         body: JSON.stringify(updatedData),
         credentials: 'include',
       });
-      
+
       const data = await res.json();
-      
+
+      // FIX: properly handle backend validation errors
       if (!res.ok) {
-        return rejectWithValue(data);
+        return rejectWithValue(data); // contains { errors: ... }
       }
-      
+
       return data.data;
     } catch (error) {
       console.error("updateJourney error:", error);
@@ -224,6 +225,7 @@ export const updateJourney = createAsyncThunk(
     }
   }
 );
+
 
 const journeySlice = createSlice({
   name: "journey",
@@ -380,8 +382,11 @@ const journeySlice = createSlice({
         state.adminError = null;
       })
       .addCase(addJourney.rejected, (state, action) => {
-        state.adminStatus = "failed";
-        state.adminError = action.payload?.message || "Failed to add journey";
+        const isValidationError = action.payload?.errors && Object.keys(action.payload.errors).length > 0;
+
+state.adminStatus = isValidationError ? "succeeded" : "failed"; 
+state.adminError = action.payload?.message || "Failed to add journey";
+
       })
       .addCase(updateJourney.pending, (state) => {
         state.adminStatus = "loading";
@@ -396,8 +401,14 @@ const journeySlice = createSlice({
         state.adminError = null;
       })
       .addCase(updateJourney.rejected, (state, action) => {
-        state.adminStatus = "failed";
-        state.adminError = action.payload?.message || "Failed to update journey";
+        // Don’t mark as "failed" for validation errors
+  const isValidationError = action.payload?.errors && Object.keys(action.payload.errors).length > 0;
+  state.adminStatus = isValidationError ? "succeeded" : "failed";
+
+  state.adminError = isValidationError
+    ? null
+    : (action.payload?.message || "Failed to update journey");
+
       });
 
     // ============ DRIVERS ============

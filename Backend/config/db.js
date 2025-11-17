@@ -1,4 +1,4 @@
-import { Pool } from "pg";
+import { Pool,types } from "pg";
 import dotenv from "dotenv" 
 dotenv.config();
 
@@ -10,6 +10,7 @@ const pool = new Pool({
   port: process.env.DB_PORT , 
   ssl: process.env.DB_SSL === "true" ? { rejectUnauthorized: false } : undefined
 });
+types.setTypeParser(1082, (stringValue) => stringValue);
 
 export default pool;
 

@@ -1,4 +1,5 @@
 import express from "express"
+import { uploadAccessCodeImages } from "../middlewares/multerConfig.js";
 
 import driverController from "../controllers/driver/driverController.js";
 import { saveJourney,fetchTodayJourney } from "../controllers/driver/journeyController.js";
@@ -20,7 +21,7 @@ router.get("/journey/:driver_id", fetchTodayJourney)
 router.get("/routes-list", getRoutes)
 router.get("/deliveries/:driverId", getDeliverySummary)
 // AccessCode Management 
-router.post("/access-codes", createAccessCode)
+router.post("/access-codes", uploadAccessCodeImages.array('images', 3), createAccessCode)
 router.get("/access-codes/list", getAccessCodes)
 
 export default router;

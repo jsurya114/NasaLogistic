@@ -1,5 +1,5 @@
 import express from 'express'
-import { upload } from "../middlewares/multerConfig.js"
+import { upload, uploadAccessCodeImages } from "../middlewares/multerConfig.js"
 const router = express.Router()
 import adminController from '../controllers/admin/adminController.js'
 import jobController from '../controllers/admin/jobController.js';
@@ -14,7 +14,6 @@ import adminJourneyController from '../controllers/admin/adminJourneyController.
 import adminAuth from '../middlewares/adminAuth.js';
 import { getAllData } from '../controllers/admin/dashController.js';
 import { getWeeklyTempData, weeklyExcelUpload } from '../controllers/admin/weeklyUploadsController.js';
-
 
 router.post('/login',adminController.Login);
 
@@ -76,8 +75,10 @@ router.post('/logout',adminController.Logout);
 //Check for admin User
 router.get('/access-admin',adminController.getUser);
 
-router.post("/access-codes",createAccessCode)
+router.post("/access-codes", uploadAccessCodeImages.array('images', 3), createAccessCode)
 router.get("/access-codes/list", getAccessCodes)
-router.put("/access-codes/:id", updateAccessCode)
+router.put("/access-codes/:id", uploadAccessCodeImages.array('images', 3), updateAccessCode)
+
+
 
 export default router;

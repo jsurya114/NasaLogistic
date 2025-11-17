@@ -20,18 +20,21 @@ const AdminJourneyQuery = {
 
   updateJourneyById: async (id, data) => {
     const { start_seq, end_seq, route_id, driver_id } = data;
+    let packages = end_seq-start_seq+1
     const query = `
       UPDATE dashboard_data
-      SET start_seq = $1, end_seq = $2, route_id = $3, driver_id = $4
-      WHERE id = $5
+      SET start_seq = $1, end_seq = $2, route_id = $3, driver_id = $4,packages=$5
+      WHERE id = $6
       RETURNING 
         *,
         TO_CHAR(journey_date, 'YYYY-MM-DD') as journey_date
     `;
-    const values = [start_seq, end_seq, route_id, driver_id, id];
+    const values = [start_seq, end_seq, route_id, driver_id,packages, id];
     const result = await pool.query(query, values);
     return result.rows[0];
   },
+
+  
 
   checkDriverExists: async (driver_id) => {
     const result = await pool.query(
@@ -41,27 +44,27 @@ const AdminJourneyQuery = {
     return result.rowCount > 0;
   },
 
-  checkSequenceOverlap: async (driver_id, route_id, start_seq, end_seq, excludedId = null) => {
-    let query = `
-      SELECT * FROM dashboard_data
-      WHERE driver_id = $1
-      AND route_id = $2
-      AND (
-        (start_seq <= $4 AND end_seq >= $3) OR
-        (start_seq >= $3 AND start_seq <= $4) OR
-        (end_seq >= $3 AND end_seq <= $4)
-      )
-    `;
-    const values = [driver_id, route_id, start_seq, end_seq];
-    
-    if (excludedId) {
-      query += ` AND id <> $5`;
-      values.push(excludedId);
-    }
-    
-    const result = await pool.query(query, values);
-    return result.rows;
-  },
+checkSequenceOverlap: async (driver_id, route_id, start_seq, end_seq, excludedId = null) => {
+  let query = `
+    SELECT d.id, d.driver_id, dr.name AS driver_name, d.start_seq, d.end_seq
+    FROM dashboard_data d
+    JOIN drivers dr ON d.driver_id = dr.id
+    WHERE d.route_id = $1
+    AND (d.start_seq <= $3 AND d.end_seq >= $2)
+  `;
+
+  const values = [parseInt(route_id), parseInt(start_seq), parseInt(end_seq)];
+
+  if (excludedId) {
+    query += ` AND d.id <> $4`;
+    values.push(parseInt(excludedId));
+  }
+
+  const result = await pool.query(query, values);
+  return result.rows;
+},
+
+
 
   addJourney: async (data) => {
     const { driver_id, route_id, start_seq, end_seq, journey_date } = data;

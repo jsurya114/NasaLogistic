@@ -16,6 +16,8 @@ import Header from "../../reuse/Header";
 import Nav from "../../reuse/Nav";
 import Swal from "sweetalert2";
 import { toast } from "react-toastify";
+import AccessCodeDetailsDialog from "../AccessCodeDetailsDialog";
+import AccessCodeEditDialog from "./AccessCodeEditDialog";
 
 export default function AddAccessCodePage() {
   const dispatch = useDispatch();
@@ -38,6 +40,11 @@ export default function AddAccessCodePage() {
   const [touched, setTouched] = useState({});
   const [localSearch, setLocalSearch] = useState("");
   const [localZipCodeFilter, setLocalZipCodeFilter] = useState("");
+  const [images, setImages] = useState([]);
+  const [imageError, setImageError] = useState("");
+  const [showDetails, setShowDetails] = useState(false);
+  const [selectedAC, setSelectedAC] = useState(null);
+  const [showEdit, setShowEdit] = useState(false);
 
   useEffect(() => {
     if (status === "idle") {
@@ -124,16 +131,37 @@ export default function AddAccessCodePage() {
       return;
     }
 
+    // Validate images (optional): max 3 and valid types
+    if (images.length > 3) {
+      setImageError("You can upload up to 3 images only");
+      toast.error("You can upload up to 3 images only", { position: "top-right" });
+      return;
+    }
+    const allowed = ["image/jpeg", "image/png", "image/webp", "image/jpg"];
+    for (const f of images) {
+      if (!allowed.includes(f.type)) {
+        setImageError("Only JPEG, PNG, or WEBP images are allowed");
+        toast.error("Only JPEG, PNG, or WEBP images are allowed", { position: "top-right" });
+        return;
+      }
+    }
+
     try {
-      await dispatch(
-        createAccessCode({ zip_code: zipCode.trim(), address: address.trim(), access_code: accessCode.trim() }),
-      ).unwrap();
+      const formData = new FormData();
+      formData.append("zip_code", zipCode.trim());
+      formData.append("address", address.trim());
+      formData.append("access_code", accessCode.trim());
+      images.forEach((file) => formData.append("images", file));
+
+      await dispatch(createAccessCode(formData)).unwrap();
 
       toast.success("Access code created successfully!", { position: "top-right", autoClose: 3000 });
 
       setAddress("");
       setAccessCode("");
       setZipCode("");
+      setImages([]);
+      setImageError("");
       setErrors({});
       setTouched({});
     } catch (err) {
@@ -141,88 +169,39 @@ export default function AddAccessCodePage() {
     }
   };
 
+  const onImagesChange = (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length > 3) {
+      setImageError("You can upload up to 3 images only");
+      setImages(files.slice(0, 3));
+    } else {
+      setImageError("");
+      setImages(files);
+    }
+  };
+
   const handleEdit = (ac) => {
-    Swal.fire({
-      title: '<div style="color: #1f2937; font-size: 24px; font-weight: 600;">Edit Access Code</div>',
-      html: `
-        <div style="text-align: left; padding: 0 8px;">
-          <div style="margin-bottom: 20px;">
-            <label for="swal-zipcode" style="display: block; font-size: 14px; font-weight: 500; color: #374151; margin-bottom: 8px;">Zip Code</label>
-            <input id="swal-zipcode" value="${ac.zip_code}" style="width: 100%; padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; color: #1f2937;" placeholder="Enter zip code">
-          </div>
-          <div style="margin-bottom: 20px;">
-            <label for="swal-address" style="display: block; font-size: 14px; font-weight: 500; color: #374151; margin-bottom: 8px;">Address</label>
-            <input id="swal-address" value="${ac.address}" style="width: 100%; padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; color: #1f2937;" placeholder="Enter address">
-          </div>
-          <div style="margin-bottom: 8px;">
-            <label for="swal-accesscode" style="display: block; font-size: 14px; font-weight: 500; color: #374151; margin-bottom: 8px;">Access Code</label>
-            <input id="swal-accesscode" value="${ac.access_code}" style="width: 100%; padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; color: #1f2937;" placeholder="Enter access code">
-          </div>
-        </div>
-      `,
-      focusConfirm: false,
-      width: "500px",
-      padding: "32px",
-      customClass: {
-        popup: "rounded-xl shadow-2xl",
-        confirmButton: "text-white font-medium py-3 px-6 rounded-lg mr-3",
-        cancelButton: "bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-6 rounded-lg",
-      },
-      buttonsStyling: false,
-      didOpen: () => {
-        const confirmButton = document.querySelector(".swal2-confirm");
-        if (confirmButton) {
-          confirmButton.style.backgroundColor = "#8200db";
-          confirmButton.style.borderColor = "#8200db";
-          confirmButton.addEventListener("mouseenter", () => {
-            confirmButton.style.backgroundColor = "#7300c4";
-          });
-          confirmButton.addEventListener("mouseleave", () => {
-            confirmButton.style.backgroundColor = "#8200db";
-          });
-        }
-      },
-      preConfirm: () => {
-        const zipCode = document.getElementById("swal-zipcode").value.trim();
-        const address = document.getElementById("swal-address").value.trim();
-        const accessCode = document.getElementById("swal-accesscode").value.trim();
+    setSelectedAC(ac);
+    setShowEdit(true);
+  };
 
-        if (!zipCode || !address || !accessCode) {
-          Swal.showValidationMessage("All fields are required");
-          return;
-        }
-        if (!/^\d{5}(-\d{4})?$/.test(zipCode)) {
-          Swal.showValidationMessage("Please enter a valid zip code (5 digits or 5+4 format)");
-          return;
-        }
-        if (address.length < 5) {
-          Swal.showValidationMessage("Address must be at least 5 characters");
-          return;
-        }
-        if (!/^[a-zA-Z0-9]+$/.test(accessCode)) {
-          Swal.showValidationMessage("Access code must be alphanumeric");
-          return;
-        }
-        if (accessCode.length < 4) {
-          Swal.showValidationMessage("Access code must be at least 4 characters");
-          return;
-        }
-
-        return { id: ac.id, zip_code: zipCode, address, access_code: accessCode };
-      },
-      showCancelButton: true,
-      confirmButtonText: "Save Changes",
-      cancelButtonText: "Cancel",
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        try {
-          await dispatch(updateAccessCode(result.value)).unwrap();
-          toast.success("Access code updated successfully!", { position: "top-right", autoClose: 3000 });
-        } catch (err) {
-          toast.error(err || "Failed to update access code", { position: "top-right", autoClose: 4000 });
-        }
+  const handleEditSave = async (formData) => {
+    try {
+      const resp = await dispatch(updateAccessCode(formData)).unwrap();
+      toast.success("Access code updated successfully!", { position: "top-right", autoClose: 2000 });
+      const added = resp?.counts?.added || 0;
+      const removed = resp?.counts?.removed || 0;
+      if (added > 0) {
+        toast.info(`Added ${added} image${added > 1 ? 's' : ''}`, { position: "top-right", autoClose: 2500 });
       }
-    });
+      if (removed > 0) {
+        toast.info(`Removed ${removed} image${removed > 1 ? 's' : ''}`, { position: "top-right", autoClose: 2500 });
+      }
+      setShowEdit(false);
+      setSelectedAC(null);
+    } catch (err) {
+      toast.error(err || "Failed to update access code", { position: "top-right", autoClose: 4000 });
+    }
   };
 
   const handleSearch = () => {
@@ -368,6 +347,33 @@ export default function AddAccessCodePage() {
                 </p>
               )}
               <p className="text-xs text-gray-500 mt-1">Only letters and numbers, minimum 4 characters</p>
+            </div>
+
+            {/* Images Upload */}
+            <div className="space-y-2">
+              <label htmlFor="images" className="block text-sm font-semibold text-gray-800 mb-2">
+                Upload Images (optional, up to 3)
+              </label>
+              <input
+                id="images"
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/jpg"
+                multiple
+                onChange={onImagesChange}
+                className="block w-full text-sm text-gray-900 border-2 border-gray-200 rounded-xl cursor-pointer bg-white focus:outline-none focus:ring-4 focus:ring-purple-100 focus:border-[#8200db]"
+                disabled={status === "loading"}
+              />
+              <p className="text-xs text-gray-500">Allowed types: JPG, JPEG, PNG, WEBP. Max 3 images.</p>
+              {imageError && (
+                <p className="text-red-500 text-sm mt-1">{imageError}</p>
+              )}
+              {images && images.length > 0 && (
+                <ul className="text-xs text-gray-600 list-disc pl-5">
+                  {images.map((f, i) => (
+                    <li key={i}>{f.name}</li>
+                  ))}
+                </ul>
+              )}
             </div>
 
             {/* Submit Button */}
@@ -522,6 +528,9 @@ export default function AddAccessCodePage() {
                           <th className="px-2 sm:px-4 lg:px-6 py-3 sm:py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
                             Access Code
                           </th>
+                          <th className="px-2 sm:px-4 lg:px-6 py-3 sm:py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
+                            Images
+                          </th>
                           <th className="px-2 sm:px-4 lg:px-6 py-3 sm:py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider hidden lg:table-cell">
                             Created At
                           </th>
@@ -534,7 +543,8 @@ export default function AddAccessCodePage() {
                         {accessCodes.map((ac, index) => (
                           <tr
                             key={ac.id}
-                            className={`hover:bg-gray-50 transition-colors ${index % 2 === 0 ? "bg-white" : "bg-gray-50/50"}`}
+                            onClick={() => { setSelectedAC(ac); setShowDetails(true); }}
+                            className={`cursor-pointer hover:bg-gray-50 transition-colors ${index % 2 === 0 ? "bg-white" : "bg-gray-50/50"}`}
                           >
                             <td className="px-2 sm:px-4 lg:px-6 py-3 sm:py-5 whitespace-nowrap">
                               <span className="text-xs sm:text-sm font-semibold text-gray-900">
@@ -551,6 +561,11 @@ export default function AddAccessCodePage() {
                                 {ac.access_code}
                               </span>
                             </td>
+                            <td className="px-2 sm:px-4 lg:px-6 py-3 sm:py-5 whitespace-nowrap">
+                              <span className="inline-flex items-center px-2 sm:px-3 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 border border-indigo-200">
+                                {ac.imageCount ?? 0}
+                              </span>
+                            </td>
                             <td className="px-2 sm:px-4 lg:px-6 py-3 sm:py-5 whitespace-nowrap hidden lg:table-cell">
                               <span className="text-sm text-gray-600">
                                 {new Date(ac.created_at).toLocaleString()}
@@ -558,7 +573,7 @@ export default function AddAccessCodePage() {
                             </td>
                             <td className="px-2 sm:px-4 lg:px-6 py-3 sm:py-5 whitespace-nowrap">
                               <button
-                                onClick={() => handleEdit(ac)}
+                                onClick={(e) => { e.stopPropagation(); handleEdit(ac); }}
                                 className="inline-flex items-center justify-center px-2 sm:px-3 py-2 bg-[#8200db] text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-[#7300c4] transition-all"
                               >
                                 <svg
@@ -657,6 +672,20 @@ export default function AddAccessCodePage() {
           </div>
         </div>
       </main>
+
+      <AccessCodeDetailsDialog
+        open={showDetails}
+        onClose={() => { setShowDetails(false); setSelectedAC(null); }}
+        accessCode={selectedAC}
+      />
+
+      <AccessCodeEditDialog
+        open={showEdit}
+        onClose={() => { setShowEdit(false); setSelectedAC(null); }}
+        accessCode={selectedAC}
+        onSave={handleEditSave}
+        saving={status === 'loading'}
+      />
 
       <Nav />
     </div>
