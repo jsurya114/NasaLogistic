@@ -17,7 +17,7 @@ export const ExcelFileQueries = {
                         status TEXT,
                         complete_time TIMESTAMP,
                         seq_route_code TEXT,
-                        upload_date TIMESTAMP
+                        upload_date DATE
                 )
             `);
       console.log(`✅ Table ${tableName} created successfully`);
