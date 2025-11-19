@@ -74,7 +74,9 @@ export const insertJourney = async (data) => {
       INSERT INTO dashboard_data 
         (driver_id, journey_date, route_id, packages, start_seq, end_seq)
       VALUES ($1, CURRENT_DATE, $2, $3, $4, $5)
-      RETURNING *;
+      RETURNING 
+        dashboard_data.*,
+        (SELECT name FROM routes WHERE id = $2) AS route_name;
     `;
     const values = [driver_id, route_id, packages, start_seq, end_seq];
 
@@ -85,7 +87,6 @@ export const insertJourney = async (data) => {
     return { success: false, message: "Error inserting journey", error: error.message };
   }
 };
-
 export const checkSequenceConflict = async (route_id, start_seq, end_seq) => {
   try {
     const query = `

@@ -244,6 +244,7 @@ const AdminJourney = () => {
 
       try {
         await dispatch(addJourney(newJourneyData)).unwrap();
+        
         toast.success("Journey added successfully!");
         setNewJourneyData({
           driver_id: "",

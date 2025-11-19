@@ -27,23 +27,42 @@ WHERE pd.dashboard_data_id = dd.id;
             
         }
     },
-     PaymentDashboardTable : async()=>{
-        try {
-            
-            const queryStr = `
-            select 
-            pd.id, dashboard_data_id, driver_id,d.name as driver_name, journey_date, route_id,
-            packages, no_scanned, failed_attempt ,fs ,ds, delivered, closed, payment_date ,driver_payment, paid ,start_seq,
-            end_seq, first_stop from payment_dashboard pd
-            join drivers d on d.id = pd.driver_id
- 
-            ;`
-            const result = await pool.query(queryStr)
-            return result.rows
-        } catch (error) {
-            console.error(error)
-        }
-     },
+     PaymentDashboardTable : async () => {
+  try {
+    const queryStr = `
+      SELECT 
+        pd.id, 
+        pd.dashboard_data_id, 
+        pd.driver_id,
+        d.name AS driver_name, 
+        pd.journey_date, 
+        pd.route_id,
+        r.name AS route_name,               -- 🌟 ADD THIS
+        pd.packages, 
+        pd.no_scanned, 
+        pd.failed_attempt,
+        pd.fs,
+        pd.ds,
+        pd.delivered, 
+        pd.closed, 
+        pd.payment_date,
+        pd.driver_payment, 
+        pd.paid,
+        pd.start_seq,
+        pd.end_seq,
+        pd.first_stop
+      FROM payment_dashboard pd
+      JOIN drivers d ON d.id = pd.driver_id
+      LEFT JOIN routes r ON r.id = pd.route_id;  
+    `;
+    
+    const result = await pool.query(queryStr);
+    return result.rows;
+
+  } catch (error) {
+    console.error(error);
+  }
+},
 
    
 }
