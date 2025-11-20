@@ -19,7 +19,7 @@ const AdminJourneyQuery = {
 
   updateJourneyById: async (id, data) => {
     const { start_seq, end_seq, route_id, driver_id } = data;
-    let packages = end_seq - start_seq + 1;
+    let packages = (end_seq - start_seq) + 1;
     
     const query = `
       UPDATE dashboard_data 
@@ -77,13 +77,16 @@ const AdminJourneyQuery = {
 
   addJourney: async (data) => {
     const { driver_id, route_id, start_seq, end_seq, journey_date } = data;
-    
-    const query = `
-      INSERT INTO dashboard_data (driver_id, route_id, start_seq, end_seq, journey_date)
-      VALUES ($1, $2, $3, $4, $5::date)
-      RETURNING *, TO_CHAR(journey_date, 'YYYY-MM-DD') as journey_date
-    `;
-    const values = [driver_id, route_id, start_seq, end_seq, journey_date];
+    const packages = (end_seq - start_seq) + 1;
+
+const query = `
+  INSERT INTO dashboard_data 
+    (driver_id, route_id, start_seq, end_seq, journey_date, packages)
+  VALUES ($1, $2, $3, $4, $5::date, $6)
+  RETURNING *, TO_CHAR(journey_date, 'YYYY-MM-DD') as journey_date;
+`;
+
+const values = [driver_id, route_id, start_seq, end_seq, journey_date, packages];
     const result = await pool.query(query, values);
     return result.rows[0];
   },
