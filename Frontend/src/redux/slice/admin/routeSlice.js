@@ -1,5 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { API_BASE_URL } from "../../../config";
+import { API_BASE_URL } from "../../../config"
+
+
 
 // Fetch all routes
 export const fetchRoutes = createAsyncThunk("routes/fetchRoutes", async ({ page, limit,search="" }) => {
@@ -212,4 +214,4 @@ const routeSlice = createSlice({
   },
 });
 
-export default routeSlice.reducer;
+export default routeSlice.reducer

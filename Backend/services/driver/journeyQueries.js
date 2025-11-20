@@ -43,21 +43,21 @@ export const insertJourney = async (data) => {
 };
 
 // ✅ Check for Sequence Conflicts
-export const checkSequenceConflict = async (route_id, start_seq, end_seq) => {
+export const checkSequenceConflict = async (route_id, start_seq, end_seq, journey_date) => {
   try {
     const query = `
       SELECT * FROM dashboard_data
       WHERE route_id = $1
-        AND journey_date = CURRENT_DATE
+        AND journey_date = $4
         AND $2 <= end_seq
         AND $3 >= start_seq;
     `;
-    const values = [Number(route_id), start_seq, end_seq];
+    const values = [route_id, start_seq, end_seq, journey_date];
     const result = await pool.query(query, values);
     return result.rows;
   } catch (error) {
     console.error("❌ checkSequenceConflict failed:", error.message);
-    return { success: false, message: "Error checking sequence conflict", error: error.message };
+    return [];
   }
 };
 
