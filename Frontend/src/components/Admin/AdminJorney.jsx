@@ -141,95 +141,113 @@ const AdminJourney = () => {
   }, [editValidationErrors]);
 
   // ✅ Memoize validation function to prevent recreating on every render
-  const validateSequenceOverlap = useCallback((driver_id, routeId, startSeq, endSeq, excludeJourneyId = null) => {
-    const start = parseInt(startSeq);
-    const end = parseInt(endSeq);
-
-    const overlapping = adminJourneys.find(journey => {
-      if (excludeJourneyId && journey.id === excludeJourneyId) return false;
-      if (journey.driver_id !== parseInt(driver_id) || journey.route_id !== parseInt(routeId)) return false;
-
-      const existingStart = parseInt(journey.start_seq);
-      const existingEnd = parseInt(journey.end_seq);
-      
-      return (start <= existingEnd && end >= existingStart);
-    });
+  const validateSequenceOverlap = useCallback((driver_id, routeId, startSeq, endSeq, journeyDate, excludeJourneyId = null) => {
+  const start = parseInt(startSeq);
+  const end = parseInt(endSeq);
+  
+  // Format the journey date for comparison (YYYY-MM-DD)
+  const formatDateForComparison = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString + 'T00:00:00');
+    return date.toLocaleDateString('en-CA'); // Returns YYYY-MM-DD
+  };
+  
+  const targetDate = formatDateForComparison(journeyDate);
+  
+  const overlapping = adminJourneys.find(journey => {
+    if (excludeJourneyId && journey.id === excludeJourneyId) return false;
+    if (journey.driver_id !== parseInt(driver_id)) return false;
+    if (journey.route_id !== parseInt(routeId)) return false;
     
-    return overlapping;
-  }, [adminJourneys]);
+    // UPDATED: Check if the journey_date matches
+    const existingDate = formatDateForComparison(journey.journey_date);
+    if (existingDate !== targetDate) return false;
+    
+    const existingStart = parseInt(journey.start_seq);
+    const existingEnd = parseInt(journey.end_seq);
+    
+    return (start <= existingEnd && end >= existingStart);
+  });
+  
+  return overlapping;
+}, [adminJourneys]);
 
   const handleSave = useCallback(
-    async (id) => {
-      // Validate start sequence
-      const start = parseInt(formData.start_seq);
-      if (isNaN(start) || start <= 0) {
-        toast.error("Start sequence must be a positive number greater than 0");
-        return;
-      }
-      
-      // Validate end sequence
-      const end = parseInt(formData.end_seq);
-      if (isNaN(end) || end <= 0) {
-        toast.error("End sequence must be a positive number greater than 0");
-        return;
-      }
-      
-      // Check if end > start
-      if (start >= end) {
-        toast.error("End sequence must be greater than start sequence");
-        return;
-      }
-      
-      const overlapping = validateSequenceOverlap(
-        formData.driver_id,
-        formData.route_id,
-        formData.start_seq,
-        formData.end_seq,
-        id
-      );
-      
-      if (overlapping) {
-        setEditValidationErrors({
-          general: `Overlap! Driver has sequences ${overlapping.start_seq}-${overlapping.end_seq} on this route`
-        });
-        return;
-      }
-
-      try {
-        await dispatch(updateJourney({ journey_id: id, updatedData: formData })).unwrap();
-        toast.success("Journey updated successfully!");
-        dispatch(fetchAllJourneys())
-        setEditableJourneyId(null);
-        setEditValidationErrors({});
-        
-      } catch (err) {
-  if (err.errors) {
-    // If overlap error → only show toast (no inline message)
-    if (err.errors.sequence) {
-      toast.error(err.errors.sequence); // 🔥 red toast
-      setEditValidationErrors({}); // clear inline
-      return; // stop here
+  async (id) => {
+    // Validate start sequence
+    const start = parseInt(formData.start_seq);
+    if (isNaN(start) || start <= 0) {
+      toast.error("Start sequence must be a positive number greater than 0");
+      return;
     }
 
-    // Otherwise, handle field validation errors inline
-    const backendErrors = {};
-    if (err.errors.start_seq) backendErrors.start_seq = err.errors.start_seq;
-    if (err.errors.end_seq) backendErrors.end_seq = err.errors.end_seq;
-    if (err.errors.driver_id) backendErrors.driver_id = err.errors.driver_id;
-    if (err.errors.route_id) backendErrors.route_id = err.errors.route_id;
+    // Validate end sequence
+    const end = parseInt(formData.end_seq);
+    if (isNaN(end) || end <= 0) {
+      toast.error("End sequence must be a positive number greater than 0");
+      return;
+    }
 
-    setEditValidationErrors(backendErrors);
-  } else {
-    const message = err.message || "Failed to update journey";
-    toast.error(message);
-    setEditValidationErrors({ general: message });
-  }
-}
+    // Check if end > start
+    if (start >= end) {
+      toast.error("End sequence must be greater than start sequence");
+      return;
+    }
 
-    },
-    [dispatch, formData, validateSequenceOverlap]
-  );
+    // UPDATED: Get the journey date for the current journey being edited
+    const currentJourney = adminJourneys.find(j => j.id === id);
+    if (!currentJourney) {
+      toast.error("Journey not found");
+      return;
+    }
 
+    const overlapping = validateSequenceOverlap(
+      formData.driver_id,
+      formData.route_id,
+      formData.start_seq,
+      formData.end_seq,
+      currentJourney.journey_date,  // UPDATED: Pass journey_date
+      id
+    );
+
+    if (overlapping) {
+      setEditValidationErrors({
+        general: `Overlap! Driver has sequences ${overlapping.start_seq}-${overlapping.end_seq} on this route for this date`
+      });
+      return;
+    }
+
+    try {
+      await dispatch(updateJourney({ journey_id: id, updatedData: formData })).unwrap();
+      toast.success("Journey updated successfully!");
+      dispatch(fetchAllJourneys());
+      setEditableJourneyId(null);
+      setEditValidationErrors({});
+    } catch (err) {
+      if (err.errors) {
+        // If overlap error → only show toast (no inline message)
+        if (err.errors.sequence) {
+          toast.error(err.errors.sequence);
+          setEditValidationErrors({});
+          return;
+        }
+        
+        // Otherwise, handle field validation errors inline
+        const backendErrors = {};
+        if (err.errors.start_seq) backendErrors.start_seq = err.errors.start_seq;
+        if (err.errors.end_seq) backendErrors.end_seq = err.errors.end_seq;
+        if (err.errors.driver_id) backendErrors.driver_id = err.errors.driver_id;
+        if (err.errors.route_id) backendErrors.route_id = err.errors.route_id;
+        setEditValidationErrors(backendErrors);
+      } else {
+        const message = err.message || "Failed to update journey";
+        toast.error(message);
+        setEditValidationErrors({ general: message });
+      }
+    }
+  },
+  [dispatch, formData, validateSequenceOverlap, adminJourneys]
+);
   const handleNewJourneyChange = useCallback((e) => {
     const { name, value } = e.target;
     setNewJourneyData((prev) => ({ ...prev, [name]: value }));
@@ -252,98 +270,94 @@ const AdminJourney = () => {
   }, [validationErrors]);
 
   const handleAddJourney = useCallback(
-    async () => {
-      if (errorTimeout) {
-        clearTimeout(errorTimeout);
-        setErrorTimeout(null);
+  async () => {
+    if (errorTimeout) {
+      clearTimeout(errorTimeout);
+      setErrorTimeout(null);
+    }
+
+    setValidationErrors({});
+
+    const errors = {};
+    if (!newJourneyData.driver_id) {
+      errors.driver_id = "Driver is required";
+    }
+    if (!newJourneyData.route_id) {
+      errors.route_id = "Route is required";
+    }
+    if (!newJourneyData.start_seq) {
+      errors.start_seq = "Start sequence is required";
+    } else {
+      const start = parseInt(newJourneyData.start_seq);
+      if (isNaN(start) || start <= 0) {
+        errors.start_seq = "Start sequence must be a positive number greater than 0";
       }
+    }
+    if (!newJourneyData.end_seq) {
+      errors.end_seq = "End sequence is required";
+    } else {
+      const end = parseInt(newJourneyData.end_seq);
+      if (isNaN(end) || end <= 0) {
+        errors.end_seq = "End sequence must be a positive number greater than 0";
+      }
+    }
+    if (!newJourneyData.journey_date) {
+      errors.journey_date = "Journey date is required";
+    }
+
+    // Check if end > start only if both are valid
+    if (newJourneyData.start_seq && newJourneyData.end_seq && !errors.start_seq && !errors.end_seq) {
+      const start = parseInt(newJourneyData.start_seq);
+      const end = parseInt(newJourneyData.end_seq);
+      if (start >= end) {
+        errors.end_seq = "End sequence must be greater than start sequence";
+      }
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors);
+      return;
+    }
+
+    // UPDATED: Pass journey_date to overlap check
+    const overlapping = validateSequenceOverlap(
+      newJourneyData.driver_id,
+      newJourneyData.route_id,
+      newJourneyData.start_seq,
+      newJourneyData.end_seq,
+      newJourneyData.journey_date  // UPDATED: Include journey_date
+    );
+
+    if (overlapping) {
+      setValidationErrors({
+        general: `Sequence overlap detected! This driver already has sequences ${overlapping.start_seq}-${overlapping.end_seq} on this route for this date.`
+      });
+      return;
+    }
+
+    try {
+      await dispatch(addJourney(newJourneyData)).unwrap();
+      toast.success("Journey added successfully!");
       
+      // Refresh the journeys list
+      dispatch(fetchAllJourneys());
+      
+      setNewJourneyData({
+        driver_id: "",
+        route_id: "",
+        start_seq: "",
+        end_seq: "",
+        journey_date: new Date().toISOString().split('T')[0],
+      });
       setValidationErrors({});
-      
-      const errors = {};
-      
-      if (!newJourneyData.driver_id) {
-        errors.driver_id = "Driver is required";
-      }
-      if (!newJourneyData.route_id) {
-        errors.route_id = "Route is required";
-      }
-      if (!newJourneyData.start_seq) {
-        errors.start_seq = "Start sequence is required";
-      } else {
-        // Validate start_seq is positive
-        const start = parseInt(newJourneyData.start_seq);
-        if (isNaN(start) || start <= 0) {
-          errors.start_seq = "Start sequence must be a positive number greater than 0";
-        }
-      }
-      
-      if (!newJourneyData.end_seq) {
-        errors.end_seq = "End sequence is required";
-      } else {
-        // Validate end_seq is positive
-        const end = parseInt(newJourneyData.end_seq);
-        if (isNaN(end) || end <= 0) {
-          errors.end_seq = "End sequence must be a positive number greater than 0";
-        }
-      }
-      
-      if (!newJourneyData.journey_date) {
-        errors.journey_date = "Journey date is required";
-      }
-      
-      // Check if end > start only if both are valid
-      if (newJourneyData.start_seq && newJourneyData.end_seq && !errors.start_seq && !errors.end_seq) {
-        const start = parseInt(newJourneyData.start_seq);
-        const end = parseInt(newJourneyData.end_seq);
-        if (start >= end) {
-          errors.end_seq = "End sequence must be greater than start sequence";
-        }
-      }
-      
-      if (Object.keys(errors).length > 0) {
-        setValidationErrors(errors);
-        return;
-      }
-      
-      const overlapping = validateSequenceOverlap(
-        newJourneyData.driver_id,
-        newJourneyData.route_id,
-        newJourneyData.start_seq,
-        newJourneyData.end_seq
-      );
-      
-      if (overlapping) {
-        setValidationErrors({ 
-          general: `Sequence overlap detected! This driver already has sequences ${overlapping.start_seq}-${overlapping.end_seq} on this route.`
-        });
-        return;
-      }
-
-      try {
-        await dispatch(addJourney(newJourneyData)).unwrap();
-        toast.success("Journey added successfully!");
-        
-        // Refresh the journeys list to get the correct formatted date
-        dispatch(fetchAllJourneys());
-        
-        setNewJourneyData({
-          driver_id: "",
-          route_id: "",
-          start_seq: "",
-          end_seq: "",
-          journey_date: new Date().toISOString().split('T')[0],
-        });
-        setValidationErrors({});
-        // Refresh the journey list after adding
-        dispatch(fetchAllJourneys());
-      } catch (err) {
-        setValidationErrors({ general: err.message || "sequence overlapp" });
-      }
-    },
-    [dispatch, newJourneyData, validateSequenceOverlap, errorTimeout]
-  );
-
+    } catch (err) {
+      setValidationErrors({
+        general: err.message || "Failed to add journey"
+      });
+    }
+  },
+  [dispatch, newJourneyData, validateSequenceOverlap, errorTimeout]
+);
   // ✅ Memoize route lookup map for O(1) lookup
   const routeMap = useMemo(() => {
     const map = new Map();
