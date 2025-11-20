@@ -4,11 +4,11 @@ import { API_BASE_URL } from "../../../config";
 // Fetch paginated jobs with search and request cancellation support
 export const fetchPaginatedJobs = createAsyncThunk(
   "jobs/fetchPaginated",
-  async ({ page, limit, search = "" }, { signal, rejectWithValue }) => {
+  async ({ page, limit, search = "", status = "all" }, { signal, rejectWithValue }) => {
     try {
       const res = await fetch(
-        `${API_BASE_URL}/admin/jobs?page=${page}&limit=${limit}&search=${encodeURIComponent(search)}`,
-        { signal, credentials: "include" } // Support request cancellation and send cookies
+        `${API_BASE_URL}/admin/jobs?page=${page}&limit=${limit}&search=${encodeURIComponent(search)}&status=${status}`,
+        { signal, credentials: "include" }
       );
 
       if (!res.ok) {
@@ -19,7 +19,6 @@ export const fetchPaginatedJobs = createAsyncThunk(
       const data = await res.json();
       return data;
     } catch (error) {
-      // Don't log cancellation errors
       if (error.name === 'AbortError') {
         return rejectWithValue('Request cancelled');
       }

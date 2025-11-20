@@ -44,7 +44,7 @@ cityStatus: async (id) => {
   );
   return result.rows[0];
 },
-jobPagination: async (page, limit, search = "") => {
+jobPagination: async (page, limit, search = "", statusFilter = "all") => {
   try {
     const offset = (page - 1) * limit;
 
@@ -52,37 +52,44 @@ jobPagination: async (page, limit, search = "") => {
     let countQuery;
     let values;
 
+    // Build WHERE clause based on filters
+    let whereConditions = [];
+    let paramIndex = 1;
+    let queryParams = [];
+
+    // Search filter
     if (search) {
-      jobsQuery = `
-        SELECT * FROM city
-        WHERE job ILIKE $1 OR city_code ILIKE $1
-        ORDER BY id ASC
-        LIMIT $2 OFFSET $3
-      `;
-      values = [`%${search}%`, limit, offset];
-
-      countQuery = `
-        SELECT COUNT(*) FROM city
-        WHERE job ILIKE $1 OR city_code ILIKE $1
-      `;
-    } else {
-      jobsQuery = `
-        SELECT * FROM city
-        ORDER BY id ASC
-        LIMIT $1 OFFSET $2
-      `;
-      values = [limit, offset];
-
-      countQuery = `
-        SELECT COUNT(*) FROM city
-      `;
+      whereConditions.push(`(job ILIKE $${paramIndex} OR city_code ILIKE $${paramIndex})`);
+      queryParams.push(`%${search}%`);
+      paramIndex++;
     }
 
-    const jobs = await pool.query(jobsQuery, values);
+    // Status filter
+    if (statusFilter === "enabled") {
+      whereConditions.push(`enabled = true`);
+    } else if (statusFilter === "disabled") {
+      whereConditions.push(`enabled = false`);
+    }
 
-    const total = search
-      ? await pool.query(countQuery, [`%${search}%`])
-      : await pool.query(countQuery);
+    const whereClause = whereConditions.length > 0 
+      ? `WHERE ${whereConditions.join(' AND ')}` 
+      : '';
+
+    jobsQuery = `
+      SELECT * FROM city
+      ${whereClause}
+      ORDER BY id ASC
+      LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
+    `;
+    values = [...queryParams, limit, offset];
+
+    countQuery = `
+      SELECT COUNT(*) FROM city
+      ${whereClause}
+    `;
+
+    const jobs = await pool.query(jobsQuery, values);
+    const total = await pool.query(countQuery, queryParams);
 
     return {
       jobs: jobs.rows,

@@ -338,7 +338,7 @@ const AdminJourney = () => {
         // Refresh the journey list after adding
         dispatch(fetchAllJourneys());
       } catch (err) {
-        setValidationErrors({ general: err.message || "Failed to add journey" });
+        setValidationErrors({ general: err.message || "sequence overlapp" });
       }
     },
     [dispatch, newJourneyData, validateSequenceOverlap, errorTimeout]
