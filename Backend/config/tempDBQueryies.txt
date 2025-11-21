@@ -1,0 +1,70 @@
+CREATE TABLE admin (
+    id SERIAL PRIMARY KEY,
+    password VARCHAR(255) NOT NULL,
+    name VARCHAR(100) NOT NULL UNIQUE,
+    email VARCHAR(150) NOT NULL UNIQUE,
+    role VARCHAR(50) NOT NULL DEFAULT 'admin'
+        CHECK (role IN ('superadmin', 'admin'))
+);
+
+
+CREATE TABLE drivers (
+    id SERIAL PRIMARY KEY,
+    password VARCHAR(255) NOT NULL,
+    name VARCHAR(100) NOT NULL UNIQUE,
+    email VARCHAR(150) NOT NULL UNIQUE,
+    driver_code INTEGER NOT NULL UNIQUE,
+    city VARCHAR(100)
+);
+
+
+CREATE TABLE city (
+    id SERIAL PRIMARY KEY,
+    job VARCHAR(100) NOT NULL UNIQUE,
+    city_code VARCHAR(50) NOT NULL UNIQUE,
+    enabled BOOLEAN DEFAULT true
+);
+
+
+CREATE TABLE routes (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    job VARCHAR(100) NOT NULL,
+    company_route_price NUMERIC(10,2) NOT NULL,
+    driver_route_price NUMERIC(10,2) NOT NULL,
+    company_doublestop_price NUMERIC(10,2) NOT NULL,
+    driver_doublestop_price NUMERIC(10,2) NOT NULL,
+    enabled BOOLEAN DEFAULT true,
+    CONSTRAINT fk_route_city FOREIGN KEY (job)
+        REFERENCES city(job)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT
+);
+
+
+CREATE TABLE excel_data (
+    id SERIAL PRIMARY KEY,
+    driver_name VARCHAR(100) NOT NULL,
+    job_city VARCHAR(100) NOT NULL,
+    route_code INTEGER NOT NULL,
+    delivery_date DATE NOT NULL,
+    address VARCHAR(255),
+    unit VARCHAR(50),
+    status VARCHAR(50),
+    track_no VARCHAR(100),
+    recipient_name VARCHAR(100),
+    transit_mark VARCHAR(100) DEFAULT NULL,
+    sequence INTEGER NOT NULL,
+    CONSTRAINT fk_excel_city FOREIGN KEY (job_city)
+        REFERENCES city(job)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT,
+    CONSTRAINT fk_excel_driver FOREIGN KEY (driver_name)
+        REFERENCES drivers(name)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT,
+    CONSTRAINT fk_excel_route FOREIGN KEY (route_code)
+        REFERENCES routes(id)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT
+);
