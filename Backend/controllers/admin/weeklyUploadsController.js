@@ -257,7 +257,14 @@ export const getWeeklyTempData=async(req,res)=>{
           insertCount++;
         }
         await client.query('COMMIT');
+
+        unlink(fileName.path,(e)=>{
+      if(e) throw new Error(e)
+        console.log('excel file deleted')
+     });
         console.log(`DB: ${insertCount} records inserted/updated successfully.`);
+
+
       } catch (error) {
         await client.query('ROLLBACK');
         console.error('DB Error:', error);

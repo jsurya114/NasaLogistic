@@ -64,7 +64,7 @@ router.get('/dashboard/paymentTable', getPaymentDashboardData) // For table data
 //Weekly Upload 
 router.post('/doubleStop/weekly-upload',upload.single('file'),weeklyExcelUpload);
 router.get('/doubleStop/fetchWeeklyTempData',getWeeklyTempData);
-router.put('/doubleStop/update-weekly-excel-to-dashboard',updateWeeklyTempDataToDashboard);
+router.post('/doubleStop/update-weekly-excel-to-dashboard',updateWeeklyTempDataToDashboard);
 
 router.get('/doubleStop/tempDashboardData',getUpdatedTempDashboardData);
 router.get('/doubleStop/calculatePayment',updatePaymentData);
