@@ -21,6 +21,7 @@ export default function RoutesForm() {
     driverRoutePrice: 0,
     companyDoubleStopPrice: 0,
     driverDoubleStopPrice: 0,
+    routeCodeInString: "",
     enabled: false,
   });
   const [editingId, setEditingId] = useState(null);
@@ -72,6 +73,7 @@ export default function RoutesForm() {
       driverRoutePrice: route.driverRoutePrice,
       companyDoubleStopPrice: route.companyDoubleStopPrice,
       driverDoubleStopPrice: route.driverDoubleStopPrice,
+      routeCodeInString: route.routeCodeInString || "",
       enabled: route.enabled,
     });
     setEditingId(route.id);
@@ -88,6 +90,7 @@ export default function RoutesForm() {
       driverRoutePrice: 0,
       companyDoubleStopPrice: 0,
       driverDoubleStopPrice: 0,
+      routeCodeInString: "",
       enabled: false,
     });
     setEditingId(null);
@@ -134,6 +137,7 @@ export default function RoutesForm() {
         driverRoutePrice: 0,
         companyDoubleStopPrice: 0,
         driverDoubleStopPrice: 0,
+        routeCodeInString: "",
         enabled: false,
       });
       setSubmitError(null);
@@ -223,6 +227,17 @@ export default function RoutesForm() {
                 placeholder="Enter route name"
                 value={formData.route}
                 onChange={(e) => handleInputChange("route", e.target.value)}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-600"
+              />
+            </div>
+
+            <div>
+              <label className="block mb-1 font-medium">Route Code (String)</label>
+              <input
+                type="text"
+                placeholder="Enter route code string (optional)"
+                value={formData.routeCodeInString}
+                onChange={(e) => handleInputChange("routeCodeInString", e.target.value)}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-600"
               />
             </div>

@@ -18,13 +18,14 @@ const mapRoute = (r) => ({
   driverRoutePrice: parseFloat(r.driver_route_price),
   companyDoubleStopPrice: parseFloat(r.company_doublestop_price),
   driverDoubleStopPrice: parseFloat(r.driver_doublestop_price),
+  routeCodeInString: r.route_code_in_string,
   enabled: r.enabled,
 });
 
 // Create a new route
 export const createRoute = async (req, res) => {
   try {
-    const { route, job, companyRoutePrice, driverRoutePrice, companyDoubleStopPrice, driverDoubleStopPrice, enabled } = req.body;
+    const { route, job, companyRoutePrice, driverRoutePrice, companyDoubleStopPrice, driverDoubleStopPrice, enabled, routeCodeInString } = req.body;
     console.log("Creating route with data:", req.body); // Debug log
 
 
@@ -44,6 +45,7 @@ if (!route || route.trim() === "") {
       driver_route_price: parseFloat(driverRoutePrice),
       company_doublestop_price: parseFloat(companyDoubleStopPrice),
       driver_doublestop_price: parseFloat(driverDoubleStopPrice),
+      route_code_in_string: routeCodeInString ? routeCodeInString.trim() : null,
       enabled: enabled || false,
     };
 
@@ -128,7 +130,7 @@ export const getRouteById = async (req, res) => {
 // Update route
 export const updateRoute = async (req, res) => {
   try {
-    const { route, job, companyRoutePrice, driverRoutePrice, companyDoubleStopPrice, driverDoubleStopPrice, enabled } = req.body;
+    const { route, job, companyRoutePrice, driverRoutePrice, companyDoubleStopPrice, driverDoubleStopPrice, enabled, routeCodeInString } = req.body;
     console.log(`Updating route id: ${req.params.id} with data:`, req.body); // Debug log
 
     // Convert price fields to numbers
@@ -139,6 +141,7 @@ export const updateRoute = async (req, res) => {
       driver_route_price: parseFloat(driverRoutePrice),
       company_doublestop_price: parseFloat(companyDoubleStopPrice),
       driver_doublestop_price: parseFloat(driverDoubleStopPrice),
+      route_code_in_string: routeCodeInString ? routeCodeInString.trim() : null,
       enabled: enabled || false,
     };
 

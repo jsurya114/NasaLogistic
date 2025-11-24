@@ -9,6 +9,7 @@ export const insertRoute = async (data) => {
     driver_route_price,
     company_doublestop_price,
     driver_doublestop_price,
+    route_code_in_string,
     enabled,
   } = data;
 
@@ -34,8 +35,8 @@ export const insertRoute = async (data) => {
   console.log("Inserting route with data:", { ...data, ...prices }); // Debug log
   const result = await pool.query(
     `INSERT INTO routes 
-      (name, job, company_route_price, driver_route_price, company_doublestop_price, driver_doublestop_price, enabled) 
-     VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+      (name, job, company_route_price, driver_route_price, company_doublestop_price, driver_doublestop_price, route_code_in_string, enabled) 
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
     [
       name,
       job,
@@ -43,9 +44,11 @@ export const insertRoute = async (data) => {
       prices.driver_route_price,
       prices.company_doublestop_price,
       prices.driver_doublestop_price,
+      route_code_in_string,
       enabled,
     ]
   );
+
   console.log("Inserted route:", result.rows[0]); // Debug log
   return result.rows[0];
 };
@@ -75,6 +78,7 @@ export const updateRouteQuery = async (id, data) => {
     driver_route_price,
     company_doublestop_price,
     driver_doublestop_price,
+    route_code_in_string,
     enabled,
   } = data;
 
@@ -101,8 +105,8 @@ export const updateRouteQuery = async (id, data) => {
   const result = await pool.query(
     `UPDATE routes 
      SET name=$1, job=$2, company_route_price=$3, driver_route_price=$4, 
-         company_doublestop_price=$5, driver_doublestop_price=$6, enabled=$7 
-     WHERE id=$8 RETURNING *`,
+        company_doublestop_price=$5, driver_doublestop_price=$6, enabled=$7, route_code_in_string=$8 
+     WHERE id=$9 RETURNING *`,
     [
       name,
       job,
@@ -111,9 +115,11 @@ export const updateRouteQuery = async (id, data) => {
       prices.company_doublestop_price,
       prices.driver_doublestop_price,
       enabled,
+      route_code_in_string,
       id,
     ]
   );
+
   console.log("Updated route:", result.rows[0] || null); // Debug log
   return result.rows[0];
 };
