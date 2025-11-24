@@ -1,4 +1,5 @@
 import AdminJourneyQuery from "../../services/admin/AjourneyQuery.js";
+import { addRangeOfSqeunceToDeliveries, checkSequenceConflict } from "../../services/driver/journeyQueries.js";
 
 import HttpStatus from "../../utils/statusCodes.js";
 
@@ -52,14 +53,25 @@ const overlappingJourneys = await AdminJourneyQuery.checkSequenceOverlap(
           }
         });
       }
+
+      const conflictSequences = await checkSequenceConflict(route_id,start_seq,end_seq)
+      if(conflictSequences.length>0){
+        return res.status(HttpStatus.BAD_REQUEST).json({
+          success:false,
+          errors:{
+            sequence:'some packages chosen in the Sequence has been already taken by another driver'
+          }
+        })
+      }
             const newJourney = await AdminJourneyQuery.addJourney({driver_id,
                 route_id,
                 start_seq,
                 end_seq,
                 journey_date
             })
+
+            const sequence = await addRangeOfSqeunceToDeliveries(driver_id,route_id,start_seq,end_seq)
             res.status(HttpStatus.CREATED).json({success:true,data:newJourney})
-       
       } catch (error) {
          res
         .status(HttpStatus.INTERNAL_SERVER_ERROR)
