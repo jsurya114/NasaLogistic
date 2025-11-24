@@ -25,6 +25,13 @@ import { blackListToken } from '../../services/redis-jwt-service.js'
         .json({ errors: { email: "Invalid email" } });
        }
 
+        // Check if admin is blocked/inactive
+      if (!admin.is_active) {
+        return res
+          .status(HttpStatus.FORBIDDEN)
+          .json({ errors: { general: "Your account has been blocked. Please contact support." } });
+      }
+
       const validPassword = await dbService.checkPassword(password,admin.password)
 
        if (!validPassword) {
@@ -80,6 +87,33 @@ import { blackListToken } from '../../services/redis-jwt-service.js'
         if(!token) return res.status(HttpStatus.UNAUTHORIZED).json({message:"UNAUTHORIZED"})
         
           const decoded= verifyToken(token);
+
+          const admin = await dbService.getAdminById(decoded.id);
+      
+      if (!admin) {
+        // Admin doesn't exist anymore
+        const isProd = process.env.NODE_ENV === 'production';
+        const opts = { httpOnly: true, secure: isProd, sameSite: isProd ? 'none' : 'lax' };
+        blackListToken(token);
+        res.clearCookie("adminToken", opts);
+        return res.status(HttpStatus.UNAUTHORIZED).json({ 
+          message: "UNAUTHORIZED",
+          blocked: true 
+        });
+      }
+
+      if (!admin.is_active) {
+        // Admin is blocked - logout immediately
+        const isProd = process.env.NODE_ENV === 'production';
+        const opts = { httpOnly: true, secure: isProd, sameSite: isProd ? 'none' : 'lax' };
+        blackListToken(token);
+        res.clearCookie("adminToken", opts);
+        return res.status(HttpStatus.UNAUTHORIZED).json({ 
+          message: "UNAUTHORIZED",
+          blocked: true 
+        });
+      }
+
           // console.log("Token from service ", decoded);
           return res.status(HttpStatus.OK).json({admin:decoded});
         

@@ -123,9 +123,10 @@ function AdminsList() {
                     <td className="px-3 py-2 border-b">{a.admin_email}</td>
                     <td className="px-3 py-2 border-b">
                       {a.role === "superadmin" ? (
-                        <span className="text-blue-600 font-semibold">{a.admin_role.toUpperCase()}</span>
+                        <span className="text-blue-600 font-semibold">{a.admin_role}</span>
+                        
                       ) : (
-                        <span className="text-gray-700">{a.admin_role.toUpperCase()}</span>
+                        <span className="text-gray-700">{a.admin_role}</span>
                       )}
                     </td>
                     <td className="px-3 py-2 border-b">{a.cities || ""}</td>

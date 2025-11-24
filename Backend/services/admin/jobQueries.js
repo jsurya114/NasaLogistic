@@ -4,12 +4,12 @@ export const jobService={
 
   getCityByJob : async(job)=>{    
     const result = await pool.query(
-    "SELECT id FROM city WHERE job = $1",
+    "SELECT id FROM city WHERE job = $1 AND enabled = true",
     [job]
   );
 
   if (result.rows.length === 0) {
-    throw new Error(`City with job "${job}" not found`);
+    throw new Error(`City with job "${job}" not found or is disabled`);
   }
 
   return result.rows[0].id;
@@ -101,13 +101,15 @@ jobPagination: async (page, limit, search = "", statusFilter = "all") => {
   }
 },
     getTotalCities: async(req,res)=>{
-    try {
-      const cities= await pool.query(`SELECT id,job  FROM city ORDER BY id ASC `);
-      return cities.rows;
-    } catch (error) {
-      console.error("GETTING CITIES ERROR:", error.message);
-        throw error;
-    }
+      try {
+    // Only return enabled cities
+    const cities= await pool.query(`SELECT id, job FROM city WHERE enabled = true ORDER BY id ASC`);
+    return cities.rows;
+  } catch (error) {
+    console.error("GETTING CITIES ERROR:", error.message);
+    throw error;
+  }
+
     },
 
 }

@@ -54,6 +54,14 @@ const {loading,error,isAuthenticated}=useSelector((state)=>state.admin);
       navigate("/admin/dashboard");
     }
   } catch (err) {
+if (err.status === 403 || err.errors?.general) {
+        toast.error(err.errors?.general || "Your account has been blocked. Please contact support.", {
+          position: "top-right",
+          autoClose: 5000,
+        });
+        return;
+      }
+
     // backend validation or server error
     if (err.errors) {
       setFieldErrors({
