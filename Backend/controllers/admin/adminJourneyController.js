@@ -1,4 +1,6 @@
 import AdminJourneyQuery from "../../services/admin/AjourneyQuery.js";
+import { addRangeOfSqeunceToDeliveries, checkSequenceConflict } from "../../services/driver/journeyQueries.js";
+
 import HttpStatus from "../../utils/statusCodes.js";
 import pool from "../../config/db.js";
 
@@ -77,27 +79,31 @@ const adminJourneyController = {
         });
       }
 
-      const newJourney = await AdminJourneyQuery.addJourney({
-        driver_id,
-        route_id,
-        start_seq,
-        end_seq,
-        journey_date
-      });
+      const conflictSequences = await checkSequenceConflict(route_id,start_seq,end_seq)
+      if(conflictSequences.length>0){
+        return res.status(HttpStatus.BAD_REQUEST).json({
+          success:false,
+          errors:{
+            sequence:'some packages chosen in the Sequence has been already taken by another driver'
+          }
+        })
+      }
+            const newJourney = await AdminJourneyQuery.addJourney({driver_id,
+                route_id,
+                start_seq,
+                end_seq,
+                journey_date
+            })
 
-      res.status(HttpStatus.CREATED).json({
-        success: true,
-        data: newJourney
-      });
-    } catch (error) {
-      res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-        success: false,
-        message: error.message
-      });
-    }
-  },
-
-  updateJourney: async (req, res) => {
+            const sequence = await addRangeOfSqeunceToDeliveries(driver_id,route_id,start_seq,end_seq)
+            res.status(HttpStatus.CREATED).json({success:true,data:newJourney})
+      } catch (error) {
+         res
+        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .json({ success: false, message: error.message });
+      }
+    },
+updateJourney: async (req, res) => {
     try {
       const journey_id = req.params.journey_id;
       const { start_seq, end_seq, route_id, driver_id } = req.body;
