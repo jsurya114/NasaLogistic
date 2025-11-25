@@ -1,0 +1,306 @@
+nasalogisticsdb=> \d access_codes;
+                                       Table "public.access_codes"
+   Column    |           Type           | Collation | Nullable |                 Default
+-------------+--------------------------+-----------+----------+------------------------------------------
+ id          | integer                  |           | not null | nextval('access_codes_id_seq'::regclass)
+ address     | character varying(255)   |           | not null |
+ access_code | character varying(50)    |           | not null |
+ created_at  | timestamp with time zone |           |          | CURRENT_TIMESTAMP
+ zip_code    | character varying(10)    |           | not null |
+ image_url1  | character varying(500)   |           |          |
+ image_url2  | character varying(500)   |           |          |
+ image_url3  | character varying(500)   |           |          |
+Indexes:
+    "access_codes_pkey" PRIMARY KEY, btree (id)
+    "access_codes_access_code_key" UNIQUE CONSTRAINT, btree (access_code)
+
+
+nasalogisticsdb=> \d admin;
+                                     Table "public.admin"
+  Column   |          Type          | Collation | Nullable |              Default
+-----------+------------------------+-----------+----------+-----------------------------------
+ id        | integer                |           | not null | nextval('admin_id_seq'::regclass)
+ password  | character varying(255) |           | not null |
+ name      | character varying(100) |           | not null |
+ email     | character varying(150) |           | not null |
+ role      | character varying(50)  |           | not null | 'admin'::character varying
+ is_active | boolean                |           | not null | true
+Indexes:
+    "admin_pkey" PRIMARY KEY, btree (id)
+    "admin_email_key" UNIQUE CONSTRAINT, btree (email)
+    "admin_name_key" UNIQUE CONSTRAINT, btree (name)
+Check constraints:
+    "admin_role_check" CHECK (role::text = ANY (ARRAY['superadmin'::character varying::text, 'admin'::character varying::text]))
+Referenced by:
+    TABLE "admin_city_ref" CONSTRAINT "admin_city_ref_admin_id_fkey" FOREIGN KEY (admin_id) REFERENCES admin(id) ON DELETE CASCADE
+
+
+nasalogisticsdb=> \d drivers;
+                                       Table "public.drivers"
+   Column    |          Type          | Collation | Nullable |               Default
+-------------+------------------------+-----------+----------+--------------------------------------
+ id          | integer                |           | not null | nextval('drivers_id_seq'::regclass)
+ password    | character varying(255) |           | not null |
+ name        | character varying(100) |           | not null |
+ email       | character varying(150) |           | not null |
+ driver_code | integer                |           | not null | nextval('driver_code_seq'::regclass)
+ city_id     | integer                |           |          |
+ enabled     | boolean                |           | not null | false
+Indexes:
+    "drivers_pkey" PRIMARY KEY, btree (id)
+    "drivers_driver_code_key" UNIQUE CONSTRAINT, btree (driver_code)
+    "drivers_email_key" UNIQUE CONSTRAINT, btree (email)
+    "drivers_name_key" UNIQUE CONSTRAINT, btree (name)
+Foreign-key constraints:
+    "fk_driver_city" FOREIGN KEY (city_id) REFERENCES city(id) ON UPDATE CASCADE ON DELETE RESTRICT
+Referenced by:
+    TABLE "dashboard_data" CONSTRAINT "fk_driver" FOREIGN KEY (driver_id) REFERENCES drivers(id) ON DELETE CASCADE
+    TABLE "route_taken_by_driver" CONSTRAINT "fk_driver" FOREIGN KEY (driver_id) REFERENCES drivers(id) ON UPDATE CASCADE ON DELETE RESTRICT
+    TABLE "deliveries" CONSTRAINT "fk_driver" FOREIGN KEY (driver_id) REFERENCES drivers(id)
+    TABLE "payment_dashboard" CONSTRAINT "fk_driver" FOREIGN KEY (driver_id) REFERENCES drivers(id)
+    TABLE "excel_data" CONSTRAINT "fk_excel_driver" FOREIGN KEY (driver_name) REFERENCES drivers(name) ON UPDATE CASCADE ON DELETE RESTRICT
+
+
+nasalogisticsdb=> \d deliveries;
+                                     Table "public.deliveries"
+     Column      |         Type          | Collation | Nullable |              Default
+-----------------+-----------------------+-----------+----------+-----------------------------------
+ unique_id       | integer               |           | not null | generated always as identity
+ driver_id       | integer               |           | not null |
+ driver_set_date | date                  |           | not null |
+ route_id        | integer               |           | not null |
+ sequence_number | integer               |           | not null |
+ address         | text                  |           | not null | 'No_Address'::text
+ zip_code        | integer               |           | not null | 0
+ recp_name       | text                  |           | not null | 'Unknown Recipient'::text
+ recipient_phone | text                  |           | not null | '0000000000'::text
+ status          | text                  |           | not null | 'Pending'::text
+ courier_code    | text                  |           | not null | 'NA'::text
+ address_unit    | text                  |           |          | 'No_Address_Unit'::text
+ seq_route_code  | character varying(20) |           | not null |
+ final_result    | final_result_enum     |           |          | 'not_assigned'::final_result_enum
+Indexes:
+    "deliveries_pkey" PRIMARY KEY, btree (unique_id)
+    "unique_seq_route_code_per_date" UNIQUE, btree (driver_set_date, seq_route_code)
+Foreign-key constraints:
+    "fk_driver" FOREIGN KEY (driver_id) REFERENCES drivers(id)
+    "fk_route" FOREIGN KEY (route_id) REFERENCES routes(id)
+
+
+
+    nasalogisticsdb=> \d dashboard_data;
+                                     Table "public.dashboard_data"
+          Column           |     Type      | Collation | Nullable |               Default
+---------------------------+---------------+-----------+----------+-------------------------------------
+ id                        | integer       |           | not null | nextval('journey_id_seq'::regclass)
+ driver_id                 | integer       |           | not null |
+ journey_date              | date          |           | not null |
+ route_id                  | integer       |           | not null |
+ packages                  | integer       |           |          | 0
+ no_scanned                | integer       |           |          | 0
+ failed_attempt            | integer       |           |          | 0
+ ds                        | integer       |           |          | 0
+ delivered                 | integer       |           |          | 0
+ closed                    | boolean       |           |          | false
+ driver_payment            | numeric(10,2) |           |          |
+ paid                      | boolean       |           |          | false
+ start_seq                 | integer       |           | not null | 0
+ end_seq                   | integer       |           | not null | 0
+ first_stop                | integer       |           |          | 0
+ is_deliveries_count_added | boolean       |           | not null | false
+Indexes:
+    "journey_pkey" PRIMARY KEY, btree (id)
+Foreign-key constraints:
+    "fk_driver" FOREIGN KEY (driver_id) REFERENCES drivers(id) ON DELETE CASCADE
+    "fk_route" FOREIGN KEY (route_id) REFERENCES routes(id) ON DELETE CASCADE
+Referenced by:
+    TABLE "payment_dashboard" CONSTRAINT "fk_dashboard_data" FOREIGN KEY (dashboard_data_id) REFERENCES dashboard_data(id)
+Triggers:
+    after_dashboard_insert AFTER INSERT ON dashboard_data FOR EACH ROW EXECUTE FUNCTION insert_payment_dashboard()
+
+
+    nasalogisticsdb=> \d payment_dashboard;
+                                     Table "public.payment_dashboard"
+      Column       |     Type      | Collation | Nullable |                    Default
+-------------------+---------------+-----------+----------+-----------------------------------------------
+ id                | integer       |           | not null | nextval('payment_dashboard_id_seq'::regclass)
+ dashboard_data_id | integer       |           | not null |
+ driver_id         | integer       |           | not null |
+ journey_date      | date          |           | not null |
+ route_id          | integer       |           | not null |
+ packages          | integer       |           |          | 0
+ no_scanned        | integer       |           |          | 0
+ failed_attempt    | integer       |           |          | 0
+ fs                | integer       |           |          | 0
+ ds                | integer       |           |          | 0
+ delivered         | integer       |           |          | 0
+ closed            | boolean       |           |          | false
+ payment_date      | date          |           |          |
+ driver_payment    | numeric(10,2) |           |          |
+ paid              | boolean       |           |          | false
+ start_seq         | integer       |           | not null | 0
+ end_seq           | integer       |           | not null | 0
+ first_stop        | integer       |           |          | 0
+Indexes:
+    "payment_dashboard_pkey" PRIMARY KEY, btree (id)
+Foreign-key constraints:
+    "fk_dashboard_data" FOREIGN KEY (dashboard_data_id) REFERENCES dashboard_data(id)
+    "fk_driver" FOREIGN KEY (driver_id) REFERENCES drivers(id)
+    "fk_route" FOREIGN KEY (route_id) REFERENCES routes(id)
+
+
+    nasalogisticsdb=> \d admin_city_ref;
+                             Table "public.admin_city_ref"
+  Column  |  Type   | Collation | Nullable |                  Default
+----------+---------+-----------+----------+--------------------------------------------
+ id       | integer |           | not null | nextval('admin_city_ref_id_seq'::regclass)
+ admin_id | integer |           | not null |
+ city_id  | integer |           | not null |
+Indexes:
+    "admin_city_ref_pkey" PRIMARY KEY, btree (id)
+    "admin_city_ref_admin_id_city_id_key" UNIQUE CONSTRAINT, btree (admin_id, city_id)
+Foreign-key constraints:
+    "admin_city_ref_admin_id_fkey" FOREIGN KEY (admin_id) REFERENCES admin(id) ON DELETE CASCADE
+    "admin_city_ref_city_id_fkey" FOREIGN KEY (city_id) REFERENCES city(id) ON DELETE CASCADE
+
+asalogisticsdb=> \d city;
+                                     Table "public.city"
+  Column   |          Type          | Collation | Nullable |             Default
+-----------+------------------------+-----------+----------+----------------------------------
+ id        | integer                |           | not null | nextval('city_id_seq'::regclass)
+ job       | character varying(100) |           | not null |
+ city_code | character varying(50)  |           | not null |
+ enabled   | boolean                |           |          | true
+Indexes:
+    "city_pkey" PRIMARY KEY, btree (id)
+    "city_city_code_key" UNIQUE CONSTRAINT, btree (city_code)
+    "city_job_key" UNIQUE CONSTRAINT, btree (job)
+Referenced by:
+    TABLE "admin_city_ref" CONSTRAINT "admin_city_ref_city_id_fkey" FOREIGN KEY (city_id) REFERENCES city(id) ON DELETE CASCADE
+    TABLE "drivers" CONSTRAINT "fk_driver_city" FOREIGN KEY (city_id) REFERENCES city(id) ON UPDATE CASCADE ON DELETE RESTRICT
+    TABLE "excel_data" CONSTRAINT "fk_excel_city" FOREIGN KEY (job_city) REFERENCES city(job) ON UPDATE CASCADE ON DELETE RESTRICT
+    TABLE "routes" CONSTRAINT "fk_route_city" FOREIGN KEY (job) REFERENCES city(job) ON UPDATE CASCADE ON DELETE RESTRICT
+
+
+nasalogisticsdb=> \d weeklycount;
+                                         Table "public.weeklycount"
+      Column      |          Type          | Collation | Nullable |                 Default
+------------------+------------------------+-----------+----------+-----------------------------------------
+ id               | integer                |           | not null | nextval('weeklycount_id_seq'::regclass)
+ courier_name     | character varying(100) |           | not null |
+ driver_id        | integer                |           | not null |
+ del_route        | character varying(100) |           |          |
+ total_deliveries | integer                |           |          | 0
+ fs               | integer                |           |          | 0
+ ds               | integer                |           |          | 0
+ del_date         | date                   |           | not null |
+Indexes:
+    "weeklycount_pkey" PRIMARY KEY, btree (id)
+    "weeklycount_unique" UNIQUE CONSTRAINT, btree (driver_id, del_date, del_route)
+
+
+    nasalogisticsdb=> \d weekly_excel_data;
+                                          Table "public.weekly_excel_data"
+    Column     |            Type             | Collation | Nullable |                    Default
+---------------+-----------------------------+-----------+----------+-----------------------------------------------
+ id            | integer                     |           | not null | nextval('weekly_excel_data_id_seq'::regclass)
+ orig_name     | character varying(25)       |           |          |
+ match_name    | character varying(25)       |           |          |
+ date          | date                        |           |          |
+ deliveries    | integer                     |           |          |
+ fullstop      | integer                     |           |          |
+ doublestop    | integer                     |           |          |
+ route         | text                        |           |          |
+ start_seq     | integer                     |           |          |
+ end_seq       | integer                     |           |          |
+ ambiguous     | boolean                     |           |          |
+ failedattempt | integer                     |           |          |
+ no_scanned    | integer                     |           |          | 0
+ upload_date   | timestamp without time zone |           |          | now()
+Indexes:
+    "weekly_excel_data_pkey" PRIMARY KEY, btree (id)
+
+
+    nasalogisticsdb=> \d  todays_excel_data;
+                                           Table "public.todays_excel_data"
+     Column      |            Type             | Collation | Nullable |                    Default
+-----------------+-----------------------------+-----------+----------+-----------------------------------------------
+ id              | integer                     |           | not null | nextval('todays_excel_data_id_seq'::regclass)
+ route           | text                        |           |          |
+ sequence        | integer                     |           |          |
+ address         | text                        |           |          |
+ unit            | text                        |           |          |
+ zipcode         | integer                     |           |          |
+ tracking_no     | text                        |           |          |
+ recipient_name  | text                        |           |          |
+ recipient_phone | text                        |           |          |
+ status          | text                        |           |          |
+ complete_time   | timestamp without time zone |           |          |
+ seq_route_code  | text                        |           |          |
+ upload_date     | timestamp without time zone |           |          |
+Indexes:
+    "todays_excel_data_pkey" PRIMARY KEY, btree (id)
+
+
+
+nasalogisticsdb=> \d staging_excel_upload;
+            Table "public.staging_excel_upload"
+     Column      |  Type   | Collation | Nullable | Default
+-----------------+---------+-----------+----------+---------
+ route           | text    |           |          |
+ sequence        | integer |           |          |
+ address         | text    |           |          |
+ unit            | text    |           |          |
+ zipcode         | text    |           |          |
+ tracking_no     | text    |           |          |
+ recipient_name  | text    |           |          |
+ recipient_phone | text    |           |          |
+ status          | text    |           |          |
+
+
+
+
+
+nasalogisticsdb=> \d route_taken_by_driver;
+                                       Table "public.route_taken_by_driver"
+     Column     |         Type          | Collation | Nullable |                      Default
+----------------+-----------------------+-----------+----------+---------------------------------------------------
+ id             | integer               |           | not null | nextval('route_taken_by_driver_id_seq'::regclass)
+ driver_id      | integer               |           | not null |
+ route_id       | integer               |           | not null |
+ journey_date   | date                  |           | not null |
+ route_code     | character varying(50) |           | not null |
+ start_sequence | integer               |           | not null |
+ end_sequence   | integer               |           | not null |
+Indexes:
+    "route_taken_by_driver_pkey" PRIMARY KEY, btree (id)
+Foreign-key constraints:
+    "fk_driver" FOREIGN KEY (driver_id) REFERENCES drivers(id) ON UPDATE CASCADE ON DELETE RESTRICT
+    "fk_route" FOREIGN KEY (route_id) REFERENCES routes(id) ON UPDATE CASCADE ON DELETE RESTRICT
+
+
+
+nasalogisticsdb=> \d routes;
+                                             Table "public.routes"
+          Column          |          Type          | Collation | Nullable |              Default
+--------------------------+------------------------+-----------+----------+------------------------------------
+ id                       | integer                |           | not null | nextval('routes_id_seq'::regclass)
+ name                     | character varying(100) |           | not null |
+ job                      | character varying(100) |           | not null |
+ company_route_price      | numeric(10,2)          |           | not null |
+ driver_route_price       | numeric(10,2)          |           | not null |
+ company_doublestop_price | numeric(10,2)          |           | not null |
+ driver_doublestop_price  | numeric(10,2)          |           | not null |
+ enabled                  | boolean                |           |          | true
+ route_code_in_string     | text                   |           |          |
+Indexes:
+    "routes_pkey" PRIMARY KEY, btree (id)
+    "unique_route_name_per_job" UNIQUE CONSTRAINT, btree (name, job)
+Foreign-key constraints:
+    "fk_route_city" FOREIGN KEY (job) REFERENCES city(job) ON UPDATE CASCADE ON DELETE RESTRICT
+Referenced by:
+    TABLE "excel_data" CONSTRAINT "fk_excel_route" FOREIGN KEY (route_code) REFERENCES routes(id) ON UPDATE CASCADE ON DELETE RESTRICT
+    TABLE "dashboard_data" CONSTRAINT "fk_route" FOREIGN KEY (route_id) REFERENCES routes(id) ON DELETE CASCADE
+    TABLE "route_taken_by_driver" CONSTRAINT "fk_route" FOREIGN KEY (route_id) REFERENCES routes(id) ON UPDATE CASCADE ON DELETE RESTRICT
+    TABLE "deliveries" CONSTRAINT "fk_route" FOREIGN KEY (route_id) REFERENCES routes(id)
+    TABLE "payment_dashboard" CONSTRAINT "fk_route" FOREIGN KEY (route_id) REFERENCES routes(id)
