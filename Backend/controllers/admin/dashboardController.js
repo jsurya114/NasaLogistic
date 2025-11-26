@@ -67,7 +67,8 @@ export const updateWeeklyTempDataToDashboard = async (req, res) => {
     try {
         console.log("Reached Update of Temp data to dashboard");
         const rowsInserted = await WeeklyExcelQueries.createEntriesFromWeeklyCount();
-        console.log(`Total rows inserted: ${rowsInserted}`);
+        // console.log(`Total rows inserted: ${rowsInserted}`);
+        await WeeklyExcelQueries.deleteWeeklyTableIfExists('weeklycount');
         return res.status(200).json({ success: true, rowsInserted });
     } catch (err) {
         console.error('Route handler error:', err);

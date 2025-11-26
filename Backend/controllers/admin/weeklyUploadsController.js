@@ -258,7 +258,7 @@ export const getWeeklyTempData=async(req,res)=>{
         }
         await client.query('COMMIT');
 
-        unlink(fileName.path,(e)=>{
+        unlink(filePath,(e)=>{
       if(e) throw new Error(e)
         console.log('excel file deleted')
      });

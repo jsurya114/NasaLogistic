@@ -297,61 +297,140 @@ deleteWeeklyData: async () => {
   // }
 
 
-  createEntriesFromWeeklyCount: async () => {
+//   createEntriesFromWeeklyCount: async () => {
 
-    console.log("⏳ Starting dashboard_data insertion...");
+//     console.log("⏳ Starting dashboard_data insertion...");
+//   const client = await pool.connect();
+
+//   try {
+//     await client.query('BEGIN');
+
+//     const insertQuery = `
+//       WITH inserted AS (
+//         INSERT INTO dashboard_data (
+//           driver_id, journey_date, route_id, packages, first_stop, ds, delivered,
+//           driver_payment, closed, paid, is_deliveries_count_added
+//         )
+//         SELECT 
+//           d.id AS driver_id,
+//           wc.del_date AS journey_date,
+//           r.id AS route_id,
+//           wc.total_deliveries AS packages,
+//           wc.fs AS first_stop,
+//           wc.ds AS ds,
+//           wc.total_deliveries AS delivered,
+//           ((wc.fs * r.driver_route_price) + (wc.ds * r.driver_doublestop_price)) AS driver_payment,
+//           FALSE, FALSE, FALSE
+//         FROM weeklycount wc
+//         INNER JOIN drivers d ON wc.driver_id = d.driver_code
+//         LEFT JOIN city c ON SUBSTRING(wc.del_route FROM '^[A-Za-z]+') = c.city_code
+//         INNER JOIN routes r 
+//           ON LTRIM(SUBSTRING(wc.del_route FROM '\\d+$'), '0') = r.name
+//          AND r.job = c.job
+//          AND r.enabled = TRUE
+//         WHERE d.enabled = TRUE
+//         ON CONFLICT DO NOTHING
+//         RETURNING id, packages, first_stop, ds, delivered, driver_payment, closed, paid
+//       )
+//       UPDATE payment_dashboard pd
+//       SET 
+//         packages = i.packages,
+//         fs = i.first_stop,
+//         ds = i.ds,
+//         delivered = i.delivered,
+//         driver_payment = i.driver_payment,
+//         closed = i.closed,
+//         paid = i.paid
+//       FROM inserted i
+//       WHERE pd.dashboard_data_id = i.id
+//       RETURNING i.id;
+//     `;
+
+//     const result = await client.query(insertQuery);
+
+//     console.log(`✅ Inserted or updated ${result.rowCount} rows in dashboard_data/payment_dashboard`);
+
+//     await client.query('COMMIT');
+//     return result.rowCount;
+//   } catch (err) {
+//     await client.query('ROLLBACK');
+//     console.error("❌ Error in createEntriesFromWeeklyCount:", err);
+//     throw err;
+//   } finally {
+//     client.release();
+//   }
+// },
+
+createEntriesFromWeeklyCount: async () => {
+  console.log("⏳ Starting dashboard_data insertion...");
   const client = await pool.connect();
 
   try {
     await client.query('BEGIN');
 
+    // QUERY 1: Insert into dashboard_data (triggers the function)
     const insertQuery = `
-      WITH inserted AS (
-        INSERT INTO dashboard_data (
-          driver_id, journey_date, route_id, packages, first_stop, ds, delivered,
-          driver_payment, closed, paid, is_deliveries_count_added
-        )
-        SELECT 
-          d.id AS driver_id,
-          wc.del_date AS journey_date,
-          r.id AS route_id,
-          wc.total_deliveries AS packages,
-          wc.fs AS first_stop,
-          wc.ds AS ds,
-          wc.total_deliveries AS delivered,
-          ((wc.fs * r.driver_route_price) + (wc.ds * r.driver_doublestop_price)) AS driver_payment,
-          FALSE, FALSE, FALSE
-        FROM weeklycount wc
-        INNER JOIN drivers d ON wc.driver_id = d.driver_code
-        LEFT JOIN city c ON SUBSTRING(wc.del_route FROM '^[A-Za-z]+') = c.city_code
-        INNER JOIN routes r 
-          ON LTRIM(SUBSTRING(wc.del_route FROM '\\d+$'), '0') = r.name
-         AND r.job = c.job
-         AND r.enabled = TRUE
-        WHERE d.enabled = TRUE
-        ON CONFLICT DO NOTHING
-        RETURNING id, packages, first_stop, ds, delivered, driver_payment, closed, paid
+      INSERT INTO dashboard_data (
+        driver_id, journey_date, route_id, packages, first_stop, ds, delivered,
+        driver_payment, closed, paid, is_deliveries_count_added
       )
-      UPDATE payment_dashboard pd
-      SET 
-        packages = i.packages,
-        fs = i.first_stop,
-        ds = i.ds,
-        delivered = i.delivered,
-        driver_payment = i.driver_payment,
-        closed = i.closed,
-        paid = i.paid
-      FROM inserted i
-      WHERE pd.dashboard_data_id = i.id
-      RETURNING i.id;
+      SELECT 
+        d.id AS driver_id,
+        wc.del_date AS journey_date,
+        r.id AS route_id,
+        wc.total_deliveries AS packages,
+        wc.fs AS first_stop,
+        wc.ds AS ds,
+        wc.total_deliveries AS delivered,
+        ((wc.fs * r.driver_route_price) + (wc.ds * r.driver_doublestop_price)) AS driver_payment,
+        FALSE, FALSE, FALSE
+      FROM weeklycount wc
+      INNER JOIN drivers d ON wc.driver_id = d.driver_code
+      LEFT JOIN city c ON SUBSTRING(wc.del_route FROM '^[A-Za-z]+') = c.city_code
+      INNER JOIN routes r 
+        ON LTRIM(SUBSTRING(wc.del_route FROM '\\d+$'), '0') = r.name
+       AND r.job = c.job
+       AND r.enabled = TRUE
+      WHERE d.enabled = TRUE
+      ON CONFLICT DO NOTHING
+      RETURNING id
     `;
 
-    const result = await client.query(insertQuery);
+    const insertResult = await client.query(insertQuery);
+    const insertedIds = insertResult.rows.map(row => row.id);
 
-    console.log(`✅ Inserted or updated ${result.rowCount} rows in dashboard_data/payment_dashboard`);
+    console.log(`✅ Inserted ${insertResult.rowCount} rows into dashboard_data`);
+    console.log(`⏳ Trigger function has created payment_dashboard entries...`);
+
+    // QUERY 2: Update payment_dashboard with business logic
+    // Only update the newly inserted records
+    const updateQuery = `
+      UPDATE payment_dashboard pd
+      SET 
+        packages = dd.packages,
+        fs = dd.first_stop,
+        ds = dd.ds,
+        delivered = dd.delivered,
+        driver_payment = dd.driver_payment,
+        closed = dd.closed,
+        paid = dd.paid
+      FROM dashboard_data dd
+      WHERE pd.dashboard_data_id = dd.id
+        AND dd.id = ANY($1)
+      RETURNING pd.id
+    `;
+
+    const updateResult = await client.query(updateQuery, [insertedIds]);
+
+    console.log(`✅ Updated ${updateResult.rowCount} rows in payment_dashboard`);
 
     await client.query('COMMIT');
-    return result.rowCount;
+
+    return {
+      inserted: insertResult.rowCount,
+      updated: updateResult.rowCount,
+      totalAffected: insertResult.rowCount
+    };
   } catch (err) {
     await client.query('ROLLBACK');
     console.error("❌ Error in createEntriesFromWeeklyCount:", err);
