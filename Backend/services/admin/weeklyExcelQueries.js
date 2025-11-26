@@ -54,6 +54,19 @@ import pool from "../../config/db.js";
     }
   },
 
+  // tableCheckQuery:async()=>{
+  //   const tableCheckQuery = `
+  //           SELECT EXISTS (
+  //               SELECT 1 FROM information_schema.tables 
+  //               WHERE table_schema = 'public' 
+  //               AND table_name = 'weeklycount'
+  //           ) AS table_exists;
+  //       `;
+
+  //       const tableCheckResult = await pool.query(tableCheckQuery);
+  //       const tableExists = tableCheckResult.rows[0].table_exists;
+  // },
+
   insertBatchDatafromExcel:async(insertPlaceholders,insertValues)=>{
 
     let insertQuery=`

@@ -65,11 +65,28 @@ export const updatePaymentData = async (req, res) => {
 
 export const updateWeeklyTempDataToDashboard = async (req, res) => {
     try {
-        console.log("Reached Update of Temp data to dashboard");
-        const rowsInserted = await WeeklyExcelQueries.createEntriesFromWeeklyCount();
-        // console.log(`Total rows inserted: ${rowsInserted}`);
-        await WeeklyExcelQueries.deleteWeeklyTableIfExists('weeklycount');
-        return res.status(200).json({ success: true, rowsInserted });
+        
+      const isExists = await WeeklyExcelQueries.getWeeklyData();
+
+      if (!isExists.exists) {
+          return res.status(404).json({ 
+              success: false, 
+              error: "Weekly count table does not exist or is empty",
+              message: "Please upload weekly data first"
+          });
+      }
+
+      // If data exists, proceed with insertion
+      console.log(`✅ Weekly data found with ${isExists.rowCount} rows. Starting insertion...`);
+
+      const rowsInserted = await WeeklyExcelQueries.createEntriesFromWeeklyCount();
+      await WeeklyExcelQueries.deleteWeeklyTableIfExists('weeklycount');
+
+      return res.status(200).json({ 
+          success: true, 
+          rowsInserted, 
+          message: "Data inserted successfully!!" 
+      });
     } catch (err) {
         console.error('Route handler error:', err);
         return res.status(500).json({ success: false, error: err.message });
