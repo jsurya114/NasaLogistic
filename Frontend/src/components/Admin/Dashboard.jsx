@@ -217,6 +217,12 @@ export default function Dashboard() {
               >
                 Clear Filters
               </button>
+                <button
+                  onClick={handleAddDelivery}
+                   className="bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg shadow-md hover:bg-blue-700 transition-colors"
+                >
+                  Add Delivery
+                </button>
             </div>
 
             {/* Extra Fields */}
@@ -246,12 +252,7 @@ export default function Dashboard() {
                   </div>
                 ))}
 
-                <button
-                  onClick={handleAddDelivery}
-                  className="bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg shadow-md hover:bg-blue-700 w-full sm:w-40 mx-auto mt-3"
-                >
-                  Add Delivery
-                </button>
+              
               </div>
             )}
           </div>
