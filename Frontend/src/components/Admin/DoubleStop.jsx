@@ -284,7 +284,15 @@ const DoubleStop = () => {
 
     const formData = new FormData();
     formData.append("file", file);
-    dispatch(excelWeeklyFileUpload(formData));
+    
+    dispatch(excelWeeklyFileUpload(formData)).unwrap()
+    .then(()=>{
+      toast.success("Weekly Excel upload completed!!");
+      setFile(null);
+    })
+    .catch((err)=>{
+      toast.error("Error while processing weekly upload")
+    });
   };
 
 

@@ -405,7 +405,12 @@ createEntriesFromWeeklyCount: async () => {
        AND r.job = c.job
        AND r.enabled = TRUE
       WHERE d.enabled = TRUE
-      ON CONFLICT DO NOTHING
+       AND NOT EXISTS (
+          SELECT 1 FROM dashboard_data dd
+          WHERE dd.driver_id = d.id
+            AND dd.journey_date = wc.del_date
+            AND dd.route_id = r.id
+        )
       RETURNING id
     `;
 
