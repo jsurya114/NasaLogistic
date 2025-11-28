@@ -9,7 +9,6 @@ function AddDriverForm({ onSubmit }) {
   const [form, setForm] = useState({
     name: "",
     email: "",
-    driverCode:null,
     password: "",
     confirmPassword: "",
     city: "",
@@ -27,7 +26,6 @@ function AddDriverForm({ onSubmit }) {
     let newErrors = {};
     if (!form.name.trim()) newErrors.name = "Name is required";
     if (!form.email.trim()) newErrors.email = "Email is required";
-    if(!form.driverCode.trim()) newErrors.driverCode = "Driver Code is required";
     if (!form.password.trim()) newErrors.password = "Password is required";
     if (!form.confirmPassword.trim()) newErrors.confirmPassword = "Confirm Password is required";
     if (form.password !== form.confirmPassword)
@@ -49,7 +47,6 @@ function AddDriverForm({ onSubmit }) {
     setForm({
       name: "",
       email: "",
-      driverCode:null,
       password: "",
       confirmPassword: "",
       city: "",
@@ -79,16 +76,6 @@ function AddDriverForm({ onSubmit }) {
         className="px-3 py-2 border rounded-lg"
       />
       {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
-
-      <input
-        type="number"
-        name="driverCode"
-        value={form.driverCode}
-        onChange={handleChange}
-        placeholder="Driver Code"
-        className="px-3 py-2 border rounded-lg"
-      />
-      {errors.driverCode && <p className="text-red-500 text-sm">{errors.driverCode}</p>}
 
       <input
         type="password"
