@@ -52,6 +52,7 @@ const excelSlice = createSlice({
   initialState: {  weekly: {
       loading: false,
       success: null,
+      message:null,
       error: null,
       data: null,
     },
@@ -95,13 +96,16 @@ const excelSlice = createSlice({
         state.weekly.success = false;
       })
       .addCase(excelWeeklyFileUpload.fulfilled, (state, action) => {
+        console.log("Excel upload",action.payload);
         state.weekly.loading = false;
         state.weekly.success = action.payload.message;
+        state.weekly.message=action.payload.message;
         state.weekly.data = action.payload.insertedData;
       })
       .addCase(excelWeeklyFileUpload.rejected, (state, action) => {
         state.weekly.loading = false;
-        state.weekly.error = action.payload || "Something went wrong";
+        // state.weekly.message="Uploading";
+        state.weekly.error =action.payload.message || "Error while Uploading";
       });
 
   },
