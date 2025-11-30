@@ -20,7 +20,7 @@ export const dbService={
         return result.rows[0];
     },
 
-    getDriverByCode :async(code)=>{
+     getDriverByCode :async(code)=>{
         let result = await pool.query("SELECT * FROM drivers WHERE email =$1",[code]);
         return result.rows[0];
     },
@@ -87,7 +87,7 @@ export const dbService={
 
     const result = await pool.query(
       `INSERT INTO drivers (name, email,driver_code, password, city_id, enabled) 
-       VALUES ($1, $2, $3, $4, $5,$6) 
+       VALUES ($1, $2, $3, $4, $5,$6)
        RETURNING id,name,email,enabled,city_id,driver_code`,
       [data.name, data.email,data.driverCode, hashedPwd, city_id, data.enabled]
     );
