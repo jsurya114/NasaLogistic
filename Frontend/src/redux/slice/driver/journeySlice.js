@@ -1,95 +1,112 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk, createEntityAdapter } from "@reduxjs/toolkit";
 import { API_BASE_URL } from "../../../config";
 
-// Fetch all routes (for driver app) with request cancellation
+// ✅ Entity adapters for normalized state
+const journeysAdapter = createEntityAdapter({
+  selectId: (journey) => journey.id,
+  sortComparer: (a, b) => new Date(b.journey_date) - new Date(a.journey_date),
+});
+
+const routesAdapter = createEntityAdapter({
+  selectId: (route) => route.id,
+});
+
+const driversAdapter = createEntityAdapter({
+  selectId: (driver) => driver.id,
+  sortComparer: (a, b) => a.name?.localeCompare(b.name),
+});
+
+// ===== ASYNC THUNKS =====
+
+// Fetch routes for driver app
 export const fetchRoutes = createAsyncThunk(
-  "routes/fetchRoutes", 
+  "journey/fetchRoutes",
   async (_, { signal, rejectWithValue }) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/driver/routes-list`, { signal, credentials: 'include' });
-      
+      const res = await fetch(`${API_BASE_URL}/driver/routes-list`, {
+        signal,
+        credentials: "include",
+      });
+
       if (!res.ok) {
         const error = await res.json().catch(() => ({}));
         return rejectWithValue(error.error || "Failed to fetch routes");
       }
-      
+
       const data = await res.json();
-      return data;
+      return data.routes || data.data || data || [];
     } catch (error) {
-      if (error.name === 'AbortError') {
-        return rejectWithValue('Request cancelled');
+      if (error.name === "AbortError") {
+        return rejectWithValue("Request cancelled");
       }
-      console.error("fetchRoutes error:", error);
       return rejectWithValue(error.message);
     }
   },
   {
-    // Prevent duplicate fetches - check status before dispatching
     condition: (_, { getState }) => {
       const { journey } = getState();
-      return journey.routesStatus !== 'loading' && journey.routesStatus !== 'succeeded';
+      return journey.routesStatus !== "loading";
     },
   }
 );
 
-// Fetch routes for admin panel with request cancellation
+// Fetch routes for admin panel
 export const fetchAdminRoutes = createAsyncThunk(
-  "routes/fetchAdminRoutes", 
+  "journey/fetchAdminRoutes",
   async (_, { signal, rejectWithValue }) => {
     try {
-      // Use routes-list endpoint instead of paginated routes endpoint
-      const res = await fetch(`${API_BASE_URL}/admin/routes-list`, { 
-        signal, 
-        credentials: 'include' 
+      const res = await fetch(`${API_BASE_URL}/admin/routes-list`, {
+        signal,
+        credentials: "include",
       });
-      
+
       if (!res.ok) {
         const error = await res.json().catch(() => ({}));
         return rejectWithValue(error.error || "Failed to fetch admin routes");
       }
-      
+
       const data = await res.json();
-      // Handle different response formats
       return data.routes || data.data || data || [];
     } catch (error) {
-      if (error.name === 'AbortError') {
-        return rejectWithValue('Request cancelled');
+      if (error.name === "AbortError") {
+        return rejectWithValue("Request cancelled");
       }
-      console.error("fetchAdminRoutes error:", error);
       return rejectWithValue(error.message);
     }
   },
   {
     condition: (_, { getState }) => {
       const { journey } = getState();
-      return journey.routesStatus !== 'loading' && journey.routesStatus !== 'succeeded';
+      return journey.routesStatus !== "loading";
     },
   }
 );
 
-// Fetch today's journey with request cancellation
+// Fetch today's journey
 export const fetchTodayJourney = createAsyncThunk(
-  "journeys/fetchTodayJourney",
+  "journey/fetchTodayJourney",
   async (driver_id, { signal, rejectWithValue }) => {
     try {
       if (!driver_id) {
         return rejectWithValue("Driver ID is required");
       }
 
-      const res = await fetch(`${API_BASE_URL}/driver/journey/${driver_id}`, { signal, credentials: 'include' });
-      
+      const res = await fetch(`${API_BASE_URL}/driver/journey/${driver_id}`, {
+        signal,
+        credentials: "include",
+      });
+
       if (!res.ok) {
         const error = await res.json().catch(() => ({}));
         return rejectWithValue(error.message || "Failed to fetch journey");
       }
-      
+
       const data = await res.json();
       return data.data || [];
     } catch (error) {
-      if (error.name === 'AbortError') {
-        return rejectWithValue('Request cancelled');
+      if (error.name === "AbortError") {
+        return rejectWithValue("Request cancelled");
       }
-      console.error("fetchTodayJourney error:", error);
       return rejectWithValue(error.message);
     }
   }
@@ -97,25 +114,24 @@ export const fetchTodayJourney = createAsyncThunk(
 
 // Save journey
 export const saveJourney = createAsyncThunk(
-  "journeys/saveJourney",
+  "journey/saveJourney",
   async (journeyData, { rejectWithValue }) => {
     try {
       const res = await fetch(`${API_BASE_URL}/driver/journey`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(journeyData),
-        credentials: 'include',
+        credentials: "include",
       });
-      
+
       const data = await res.json();
-      
+
       if (!res.ok) {
         return rejectWithValue(data);
       }
-      
+
       return data.data;
     } catch (error) {
-      console.error("saveJourney error:", error);
       return rejectWithValue({ message: error.message });
     }
   }
@@ -123,22 +139,24 @@ export const saveJourney = createAsyncThunk(
 
 // Fetch all journeys (admin)
 export const fetchAllJourneys = createAsyncThunk(
-  "journeys/fetchAllJourneys",
+  "journey/fetchAllJourneys",
   async (_, { signal, rejectWithValue }) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/admin/journeys`, { signal, credentials: 'include' });
-      
+      const res = await fetch(`${API_BASE_URL}/admin/journeys`, {
+        signal,
+        credentials: "include",
+      });
+
       if (!res.ok) {
         return rejectWithValue("Failed to fetch all journeys");
       }
-      
+
       const data = await res.json();
       return data.data || [];
     } catch (error) {
-      if (error.name === 'AbortError') {
-        return rejectWithValue('Request cancelled');
+      if (error.name === "AbortError") {
+        return rejectWithValue("Request cancelled");
       }
-      console.error("fetchAllJourneys error:", error);
       return rejectWithValue(error.message);
     }
   }
@@ -146,103 +164,111 @@ export const fetchAllJourneys = createAsyncThunk(
 
 // Add journey (admin)
 export const addJourney = createAsyncThunk(
-  "journeys/addJourney",
+  "journey/addJourney",
   async (journeyData, { rejectWithValue }) => {
     try {
       const res = await fetch(`${API_BASE_URL}/admin/journey`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(journeyData),
-        credentials: 'include',
+        credentials: "include",
       });
-      
+
       const data = await res.json();
-      
+
       if (!res.ok) {
         return rejectWithValue(data);
       }
-      
+
       return data.data;
     } catch (error) {
-      console.error("addJourney error:", error);
       return rejectWithValue({ message: error.message });
     }
   }
 );
 
-// Fetch all drivers with caching
+// Fetch all drivers
 export const fetchAllDrivers = createAsyncThunk(
-  "drivers/fetchAll",
+  "journey/fetchAllDrivers",
   async (_, { signal, rejectWithValue }) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/admin/drivers`, { signal, credentials: 'include' });
-      
+      const res = await fetch(`${API_BASE_URL}/admin/drivers`, {
+        signal,
+        credentials: "include",
+      });
+
       if (!res.ok) {
         return rejectWithValue("Failed to fetch drivers");
       }
-      
+
       const data = await res.json();
       return data.data || [];
     } catch (error) {
-      if (error.name === 'AbortError') {
-        return rejectWithValue('Request cancelled');
+      if (error.name === "AbortError") {
+        return rejectWithValue("Request cancelled");
       }
-      console.error("fetchAllDrivers error:", error);
       return rejectWithValue(error.message);
     }
   },
   {
     condition: (_, { getState }) => {
       const { journey } = getState();
-      return journey.driversStatus !== 'loading' && journey.driversStatus !== 'succeeded';
+      return journey.driversStatus !== "loading";
     },
   }
 );
 
 // Update journey (admin)
 export const updateJourney = createAsyncThunk(
-  "journeys/updateJourney",
+  "journey/updateJourney",
   async ({ journey_id, updatedData }, { rejectWithValue }) => {
     try {
       const res = await fetch(`${API_BASE_URL}/admin/journey/${journey_id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updatedData),
-        credentials: 'include',
+        credentials: "include",
       });
 
       const data = await res.json();
 
-      // FIX: properly handle backend validation errors
       if (!res.ok) {
-        return rejectWithValue(data); // contains { errors: ... }
+        return rejectWithValue(data);
       }
 
       return data.data;
     } catch (error) {
-      console.error("updateJourney error:", error);
       return rejectWithValue({ message: error.message });
     }
   }
 );
 
+// ===== SLICE =====
 
 const journeySlice = createSlice({
   name: "journey",
   initialState: {
-    routes: [],
+    // Routes
+    routes: routesAdapter.getInitialState(),
     routesStatus: "idle",
     routesError: null,
-    journeys: [],
+
+    // Driver journeys
+    journeys: journeysAdapter.getInitialState(),
     journeyStatus: "idle",
     journeyError: null,
-    adminJourneys: [],
+
+    // Admin journeys
+    adminJourneys: journeysAdapter.getInitialState(),
     adminStatus: "idle",
     adminError: null,
-    drivers: [],
+
+    // Drivers
+    drivers: driversAdapter.getInitialState(),
     driversStatus: "idle",
     driversError: null,
   },
+
   reducers: {
     clearRoutesError(state) {
       state.routesError = null;
@@ -251,25 +277,17 @@ const journeySlice = createSlice({
       state.journeyError = null;
       state.adminError = null;
     },
-    resetRoutesStatus(state) {
-      state.routesStatus = "idle";
-    },
-    resetJourneyStatus(state) {
-      state.journeyStatus = "idle";
-    },
-    // Reset all status to force fresh data fetch
     resetAllStatus(state) {
       state.routesStatus = "idle";
       state.journeyStatus = "idle";
       state.adminStatus = "idle";
       state.driversStatus = "idle";
     },
-    // Clear all data (useful for logout)
     clearAllData(state) {
-      state.routes = [];
-      state.journeys = [];
-      state.adminJourneys = [];
-      state.drivers = [];
+      routesAdapter.removeAll(state.routes);
+      journeysAdapter.removeAll(state.journeys);
+      journeysAdapter.removeAll(state.adminJourneys);
+      driversAdapter.removeAll(state.drivers);
       state.routesStatus = "idle";
       state.journeyStatus = "idle";
       state.adminStatus = "idle";
@@ -280,164 +298,172 @@ const journeySlice = createSlice({
       state.driversError = null;
     },
   },
+
   extraReducers: (builder) => {
-    // ============ ROUTES (Driver app) ============
     builder
+      // ===== ROUTES (Driver) =====
       .addCase(fetchRoutes.pending, (state) => {
         state.routesStatus = "loading";
         state.routesError = null;
       })
       .addCase(fetchRoutes.fulfilled, (state, action) => {
         state.routesStatus = "succeeded";
-        const routesData = action.payload?.routes || action.payload?.data || action.payload || [];
-        state.routes = Array.isArray(routesData) ? routesData : [];
+        routesAdapter.setAll(state.routes, action.payload);
         state.routesError = null;
       })
       .addCase(fetchRoutes.rejected, (state, action) => {
-        // Don't set error for cancelled requests
-        if (action.payload !== 'Request cancelled') {
+        if (action.payload !== "Request cancelled") {
           state.routesStatus = "failed";
-          state.routesError = action.payload || action.error.message;
+          state.routesError = action.payload;
         }
-      });
+      })
 
-    // ============ ADMIN ROUTES ============
-    builder
+      // ===== ADMIN ROUTES =====
       .addCase(fetchAdminRoutes.pending, (state) => {
         state.routesStatus = "loading";
         state.routesError = null;
       })
       .addCase(fetchAdminRoutes.fulfilled, (state, action) => {
         state.routesStatus = "succeeded";
-        const routesData = action.payload?.routes || action.payload?.data || action.payload || [];
-        state.routes = Array.isArray(routesData) ? routesData : [];
+        routesAdapter.setAll(state.routes, action.payload);
         state.routesError = null;
       })
       .addCase(fetchAdminRoutes.rejected, (state, action) => {
-        if (action.payload !== 'Request cancelled') {
+        if (action.payload !== "Request cancelled") {
           state.routesStatus = "failed";
-          state.routesError = action.payload || action.error.message;
+          state.routesError = action.payload;
         }
-      });
+      })
 
-    // ============ JOURNEYS ============
-    builder
+      // ===== TODAY'S JOURNEY =====
       .addCase(fetchTodayJourney.pending, (state) => {
         state.journeyStatus = "loading";
         state.journeyError = null;
       })
       .addCase(fetchTodayJourney.fulfilled, (state, action) => {
         state.journeyStatus = "succeeded";
-        state.journeys = Array.isArray(action.payload) ? action.payload : [];
+        journeysAdapter.setAll(state.journeys, action.payload);
         state.journeyError = null;
       })
       .addCase(fetchTodayJourney.rejected, (state, action) => {
-        if (action.payload !== 'Request cancelled') {
+        if (action.payload !== "Request cancelled") {
           state.journeyStatus = "failed";
-          state.journeyError = action.payload || action.error.message;
+          state.journeyError = action.payload;
         }
       })
+
+      // ===== SAVE JOURNEY =====
       .addCase(saveJourney.pending, (state) => {
         state.journeyStatus = "loading";
         state.journeyError = null;
       })
       .addCase(saveJourney.fulfilled, (state, action) => {
         state.journeyStatus = "succeeded";
-        // Add to journeys array if not duplicate
-        const exists = state.journeys.some(j => j.id === action.payload.id);
-        if (!exists) {
-          state.journeys.unshift(action.payload); // Add at beginning
-        }
+        journeysAdapter.upsertOne(state.journeys, action.payload);
         state.journeyError = null;
       })
       .addCase(saveJourney.rejected, (state, action) => {
         state.journeyStatus = "failed";
-        state.journeyError = action.payload?.message || action.error.message;
-      });
+        state.journeyError = action.payload?.message || "Failed to save journey";
+      })
 
-    // ============ ADMIN JOURNEYS ============
-    builder
+      // ===== ADMIN JOURNEYS =====
       .addCase(fetchAllJourneys.pending, (state) => {
         state.adminStatus = "loading";
         state.adminError = null;
       })
       .addCase(fetchAllJourneys.fulfilled, (state, action) => {
         state.adminStatus = "succeeded";
-        state.adminJourneys = Array.isArray(action.payload) ? action.payload : [];
+        journeysAdapter.setAll(state.adminJourneys, action.payload);
         state.adminError = null;
       })
       .addCase(fetchAllJourneys.rejected, (state, action) => {
-        if (action.payload !== 'Request cancelled') {
+        if (action.payload !== "Request cancelled") {
           state.adminStatus = "failed";
-          state.adminError = action.payload || action.error.message;
+          state.adminError = action.payload;
         }
       })
+
+      // ===== ADD JOURNEY =====
       .addCase(addJourney.pending, (state) => {
         state.adminStatus = "loading";
         state.adminError = null;
       })
       .addCase(addJourney.fulfilled, (state, action) => {
         state.adminStatus = "succeeded";
-        state.adminJourneys.unshift(action.payload);
+        journeysAdapter.addOne(state.adminJourneys, action.payload);
         state.adminError = null;
       })
       .addCase(addJourney.rejected, (state, action) => {
-        const isValidationError = action.payload?.errors && Object.keys(action.payload.errors).length > 0;
-
-state.adminStatus = isValidationError ? "succeeded" : "failed"; 
-state.adminError = action.payload?.message || "Failed to add journey";
-
+        state.adminStatus = "failed";
+        state.adminError = action.payload?.message || "Failed to add journey";
       })
+
+      // ===== UPDATE JOURNEY =====
       .addCase(updateJourney.pending, (state) => {
         state.adminStatus = "loading";
         state.adminError = null;
       })
       .addCase(updateJourney.fulfilled, (state, action) => {
         state.adminStatus = "succeeded";
-        const index = state.adminJourneys.findIndex(j => j.id === action.payload.id);
-        if (index !== -1) {
-          state.adminJourneys[index] = action.payload;
-        }
+        journeysAdapter.updateOne(state.adminJourneys, {
+          id: action.payload.id,
+          changes: action.payload,
+        });
         state.adminError = null;
       })
       .addCase(updateJourney.rejected, (state, action) => {
-        // Don’t mark as "failed" for validation errors
-  const isValidationError = action.payload?.errors && Object.keys(action.payload.errors).length > 0;
-  state.adminStatus = isValidationError ? "succeeded" : "failed";
+        state.adminStatus = "failed";
+        state.adminError = action.payload?.message || "Failed to update journey";
+      })
 
-  state.adminError = isValidationError
-    ? null
-    : (action.payload?.message || "Failed to update journey");
-
-      });
-
-    // ============ DRIVERS ============
-    builder
+      // ===== DRIVERS =====
       .addCase(fetchAllDrivers.pending, (state) => {
         state.driversStatus = "loading";
         state.driversError = null;
       })
       .addCase(fetchAllDrivers.fulfilled, (state, action) => {
         state.driversStatus = "succeeded";
-        state.drivers = Array.isArray(action.payload) ? action.payload : [];
+        driversAdapter.setAll(state.drivers, action.payload);
         state.driversError = null;
       })
       .addCase(fetchAllDrivers.rejected, (state, action) => {
-        if (action.payload !== 'Request cancelled') {
+        if (action.payload !== "Request cancelled") {
           state.driversStatus = "failed";
-          state.driversError = action.payload || action.error.message;
+          state.driversError = action.payload;
         }
       });
   },
 });
 
+// ===== EXPORTS =====
+
 export const {
   clearRoutesError,
   clearJourneyError,
-  resetRoutesStatus,
-  resetJourneyStatus,
   resetAllStatus,
   clearAllData,
 } = journeySlice.actions;
+
+// ✅ Selectors for routes
+export const {
+  selectAll: selectAllRoutes,
+  selectById: selectRouteById,
+  selectEntities: selectRouteEntities,
+} = routesAdapter.getSelectors((state) => state.journey.routes);
+
+// ✅ Selectors for admin journeys
+export const {
+  selectAll: selectAllAdminJourneys,
+  selectById: selectAdminJourneyById,
+  selectEntities: selectAdminJourneyEntities,
+} = journeysAdapter.getSelectors((state) => state.journey.adminJourneys);
+
+// ✅ Selectors for drivers
+export const {
+  selectAll: selectAllDrivers,
+  selectById: selectDriverById,
+  selectEntities: selectDriverEntities,
+} = driversAdapter.getSelectors((state) => state.journey.drivers);
 
 export default journeySlice.reducer;

@@ -1,90 +1,185 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
+import { createSlice, createAsyncThunk, createEntityAdapter } from "@reduxjs/toolkit";
 import { API_BASE_URL } from "../../../config";
 
-// Async thunk to fetch dashboard data (cities, drivers, routes)
+// ✅ Entity adapters for normalized state
+const citiesAdapter = createEntityAdapter({
+  selectId: (city) => city.id,
+});
+
+const driversAdapter = createEntityAdapter({
+  selectId: (driver) => driver.id,
+  sortComparer: (a, b) => a.name?.localeCompare(b.name),
+});
+
+const routesAdapter = createEntityAdapter({
+  selectId: (route) => route.id,
+});
+
+// ===== ASYNC THUNKS =====
+
+// Fetch dashboard dropdown data (cities, drivers, routes)
 export const fetchDashboardData = createAsyncThunk(
-  "dashboard/fetchDashboardData",
-  async (_, { rejectWithValue }) => {
+  "dash/fetchDashboardData",
+  async (_, { signal, rejectWithValue }) => {
     try {
-      const res = await axios.get(`${API_BASE_URL}/admin/dashboard/data`);
-      if (!res.data.success) throw new Error(res.data.message);
-      return res.data.data;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || err.message);
-    }
-  }
-);
-
-// NEW: Async thunk to fetch filtered payment table data
-export const fetchFilteredPaymentData = createAsyncThunk(
-  "dashboard/fetchFilteredPaymentData",
-  async (filters, { rejectWithValue }) => {
-    try {
-      const res = await axios.get(`${API_BASE_URL}/admin/dashboard/paymentTable`, {
-        params: filters
+      const res = await fetch(`${API_BASE_URL}/admin/dashboard/data`, {
+        signal,
+        credentials: "include",
       });
-      if (!res.data.success) throw new Error(res.data.message);
-      return res.data.data;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || err.message);
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        return rejectWithValue(data.message || "Failed to fetch dashboard data");
+      }
+
+      return data.data;
+    } catch (error) {
+      if (error.name === "AbortError") {
+        return rejectWithValue("Request cancelled");
+      }
+      return rejectWithValue(error.message || "Network error");
+    }
+  },
+  {
+    // ✅ Prevent duplicate fetches
+    condition: (_, { getState }) => {
+      const { dash } = getState();
+      return dash.dropdownStatus !== "loading" && dash.dropdownStatus !== "succeeded";
+    },
+  }
+);
+
+// Fetch filtered payment table data
+export const fetchFilteredPaymentData = createAsyncThunk(
+  "dash/fetchFilteredPaymentData",
+  async (filters, { signal, rejectWithValue }) => {
+    try {
+      // ✅ Build query string from filters
+      const params = new URLSearchParams();
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== null && value !== undefined && value !== "") {
+          params.append(key, value);
+        }
+      });
+
+      const res = await fetch(
+        `${API_BASE_URL}/admin/dashboard/paymentTable?${params.toString()}`,
+        {
+          signal,
+          credentials: "include",
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        return rejectWithValue(data.message || "Failed to fetch payment data");
+      }
+
+      return data.data;
+    } catch (error) {
+      if (error.name === "AbortError") {
+        return rejectWithValue("Request cancelled");
+      }
+      return rejectWithValue(error.message || "Network error");
     }
   }
 );
 
-const dashboardSlice = createSlice({
-  name: "dashboard",
+// ===== SLICE =====
+
+const dashSlice = createSlice({
+  name: "dash",
   initialState: {
-    cities: [],
-    drivers: [],
-    routes: [],
+    // Dropdown data
+    cities: citiesAdapter.getInitialState(),
+    drivers: driversAdapter.getInitialState(),
+    routes: routesAdapter.getInitialState(),
+    dropdownStatus: "idle", // idle | loading | succeeded | failed
+
+    // Payment data
     filteredPaymentData: [],
-    loading: false,
-    paymentLoading: false,
+    paymentStatus: "idle",
+    isFiltered: false,
+
+    // Errors
     error: null,
-    paymentError: null,
-    isFiltered: false, // NEW: Track if user has applied filters
   },
+
   reducers: {
     clearFilteredData: (state) => {
       state.filteredPaymentData = [];
-      state.isFiltered = false; // Reset filter flag
+      state.isFiltered = false;
+      state.paymentStatus = "idle";
+    },
+    clearError: (state) => {
+      state.error = null;
     },
   },
+
   extraReducers: (builder) => {
     builder
-      // Fetch dashboard data (cities, drivers, routes)
+      // ===== FETCH DASHBOARD DATA =====
       .addCase(fetchDashboardData.pending, (state) => {
-        state.loading = true;
+        state.dropdownStatus = "loading";
         state.error = null;
       })
       .addCase(fetchDashboardData.fulfilled, (state, action) => {
-        state.loading = false;
-        state.cities = action.payload.cities || [];
-        state.drivers = action.payload.drivers || [];
-        state.routes = action.payload.routes || [];
+        state.dropdownStatus = "succeeded";
+        citiesAdapter.setAll(state.cities, action.payload.cities || []);
+        driversAdapter.setAll(state.drivers, action.payload.drivers || []);
+        routesAdapter.setAll(state.routes, action.payload.routes || []);
+        state.error = null;
       })
       .addCase(fetchDashboardData.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
+        if (action.payload !== "Request cancelled") {
+          state.dropdownStatus = "failed";
+          state.error = action.payload;
+        }
       })
-      // Fetch filtered payment data
+
+      // ===== FETCH FILTERED PAYMENT DATA =====
       .addCase(fetchFilteredPaymentData.pending, (state) => {
-        state.paymentLoading = true;
-        state.paymentError = null;
+        state.paymentStatus = "loading";
+        state.error = null;
       })
       .addCase(fetchFilteredPaymentData.fulfilled, (state, action) => {
-        state.paymentLoading = false;
-        state.filteredPaymentData = action.payload;
-        state.isFiltered = true; // Mark that filtering has occurred
+        state.paymentStatus = "succeeded";
+        state.filteredPaymentData = action.payload || [];
+        state.isFiltered = true;
+        state.error = null;
       })
       .addCase(fetchFilteredPaymentData.rejected, (state, action) => {
-        state.paymentLoading = false;
-        state.paymentError = action.payload;
-        state.isFiltered = true; // Still mark as filtered even on error
+        if (action.payload !== "Request cancelled") {
+          state.paymentStatus = "failed";
+          state.error = action.payload;
+          state.isFiltered = true;
+        }
       });
   },
 });
 
-export const { clearFilteredData } = dashboardSlice.actions;
-export default dashboardSlice.reducer;
+// ===== EXPORTS =====
+
+export const { clearFilteredData, clearError } = dashSlice.actions;
+
+// ✅ Selectors for cities
+export const {
+  selectAll: selectAllCities,
+  selectById: selectCityById,
+} = citiesAdapter.getSelectors((state) => state.dash.cities);
+
+// ✅ Selectors for drivers
+export const {
+  selectAll: selectAllDrivers,
+  selectById: selectDriverById,
+} = driversAdapter.getSelectors((state) => state.dash.drivers);
+
+// ✅ Selectors for routes
+export const {
+  selectAll: selectAllRoutes,
+  selectById: selectRouteById,
+} = routesAdapter.getSelectors((state) => state.dash.routes);
+
+export default dashSlice.reducer;

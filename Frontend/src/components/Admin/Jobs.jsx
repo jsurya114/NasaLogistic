@@ -14,7 +14,7 @@ import {
 } from "../../redux/slice/admin/jobSlice";
 
 // --- Constants
-const DEBOUNCE_MS = 400;
+const DEBOUNCE_MS = 300; // Reduced from 400ms
 const ITEMS_PER_PAGE = 3;
 const FILTER = {
   ALL: 'all',
@@ -22,20 +22,22 @@ const FILTER = {
   DISABLED: 'disabled'
 };
 
-// --- Icons
-const IconRefresh = ({ spinning }) => (
+// --- Icons (Memoized to prevent re-creation)
+const IconRefresh = React.memo(({ spinning }) => (
   <svg className={`w-4 h-4 ${spinning ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
   </svg>
-);
+));
+IconRefresh.displayName = 'IconRefresh';
 
-const IconClear = () => (
+const IconClear = React.memo(() => (
   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
   </svg>
-);
+));
+IconClear.displayName = 'IconClear';
 
-// --- Row Component (Delete Removed)
+// --- Row Component
 const CityRow = React.memo(function CityRow({ id, job, city_code, enabled, index, onToggle, onEdit }) {
   return (
     <tr className={index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
@@ -49,7 +51,6 @@ const CityRow = React.memo(function CityRow({ id, job, city_code, enabled, index
       </td>
       <td className="px-3 py-2 border-b border-gray-200">
         <div className="flex items-center gap-4">
-
           <label className="relative inline-flex items-center cursor-pointer">
             <input type="checkbox" checked={enabled} onChange={() => onToggle(id)} className="sr-only" />
             <div className={`w-11 h-6 rounded-full transition-colors duration-200 ${enabled ? 'bg-purple-600' : 'bg-gray-300'}`}>
@@ -58,12 +59,11 @@ const CityRow = React.memo(function CityRow({ id, job, city_code, enabled, index
           </label>
 
           <button onClick={() => onEdit({ id, job, city_code, enabled })} className="group relative px-4 py-1.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xs font-medium rounded-md hover:from-blue-600 hover:to-blue-700 transition-all duration-200 shadow-sm hover:shadow-md flex items-center gap-1.5">
-         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                          </svg>
-                          <span>Edit</span>
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+            <span>Edit</span>
           </button>
-
         </div>
       </td>
     </tr>
@@ -72,14 +72,15 @@ const CityRow = React.memo(function CityRow({ id, job, city_code, enabled, index
 CityRow.displayName = 'CityRow';
 
 // --- Loading & Empty Screens
-const Loading = () => (
+const Loading = React.memo(() => (
   <div className="flex flex-col items-center gap-3">
     <div className="w-12 h-12 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin" />
     <p className="text-gray-600 font-medium">Loading...</p>
   </div>
-);
+));
+Loading.displayName = 'Loading';
 
-const Empty = ({ hasFilters }) => (
+const Empty = React.memo(({ hasFilters }) => (
   <div className="flex flex-col items-center gap-2 py-8">
     {hasFilters ? (
       <>
@@ -93,12 +94,20 @@ const Empty = ({ hasFilters }) => (
       <p className="font-medium text-gray-500">No Cities added yet</p>
     )}
   </div>
-);
+));
+Empty.displayName = 'Empty';
 
 // --- Main Component
 export default function Jobs() {
   const dispatch = useDispatch();
-  const { cities = [], page = 1, totalPages = 1, status = 'idle' } = useSelector(s => s.jobs || {});
+  
+  // ✅ Use custom selector for current page jobs
+  const cities = useSelector(state => {
+    const entities = state.jobs.entities;
+    return state.jobs.currentPageIds.map(id => entities[id]).filter(Boolean);
+  });
+  
+  const { page = 1, totalPages = 1, status = 'idle' } = useSelector(s => s.jobs || {});
 
   // Form
   const [form, setForm] = useState({ job: '', city_code: '', enabled: true });
@@ -113,7 +122,6 @@ export default function Jobs() {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Refs
-  const mountedRef = useRef(false);
   const debounceRef = useRef(null);
   const abortRef = useRef(null);
   const dropdownRef = useRef(null);
@@ -134,13 +142,16 @@ export default function Jobs() {
     if (!form.job.trim()) e.job = 'Job name is required';
     if (!form.city_code.trim()) e.city_code = 'City code is required';
     return e;
-  }, [form]);
+  }, [form.job, form.city_code]); // ✅ More specific dependencies
 
-  // Fetch Jobs
-  const fetchJobs = useCallback(async ({ pageNum = 1, q = '', statusFilter = FILTER.ALL } = {}) => {
+  // Fetch Jobs - Memoized with stable dependencies
+  const fetchJobs = useCallback(async (params = {}) => {
+    const { pageNum = currentPage, q = search, statusFilter = filter } = params;
+    
     if (abortRef.current) abortRef.current.abort();
     const controller = new AbortController();
     abortRef.current = controller;
+    
     try {
       await dispatch(fetchPaginatedJobs({
         page: pageNum,
@@ -148,42 +159,29 @@ export default function Jobs() {
         search: q,
         status: statusFilter,
         signal: controller.signal
-      }));
+      })).unwrap(); // ✅ Use unwrap() for better error handling
     } catch (err) {
-      if (err.name !== 'AbortError') {
+      if (err !== 'Request cancelled') {
         toast.error('Failed to fetch cities');
       }
     }
-  }, [dispatch]);
+  }, [dispatch, currentPage, search, filter]);
 
+  // ✅ OPTIMIZED: Single effect for all data fetching
   useEffect(() => {
-    if (!mountedRef.current) {
-      fetchJobs({ pageNum: 1, q: '', statusFilter: filter });
-      mountedRef.current = true;
-    }
-    return () => abortRef.current && abortRef.current.abort();
-  }, [fetchJobs, filter]);
-
-  // Debounced search/filter
-  useEffect(() => {
-    if (!mountedRef.current) return;
     if (debounceRef.current) clearTimeout(debounceRef.current);
 
     debounceRef.current = setTimeout(() => {
-      setCurrentPage(1);
-      fetchJobs({ pageNum: 1, q: search, statusFilter: filter });
-    }, DEBOUNCE_MS);
+      fetchJobs();
+    }, search ? DEBOUNCE_MS : 0); // ✅ No debounce for initial load/filter changes
 
-    return () => clearTimeout(debounceRef.current);
-  }, [search, filter, fetchJobs]);
+    return () => {
+      clearTimeout(debounceRef.current);
+      abortRef.current?.abort();
+    };
+  }, [currentPage, search, filter, fetchJobs]);
 
-  // Page change
-  useEffect(() => {
-    if (!mountedRef.current) return;
-    fetchJobs({ pageNum: currentPage, q: search, statusFilter: filter });
-  }, [currentPage, fetchJobs]);
-
-  // Outside dropdown
+  // Outside dropdown click
   useEffect(() => {
     const handler = e => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -209,6 +207,7 @@ export default function Jobs() {
 
   const onCancelEdit = useCallback(() => resetForm(), [resetForm]);
 
+  // ✅ OPTIMIZED: Removed redundant fetchJobs calls
   const onSubmit = useCallback(async (e) => {
     e.preventDefault();
     const eObj = validate();
@@ -216,56 +215,64 @@ export default function Jobs() {
 
     try {
       if (isEditing) {
-        const res = await dispatch(updateJob({
+        await dispatch(updateJob({
           id: editingId,
           job: form.job,
           city_code: form.city_code,
           enabled: form.enabled
-        }));
-        if (updateJob.fulfilled.match(res)) {
-          toast.success("City updated");
-          resetForm();
-          fetchJobs({ pageNum: currentPage, q: search, statusFilter: filter });
-        }
+        })).unwrap();
+        toast.success("City updated");
+        resetForm();
+        // ✅ Redux optimistic update handles state - no refetch needed
       } else {
-        const res = await dispatch(addJob({
+        await dispatch(addJob({
           job: form.job,
           city_code: form.city_code,
           enabled: form.enabled
-        }));
-        if (addJob.fulfilled.match(res)) {
-          toast.success("City added");
-          resetForm();
-          setCurrentPage(1);
-          fetchJobs({ pageNum: 1, q: search, statusFilter: filter });
-        }
+        })).unwrap();
+        toast.success("City added");
+        resetForm();
+        setCurrentPage(1); // ✅ This triggers the useEffect to refetch
       }
-    } catch {
-      toast.error("Failed to save city");
+    } catch (error) {
+      toast.error(error || "Failed to save city");
     }
-  }, [validate, isEditing, editingId, form, dispatch, resetForm, fetchJobs, currentPage, search, filter]);
+  }, [validate, isEditing, editingId, form, dispatch, resetForm]);
 
+  // ✅ OPTIMIZED: Optimistic update with error handling
   const onToggleStatus = useCallback(async (id) => {
     try {
-      const res = await dispatch(jobStatus(id));
-      if (jobStatus.fulfilled.match(res)) {
-        toast.success("Status updated");
-      }
-    } catch {
-      toast.error("Failed to update status");
+      await dispatch(jobStatus(id)).unwrap();
+      toast.success("Status updated");
+    } catch (error) {
+      toast.error(error || "Failed to update status");
+      // Redux slice already handles revert on error
     }
   }, [dispatch]);
 
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
-    await fetchJobs({ pageNum: currentPage, q: search, statusFilter: filter });
+    await fetchJobs();
     setIsRefreshing(false);
-  }, [fetchJobs, currentPage, search, filter]);
+  }, [fetchJobs]);
 
+  // ✅ Memoized to prevent re-renders
   const headers = useMemo(() => ['ID', 'City', 'City Code', 'Status', 'Actions'], []);
+  const hasItems = useMemo(() => Array.isArray(cities) && cities.length > 0, [cities]);
+  const hasActiveFilters = useMemo(() => search !== '' || filter !== FILTER.ALL, [search, filter]);
 
-  const hasItems = Array.isArray(cities) && cities.length > 0;
-  const hasActiveFilters = search !== '' || filter !== FILTER.ALL;
+  // ✅ Memoized handlers for dropdown
+  const handleFilterChange = useCallback((newFilter) => {
+    setFilter(newFilter);
+    setShowDropdown(false);
+    setCurrentPage(1); // Reset to first page when filtering
+  }, []);
+
+  const handleClearFilters = useCallback(() => {
+    setSearch('');
+    setFilter(FILTER.ALL);
+    setCurrentPage(1);
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-100 text-gray-900 font-poppins">
@@ -312,9 +319,9 @@ export default function Jobs() {
 
             <div className="flex justify-end gap-2">
               {isEditing && (
-                <button type="button" onClick={onCancelEdit} className="px-6 py-2 bg-gray-500 text-white rounded-lg">Cancel</button>
+                <button type="button" onClick={onCancelEdit} className="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors">Cancel</button>
               )}
-              <button type="submit" className="px-6 py-2 bg-purple-700 text-white rounded-lg">
+              <button type="submit" disabled={loading} className="px-6 py-2 bg-purple-700 text-white rounded-lg hover:bg-purple-800 transition-colors disabled:opacity-50">
                 {isEditing ? 'Update City' : 'Add City'}
               </button>
             </div>
@@ -329,7 +336,7 @@ export default function Jobs() {
             <button
               onClick={handleRefresh}
               disabled={loading}
-              className={`flex items-center gap-2 px-4 py-2 bg-purple-700 text-white rounded-lg ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+              className={`flex items-center gap-2 px-4 py-2 bg-purple-700 text-white rounded-lg hover:bg-purple-800 transition-colors ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               <IconRefresh spinning={isRefreshing} />
               <span>Refresh</span>
@@ -345,7 +352,7 @@ export default function Jobs() {
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setShowDropdown(s => !s)}
-                className={`flex items-center gap-2 px-4 py-2 border rounded-lg ${filter !== FILTER.ALL ? 'bg-purple-600 text-white' : 'bg-white text-gray-700'}`}
+                className={`flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors ${filter !== FILTER.ALL ? 'bg-purple-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
               >
                 <span className="font-medium">
                   {filter === FILTER.ENABLED ? 'Enabled' :
@@ -355,17 +362,17 @@ export default function Jobs() {
 
               {showDropdown && (
                 <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-20">
-                  <button onClick={() => { setFilter(FILTER.ALL); setShowDropdown(false); }} className="w-full text-left px-4 py-2 hover:bg-gray-100">All Status</button>
-                  <button onClick={() => { setFilter(FILTER.ENABLED); setShowDropdown(false); }} className="w-full text-left px-4 py-2 hover:bg-gray-100">Enabled</button>
-                  <button onClick={() => { setFilter(FILTER.DISABLED); setShowDropdown(false); }} className="w-full text-left px-4 py-2 hover:bg-gray-100">Disabled</button>
+                  <button onClick={() => handleFilterChange(FILTER.ALL)} className="w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors">All Status</button>
+                  <button onClick={() => handleFilterChange(FILTER.ENABLED)} className="w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors">Enabled</button>
+                  <button onClick={() => handleFilterChange(FILTER.DISABLED)} className="w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors">Disabled</button>
                 </div>
               )}
             </div>
 
-            {(search !== '' || filter !== FILTER.ALL) && (
+            {hasActiveFilters && (
               <button
-                onClick={() => { setSearch(''); setFilter(FILTER.ALL); }}
-                className="flex items-center gap-2 px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+                onClick={handleClearFilters}
+                className="flex items-center gap-2 px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 <IconClear />
                 <span className="font-medium">Clear</span>
@@ -415,7 +422,7 @@ export default function Jobs() {
           </div>
         </section>
 
-        <Pagination page={page} totalPages={totalPages} onPageChange={page => setCurrentPage(page)} />
+        <Pagination page={page} totalPages={totalPages} onPageChange={setCurrentPage} />
 
       </main>
       <Nav />
