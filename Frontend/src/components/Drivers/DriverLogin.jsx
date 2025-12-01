@@ -47,10 +47,21 @@ useEffect(()=>{
       }
     } catch (err) {
       if (err.errors) {
-        setFieldErrors({
-          email: err.errors.email || "",
-          password: err.errors.password || "",
-        });
+        // Check for account-level errors (blocked account)
+        if (err.errors.account) {
+          toast.error(err.errors.account, {
+            position: "top-right",
+            autoClose: 5000,
+            pauseOnHover: true,
+            draggable: true,
+          });
+        } else {
+          // Handle field-specific errors
+          setFieldErrors({
+            email: err.errors.email || "",
+            password: err.errors.password || "",
+          });
+        }
       } else if (err.message) {
         toast.error(err.message, {
           position: "top-right",

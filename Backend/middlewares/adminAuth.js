@@ -18,6 +18,6 @@ export default async function adminAuth(req, res, next) {
     next();
   } catch (err) {
     console.log(err.message,token,'err in admin middleware')
-    return res.status(HttpStatus.UNAUTHORIZED).json({ message: 'UNAUTHORIZED' });
+    return res.status(HttpStatus.UNAUTHORIZED).json({ message: 'UNAUTHORIZED' })
   }
 }

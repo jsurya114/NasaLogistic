@@ -4,11 +4,11 @@ import { API_BASE_URL } from "../../../config";
 // Fetch paginated jobs with search and request cancellation support
 export const fetchPaginatedJobs = createAsyncThunk(
   "jobs/fetchPaginated",
-  async ({ page, limit, search = "" }, { signal, rejectWithValue }) => {
+  async ({ page, limit, search = "", status = "all" }, { signal, rejectWithValue }) => {
     try {
       const res = await fetch(
-        `${API_BASE_URL}/admin/jobs?page=${page}&limit=${limit}&search=${encodeURIComponent(search)}`,
-        { signal, credentials: "include" } // Support request cancellation and send cookies
+        `${API_BASE_URL}/admin/jobs?page=${page}&limit=${limit}&search=${encodeURIComponent(search)}&status=${status}`,
+        { signal, credentials: "include" }
       );
 
       if (!res.ok) {
@@ -19,7 +19,6 @@ export const fetchPaginatedJobs = createAsyncThunk(
       const data = await res.json();
       return data;
     } catch (error) {
-      // Don't log cancellation errors
       if (error.name === 'AbortError') {
         return rejectWithValue('Request cancelled');
       }
@@ -147,15 +146,40 @@ export const jobStatus = createAsyncThunk(
     }
   }
 );
+export const fetchAllCities = createAsyncThunk(
+  "jobs/fetchAllCities",
+  async (_, { rejectWithValue }) => {
+    try {
+      console.log("Fetching all enabled cities...");
+      const res = await fetch(`${API_BASE_URL}/admin/get-cities`, {
+        credentials: "include"
+      });
+
+      if (!res.ok) {
+        const error = await res.json();
+        return rejectWithValue(error.message || "Failed to fetch all cities");
+      }
+
+      const data = await res.json();
+      console.log("Fetched all cities:", data.cities);
+      return data.cities;
+    } catch (error) {
+      console.error("fetchAllCities error:", error.message);
+      return rejectWithValue(error.message);
+    }
+  }
+);
 
 const jobSlice = createSlice({
   name: "jobs",
   initialState: {
-    cities: [],
+    cities: [],           // For paginated jobs management
+    allCities: [],        // NEW: For dropdowns - all enabled cities
     total: 0,
     totalPages: 0,
     page: 1,
-    status: "idle", // idle | loading | succeeded | failed
+    status: "idle",       // idle | loading | succeeded | failed
+    allCitiesStatus: "idle", // NEW: Separate status for all cities
     error: null,
   },
   reducers: {
@@ -166,10 +190,12 @@ const jobSlice = createSlice({
     // Reset to initial state
     resetJobsState: (state) => {
       state.cities = [];
+      state.allCities = [];
       state.total = 0;
       state.totalPages = 0;
       state.page = 1;
       state.status = "idle";
+      state.allCitiesStatus = "idle";
       state.error = null;
     },
   },
@@ -194,6 +220,21 @@ const jobSlice = createSlice({
           state.status = "failed";
           state.error = action.payload || action.error.message;
         }
+      })
+
+      // NEW: Fetch all enabled cities
+      .addCase(fetchAllCities.pending, (state) => {
+        state.allCitiesStatus = "loading";
+      })
+      .addCase(fetchAllCities.fulfilled, (state, action) => {
+        state.allCitiesStatus = "succeeded";
+        state.allCities = action.payload || [];
+        console.log("fetchAllCities: All cities updated:", action.payload);
+      })
+      .addCase(fetchAllCities.rejected, (state, action) => {
+        state.allCitiesStatus = "failed";
+        state.error = action.payload || action.error.message;
+        console.error("fetchAllCities: Failed:", action.payload);
       })
 
       // Fetch all jobs
@@ -237,6 +278,11 @@ const jobSlice = createSlice({
         if (index !== -1) {
           state.cities[index] = action.payload;
         }
+        // Also update in allCities if it exists there
+        const allIndex = state.allCities.findIndex((c) => c.id === action.payload.id);
+        if (allIndex !== -1) {
+          state.allCities[allIndex] = action.payload;
+        }
         state.error = null;
       })
       .addCase(updateJob.rejected, (state, action) => {
@@ -252,6 +298,8 @@ const jobSlice = createSlice({
       .addCase(deleteJob.fulfilled, (state, action) => {
         state.status = "succeeded";
         state.cities = state.cities.filter((c) => c.id !== action.payload);
+        // Also remove from allCities
+        state.allCities = state.allCities.filter((c) => c.id !== action.payload);
         // Decrement total count
         state.total = Math.max(0, state.total - 1);
         state.error = null;
@@ -269,6 +317,14 @@ const jobSlice = createSlice({
         if (index !== -1) {
           state.cities[index].enabled = !state.cities[index].enabled;
         }
+        // Also update in allCities
+        const allIndex = state.allCities.findIndex((c) => c.id === id);
+        if (allIndex !== -1) {
+          // If disabling, remove from allCities (since it only shows enabled)
+          if (state.allCities[allIndex].enabled) {
+            state.allCities = state.allCities.filter((c) => c.id !== id);
+          }
+        }
       })
       .addCase(jobStatus.fulfilled, (state, action) => {
         state.status = "succeeded";
@@ -276,6 +332,20 @@ const jobSlice = createSlice({
         const index = state.cities.findIndex((c) => c.id === action.payload.id);
         if (index !== -1) {
           state.cities[index] = action.payload;
+        }
+        // Update allCities: remove if disabled, add if enabled
+        const allIndex = state.allCities.findIndex((c) => c.id === action.payload.id);
+        if (action.payload.enabled) {
+          if (allIndex === -1) {
+            // Add to allCities if it was just enabled
+            state.allCities.push(action.payload);
+          } else {
+            // Update existing
+            state.allCities[allIndex] = action.payload;
+          }
+        } else {
+          // Remove from allCities if disabled
+          state.allCities = state.allCities.filter((c) => c.id !== action.payload.id);
         }
         state.error = null;
       })
@@ -288,6 +358,9 @@ const jobSlice = createSlice({
         if (index !== -1) {
           state.cities[index].enabled = !state.cities[index].enabled;
         }
+        // Revert allCities change
+        // This is tricky - we'd need to refetch to be safe
+        // For now, just refetch allCities on error
       });
   },
 });

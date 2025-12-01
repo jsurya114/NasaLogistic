@@ -1,7 +1,8 @@
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import Header from "../../reuse/Header.jsx"; 
+import { fetchDashboardData, fetchFilteredPaymentData, clearFilteredData } from "../../redux/slice/admin/dashSlice.js";
+import Header from "../../reuse/Header.jsx";
 import Nav from "../../reuse/Nav.jsx";
 import PaymentDashboardTable from "./DashboardTable.jsx";
 
@@ -9,29 +10,59 @@ export default function Dashboard() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { cities } = useSelector((state) => state.jobs);
-  const { drivers } = useSelector((state) => state.users);
-  const { routes } = useSelector((state) => state.routes);
+  // Get data from Redux store
+  const { cities, drivers, routes, loading, error, filteredPaymentData, isFiltered } = useSelector(
+    (state) => state.dash
+  );
 
   const [filters, setFilters] = useState({
     job: "All",
     driver: "All",
     route: "All",
-    startDate: "2025-07-26",
-    endDate: "2025-07-26",
+    startDate: "",
+    endDate: "",
     paymentStatus: "All",
     companyEarnings: false,
   });
 
   const [showExtraFields, setShowExtraFields] = useState(false);
-  const [extraFieldsData] = useState({
-    packages: "",
-    noScanned: "",
-    failedAttempt: "",
-    doubleStop: "",
-    delivered: "",
-    driversPayment: "",
-  });
+
+  // Calculate totals from filtered data
+  const extraFieldsData = useMemo(() => {
+    if (!isFiltered || filteredPaymentData.length === 0) {
+      return {
+        packages: 0,
+        noScanned: 0,
+        failedAttempt: 0,
+        doubleStop: 0,
+        delivered: 0,
+        driversPayment: 0,
+      };
+    }
+
+    return filteredPaymentData.reduce((totals, row) => {
+      return {
+        packages: totals.packages + (Number(row.packages) || 0),
+        noScanned: totals.noScanned + (Number(row.no_scanned) || 0),
+        failedAttempt: totals.failedAttempt + (Number(row.failed_attempt) || 0),
+        doubleStop: totals.doubleStop + (Number(row.ds) || 0),
+        delivered: totals.delivered + (Number(row.delivered) || 0),
+        driversPayment: totals.driversPayment + (Number(row.driver_payment) || 0),
+      };
+    }, {
+      packages: 0,
+      noScanned: 0,
+      failedAttempt: 0,
+      doubleStop: 0,
+      delivered: 0,
+      driversPayment: 0,
+    });
+  }, [filteredPaymentData, isFiltered]);
+
+  // Fetch dropdown data once on mount
+  useEffect(() => {
+    dispatch(fetchDashboardData());
+  }, [dispatch]);
 
   const handleFilterChange = useCallback((e) => {
     const { name, value, type, checked } = e.target;
@@ -42,26 +73,78 @@ export default function Dashboard() {
   }, []);
 
   const handleFilterClick = () => {
-    // Only show extra fields if Company Earnings is checked
-    if (filters.companyEarnings) {
-      setShowExtraFields(true);
-    } else {
-      setShowExtraFields(false);
-    }
+    setShowExtraFields(filters.companyEarnings);
+    
+    // Prepare filter params (only send non-"All" values)
+    const filterParams = {};
+    
+    if (filters.job !== "All") filterParams.job = filters.job;
+    if (filters.driver !== "All") filterParams.driver = filters.driver;
+    if (filters.route !== "All") filterParams.route = filters.route;
+    if (filters.startDate) filterParams.startDate = filters.startDate;
+    if (filters.endDate) filterParams.endDate = filters.endDate;
+    if (filters.paymentStatus !== "All") filterParams.paymentStatus = filters.paymentStatus;
+    if (filters.companyEarnings) filterParams.companyEarnings = filters.companyEarnings;
+
+    // Dispatch filtered data fetch
+    dispatch(fetchFilteredPaymentData(filterParams));
+  };
+
+  const handleClearFilters = () => {
+    // Reset all filters to default
+    setFilters({
+      job: "All",
+      driver: "All",
+      route: "All",
+      startDate: "",
+      endDate: "",
+      paymentStatus: "All",
+      companyEarnings: false,
+    });
+    setShowExtraFields(false);
+    
+    // Clear filtered data and reset isFiltered flag
+    dispatch(clearFilteredData());
   };
 
   const handleAddDelivery = useCallback(() => {
     navigate("/admin/journeys");
   }, [navigate]);
 
-  const filterOptions = useMemo(() => [
-    { label: "Job", type: "select", name: "job", options: ["All", ...cities.map(city => city.job)] },
-    { label: "Driver", type: "select", name: "driver", options: ["All", ...drivers.map(driver => driver.name)] },
-    { label: "Route", type: "select", name: "route", options: ["All", ...routes.map(route => route.name)] },
-    { label: "Start Date", type: "date", name: "startDate" },
-    { label: "End Date", type: "date", name: "endDate" },
-    { label: "Payment status", type: "select", name: "paymentStatus", options: ["All", "Paid", "Pending"] },
-  ], [cities, drivers, routes]);
+  const filterOptions = useMemo(
+    () => [
+      {
+        label: "Job",
+        type: "select",
+        name: "job",
+        options: ["All", ...(cities?.map((city) => city.job) || [])],
+      },
+      {
+        label: "Driver",
+        type: "select",
+        name: "driver",
+        options: ["All", ...(drivers?.map((driver) => driver.name) || [])],
+      },
+      {
+        label: "Route",
+        type: "select",
+        name: "route",
+        options: ["All", ...(routes?.map((route) => route.name) || [])],
+      },
+      { label: "Start Date", type: "date", name: "startDate" },
+      { label: "End Date", type: "date", name: "endDate" },
+      {
+        label: "Payment status",
+        type: "select",
+        name: "paymentStatus",
+        options: ["All", "Paid", "Pending"],
+      },
+    ],
+    [cities, drivers, routes]
+  );
+
+  if (loading) return <div className="text-center py-10">Loading data...</div>;
+  if (error) return <div className="text-center text-red-600 py-10">{error}</div>;
 
   return (
     <div className="min-h-screen bg-gray-100 text-gray-900 font-poppins">
@@ -75,7 +158,10 @@ export default function Dashboard() {
           </div>
           <div className="divide-y">
             {filterOptions.map((item, i) => (
-              <div key={i} className="grid grid-cols-1 sm:grid-cols-[160px_1fr_40px] items-center gap-2 sm:gap-3 px-4 py-3">
+              <div
+                key={i}
+                className="grid grid-cols-1 sm:grid-cols-[160px_1fr_40px] items-center gap-2 sm:gap-3 px-4 py-3"
+              >
                 <div className="text-gray-600">{item.label}</div>
                 {item.type === "select" ? (
                   <select
@@ -85,7 +171,9 @@ export default function Dashboard() {
                     onChange={handleFilterChange}
                   >
                     {item.options.map((opt, j) => (
-                      <option key={j} value={opt}>{opt}</option>
+                      <option key={j} value={opt}>
+                        {opt}
+                      </option>
                     ))}
                   </select>
                 ) : (
@@ -115,38 +203,56 @@ export default function Dashboard() {
               <span>Company Earnings</span>
             </div>
 
-            {/* Filter Button */}
-            <div className="px-4 py-3">
+            {/* Filter Buttons */}
+            <div className="px-4 py-3 flex gap-3">
               <button
                 onClick={handleFilterClick}
-                className="bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg shadow-md hover:bg-blue-700"
+                className="bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg shadow-md hover:bg-blue-700 transition-colors"
               >
                 Filter Data
               </button>
-            </div>
-
-            {/* Extra Fields (Read-Only) */}
-            {showExtraFields && (
-              <div className="px-4 py-3 grid grid-cols-1 gap-3">
-                {["packages", "noScanned", "failedAttempt", "doubleStop", "delivered", "driversPayment"].map((field, i) => (
-                  <input
-                    key={i}
-                    type="text"
-                    placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
-                    name={field}
-                    value={extraFieldsData[field]}
-                    readOnly
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 bg-gray-100 text-gray-500 cursor-not-allowed"
-                  />
-                ))}
-
-                {/* Add Delivery Button */}
+              <button
+                onClick={handleClearFilters}
+                className="bg-gray-500 text-white font-semibold px-4 py-2 rounded-lg shadow-md hover:bg-gray-600 transition-colors"
+              >
+                Clear Filters
+              </button>
                 <button
                   onClick={handleAddDelivery}
-                  className="bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg shadow-md hover:bg-blue-700 w-full sm:w-40 mx-auto"
+                   className="bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg shadow-md hover:bg-blue-700 transition-colors"
                 >
                   Add Delivery
                 </button>
+            </div>
+
+            {/* Extra Fields */}
+            {showExtraFields && (
+              <div className="px-4 py-3 grid grid-cols-1 gap-3">
+                <div className="mb-2 font-semibold text-gray-700">
+                  Company Earnings Summary
+                </div>
+                
+                {[
+                  { field: "packages", label: "Total Packages" },
+                  { field: "noScanned", label: "Total No Scanned" },
+                  { field: "failedAttempt", label: "Total Failed Attempt" },
+                  { field: "doubleStop", label: "Total Double Stop (DS)" },
+                  { field: "delivered", label: "Total Delivered" },
+                  { field: "driversPayment", label: "Total Drivers Payment" },
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <label className="w-48 text-gray-600">{item.label}:</label>
+                    <input
+                      type="text"
+                      name={item.field}
+                      value={extraFieldsData[item.field]}
+                      readOnly
+                      className="flex-1 border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 text-gray-700 font-semibold"
+                    />
+                  </div>
+                ))}
+
+              
               </div>
             )}
           </div>

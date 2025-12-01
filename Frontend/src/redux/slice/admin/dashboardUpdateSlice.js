@@ -21,7 +21,7 @@ export const updateWeeklyExcelToDashboard = createAsyncThunk(
   "driverPayment/update-weekly-excel-to-dashboard",
   async (_, { rejectWithValue }) => {
     try {
-      const res = await axios.put(`${API_BASE_URL}/admin/doubleStop/update-weekly-excel-to-dashboard`);
+      const res = await axios.post(`${API_BASE_URL}/admin/doubleStop/update-weekly-excel-to-dashboard`);
       console.log("Data after updating data in dashboard ",res.data);
       return res.data;
     } catch (error) {

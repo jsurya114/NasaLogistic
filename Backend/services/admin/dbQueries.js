@@ -20,6 +20,11 @@ export const dbService={
         return result.rows[0];
     },
 
+     getDriverByCode :async(code)=>{
+        let result = await pool.query("SELECT * FROM drivers WHERE email =$1",[code]);
+        return result.rows[0];
+    },
+
     getDriverById: async(id)=>{
         let result = await pool.query("SELECT * FROM drivers WHERE id =$1",[id]);
         return result.rows[0];
@@ -51,10 +56,25 @@ export const dbService={
     },
     getAllAdmins: async (limit,offset) => {
       const result = await pool.query(
-        `SELECT id,name, email, role,is_active
-        FROM admin
-        WHERE id != $1
-        LIMIT $2 OFFSET $3`,
+        // `SELECT id,name, email, role,is_active
+        // FROM admin
+        // WHERE id != $1
+        // LIMIT $2 OFFSET $3`,
+
+  `     SELECT 
+        a.id AS id,
+        a.name AS admin_name,
+        a.email AS admin_email,
+        a.role AS admin_role,
+        a.is_active,
+        COALESCE(STRING_AGG(c.job, ', '), '') AS cities
+      FROM admin a
+      LEFT JOIN admin_city_ref acr ON a.id = acr.admin_id
+      LEFT JOIN city c ON acr.city_id = c.id
+      WHERE a.id != $1
+      GROUP BY a.id, a.name, a.email, a.role, a.is_active
+      ORDER BY a.id
+      LIMIT $2 OFFSET $3`,
         [100,limit,offset]
       );
       return result.rows;
@@ -66,10 +86,10 @@ export const dbService={
     const hashedPwd = await dbService.hashedPassword(data.password);
 
     const result = await pool.query(
-      `INSERT INTO drivers (name, email, password, city_id, enabled) 
-       VALUES ($1, $2, $3, $4, $5) 
+      `INSERT INTO drivers (name, email,driver_code, password, city_id, enabled) 
+       VALUES ($1, $2, $3, $4, $5,$6)
        RETURNING id,name,email,enabled,city_id,driver_code`,
-      [data.name, data.email, hashedPwd, city_id, data.enabled]
+      [data.name, data.email,data.driverCode, hashedPwd, city_id, data.enabled]
     );
     return result.rows[0];
   } catch (err) {

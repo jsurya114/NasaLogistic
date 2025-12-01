@@ -5,14 +5,14 @@ import 'react-toastify/dist/ReactToastify.css';
 import Header from "../../reuse/Header";
 import Nav from "../../reuse/Nav";
 import { fetchRoutes, addRoute, toggleRouteStatus, deleteRoute, updateRoute } from "../../redux/slice/admin/routeSlice";
-import { fetchJobs } from "../../redux/slice/admin/jobSlice";
+import { fetchAllCities } from "../../redux/slice/admin/jobSlice"; // Import the new action
 import Pagination from "../../reuse/Pagination.jsx";
 import SearchBar from "../../reuse/Search.jsx";
 
 export default function RoutesForm() {
   const dispatch = useDispatch();
   const { routes, status: routesStatus, error: routesError, page, totalPages, limit } = useSelector((state) => state.routes);
-  const { cities, status: jobsStatus, error: jobsError } = useSelector((state) => state.jobs);
+  const { allCities, allCitiesStatus, error: jobsError } = useSelector((state) => state.jobs); // Use allCities
 
   const [formData, setFormData] = useState({
     route: "",
@@ -29,9 +29,9 @@ export default function RoutesForm() {
   const [submitSuccess, setSubmitSuccess] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Fetch jobs only once on mount
+  // Fetch ALL cities (not paginated) only once on mount
   useEffect(() => {
-    dispatch(fetchJobs());
+    dispatch(fetchAllCities());
   }, [dispatch]);
 
   // Debounced search with cleanup
@@ -42,13 +42,13 @@ export default function RoutesForm() {
     return () => clearTimeout(timer);
   }, [searchTerm, dispatch]);
 
-  // Memoized filtered and enabled jobs
+  // Memoized enabled jobs - allCities already contains only enabled cities
   const enabledJobs = useMemo(() => {
-    if (jobsStatus === "succeeded" && Array.isArray(cities) && cities.length > 0) {
-      return cities.filter((job) => job.enabled);
+    if (Array.isArray(allCities) && allCities.length > 0) {
+      return allCities; // allCities already returns only enabled cities from backend
     }
     return [];
-  }, [cities, jobsStatus]);
+  }, [allCities]);
 
   // Memoized page change handler
   const handlePageChange = useCallback((newPage) => {
@@ -260,7 +260,7 @@ export default function RoutesForm() {
                   <option disabled>No jobs available</option>
                 )}
               </select>
-              {jobsStatus === "loading" && (
+              {allCitiesStatus === "loading" && (
                 <div className="flex items-center mt-1">
                   <svg className="animate-spin h-6 w-6 mr-2 text-purple-600" viewBox="0 0 24 24">
                     <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
@@ -269,7 +269,7 @@ export default function RoutesForm() {
                   <p className="text-purple-600 font-medium">Loading jobs...</p>
                 </div>
               )}
-              {jobsStatus === "failed" && (
+              {allCitiesStatus === "failed" && (
                 <p className="text-red-500 mt-1">Error loading jobs: {jobsError || "Unknown error"}</p>
               )}
             </div>
@@ -441,3 +441,4 @@ export default function RoutesForm() {
     </div>
   );
 }
+  
