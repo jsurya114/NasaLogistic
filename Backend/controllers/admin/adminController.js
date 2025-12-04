@@ -48,20 +48,12 @@ import { blackListToken } from '../../services/redis-jwt-service.js'
     admin.password = null
     
     const isProd = process.env.NODE_ENV === 'production';
-    // const cookieOptions = {
-    //   httpOnly: true,
-    //   secure: isProd,
-    //   sameSite: isProd ? 'none' : 'lax',
-    //   maxAge: 60 * 60 * 1000
-    // };
-     const cookieOptions = {
-        httpOnly: true,
-        secure: true, // ✅ Always true for production (required for SameSite=None)
-        sameSite: isProd ? 'none' : 'lax', // ✅ 'none' requires secure=true
-        maxAge: 60 * 60 * 1000, // 1 hour in milliseconds
-        path: '/', // ✅ Explicit path
-        ...(isProd && { domain: 'https://nasa-logistic.vercel.app' }) // ✅ Add your domain in production
-      };
+    const cookieOptions = {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? 'none' : 'lax',
+      maxAge: 60 * 60 * 1000
+    };
     
     res.clearCookie("adminToken", cookieOptions);
     res.clearCookie("driverToken", cookieOptions);
@@ -83,13 +75,7 @@ import { blackListToken } from '../../services/redis-jwt-service.js'
 
     Logout:async(req,res)=>{
       const isProd = process.env.NODE_ENV === 'production';
-      const opts = { httpOnly: true,
-        secure: true, // ✅ Always true for production (required for SameSite=None)
-        sameSite: isProd ? 'none' : 'lax', // ✅ 'none' requires secure=true
-        maxAge: 60 * 60 * 1000, // 1 hour in milliseconds
-        path: '/', // ✅ Explicit path
-        ...(isProd && { domain: 'https://nasa-logistic.vercel.app' }) // ✅ Add your domain in production
-        };
+      const opts = { httpOnly: true, secure: isProd, sameSite: isProd ? 'none' : 'lax' };
       const token = req.cookies.adminToken;
       if(token){
         blackListToken(token)
@@ -112,14 +98,7 @@ import { blackListToken } from '../../services/redis-jwt-service.js'
       if (!admin) {
         // Admin doesn't exist anymore
         const isProd = process.env.NODE_ENV === 'production';
-        const opts = { 
-         httpOnly: true,
-        secure: true, // ✅ Always true for production (required for SameSite=None)
-        sameSite: isProd ? 'none' : 'lax', // ✅ 'none' requires secure=true
-        maxAge: 60 * 60 * 1000, // 1 hour in milliseconds
-        path: '/', // ✅ Explicit path
-        ...(isProd && { domain: 'https://nasa-logistic.vercel.app' }) // ✅ Add your domain in production
-        };
+        const opts = { httpOnly: true, secure: isProd, sameSite: isProd ? 'none' : 'lax' };
         blackListToken(token);
         res.clearCookie("adminToken", opts);
         return res.status(HttpStatus.UNAUTHORIZED).json({ 
@@ -131,14 +110,7 @@ import { blackListToken } from '../../services/redis-jwt-service.js'
       if (!admin.is_active) {
         // Admin is blocked - logout immediately
         const isProd = process.env.NODE_ENV === 'production';
-        const opts = {
-          httpOnly: true,
-        secure: true, // ✅ Always true for production (required for SameSite=None)
-        sameSite: isProd ? 'none' : 'lax', // ✅ 'none' requires secure=true
-        maxAge: 60 * 60 * 1000, // 1 hour in milliseconds
-        path: '/', // ✅ Explicit path
-        ...(isProd && { domain: 'https://nasa-logistic.vercel.app' }) // ✅ Add your domain in production
-          };
+        const opts = { httpOnly: true, secure: isProd, sameSite: isProd ? 'none' : 'lax' };
         blackListToken(token);
         res.clearCookie("adminToken", opts);
         return res.status(HttpStatus.UNAUTHORIZED).json({ 

@@ -16,29 +16,10 @@ const PORT = process.env.PORT;
  const app = express();
 
 app.use(cors({
-  origin: function(origin, callback) {
-    // Allow requests with no origin (mobile apps, Postman, etc.)
-    if (!origin) return callback(null, true);
-    
-    const allowedOrigins = [
-      process.env.FRONTEND_URL,
-      'https://nasa-logistic.vercel.app', // Add your production URL
-      'http://localhost:5173'
-    ];
-    
-    if (allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(null, true); // ✅ Allow all origins in development
-    }
-  },
-  credentials: true, // ✅ Essential for cookies
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
-  exposedHeaders: ['set-cookie'],
-  preflightContinue: false,
-  optionsSuccessStatus: 204
-}));
+  origin: process.env.FRONTEND_URL,
+  credentials: true
+}))
+
  app.use(express.json())
  app.use(cookieParser());
  // Serve static uploads (e.g., access code images)
