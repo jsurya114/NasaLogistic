@@ -15,17 +15,21 @@ export const adminLogin=createAsyncThunk(
         try {
             const res=await fetch(`${API_BASE_URL}/admin/login`,{
                 method:"POST",
-                credentials:'include',
                 headers:{"Content-Type":"application/json"},
-                body:JSON.stringify(credentials),
-                credentials:"include"
+                body:JSON.stringify(credentials)
             })
             const data = await res.json();
            
             if(!res.ok){
                 return rejectWithValue(data)
             }
-              return data;
+
+            // Store JWT so we can send it in Authorization header.
+            if (data.token) {
+                localStorage.setItem("adminToken", data.token);
+            }
+
+            return data;
         } catch (error) {
             return rejectWithValue({ message: error.message })
         }
@@ -36,11 +40,12 @@ export const accessAdminUser=createAsyncThunk(
     "admin/access-admin",
     async(_ ,{rejectWithValue})=>{
         try {
+            const token = localStorage.getItem("adminToken");
             const res=await fetch(`${API_BASE_URL}/admin/access-admin`,{
                 method:"GET",
-                
-                // headers:{"Content-Type":"application/json"},   
-                credentials:"include"             
+                headers: {
+                    Authorization: token ? `Bearer ${token}` : ""
+                }            
             })
             const data = await res.json();
             
@@ -60,16 +65,17 @@ export const adminLogout=createAsyncThunk(
     async(_ ,{rejectWithValue})=>{
         try {
             const res=await fetch(`${API_BASE_URL}/admin/logout`,{
-                method:"POST",
-                // headers:{"Content-Type":"application/json"},   
-                credentials:"include"             
+                method:"POST"
             })
             const data = await res.json();
             
             if(!res.ok){
                 return rejectWithValue(data.message||"Logout Error")
             }
-              return data;
+
+            // Remove stored token on logout
+            localStorage.removeItem("adminToken");
+            return data;
         } catch (error) {
             return rejectWithValue(error.message)
         }
