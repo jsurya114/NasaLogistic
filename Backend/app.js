@@ -16,7 +16,7 @@ const PORT = process.env.PORT;
  const app = express();
 
 app.use(cors({
-  origin: process.env.FRONTEND_URL,
+  origin: "https://nasa-logistic.vercel.app",
   credentials: true
 }))
 
