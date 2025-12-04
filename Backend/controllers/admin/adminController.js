@@ -48,12 +48,20 @@ import { blackListToken } from '../../services/redis-jwt-service.js'
     admin.password = null
     
     const isProd = process.env.NODE_ENV === 'production';
+    // const cookieOptions = {
+    //   httpOnly: true,
+    //   secure: isProd,
+    //   sameSite: isProd ? 'none' : 'lax',
+    //   maxAge: 60 * 60 * 1000
+    // };
+
     const cookieOptions = {
-      httpOnly: true,
-      secure: isProd,
-      sameSite: isProd ? 'none' : 'lax',
-      maxAge: 60 * 60 * 1000
-    };
+  httpOnly: true,
+  secure: true,        // REQUIRED for iOS
+  sameSite: "None",    // REQUIRED for Vercel + Render
+  maxAge: 60 * 60 * 1000
+};
+
     
     res.clearCookie("adminToken", cookieOptions);
     res.clearCookie("driverToken", cookieOptions);
