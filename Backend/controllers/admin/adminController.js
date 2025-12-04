@@ -6,7 +6,7 @@ import HttpStatus from '../../utils/statusCodes.js'
 import { blackListToken } from '../../services/redis-jwt-service.js'
 
  const adminController={
-   Login: async(req, res) => {
+    Login: async(req, res) => {
   try {
     const {email, password} = req.body
 
@@ -45,12 +45,21 @@ import { blackListToken } from '../../services/redis-jwt-service.js'
       return res.status(HttpStatus.UNAUTHORIZED).json({ message: "UNAUTHORIZED" });
     }
     
-    admin.password = null;
+    admin.password = null
+    
+    const isProd = process.env.NODE_ENV === 'production';
+    const cookieOptions = {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? 'none' : 'lax',
+      maxAge: 60 * 60 * 1000
+    };
+    
+    res.clearCookie("adminToken", cookieOptions);
+    res.clearCookie("driverToken", cookieOptions);
+    res.cookie("adminToken", token, cookieOptions);
 
-    // Instead of relying on a cross-site cookie (which iOS may block),
-    // return the JWT in the response body so the frontend can store it
-    // and send it via Authorization header.
-    return res.status(HttpStatus.OK).json({ message: "Login successful", admin, token });
+    return res.status(HttpStatus.OK).json({ message: "Login successful", admin});
 
   } catch (error) {
     console.error("❌ Login Error:", error); // Better logging
@@ -64,19 +73,22 @@ import { blackListToken } from '../../services/redis-jwt-service.js'
   }
 },
 
-   Logout:async(req,res)=>{
-      // For header-based auth we just instruct the client to forget the token.
-      // If you still want server-side blacklist, you could decode the header token
-      // and store it, but for now we simply respond OK.
+    Logout:async(req,res)=>{
+      const isProd = process.env.NODE_ENV === 'production';
+      const opts = { httpOnly: true, secure: isProd, sameSite: isProd ? 'none' : 'lax' };
+      const token = req.cookies.adminToken;
+      if(token){
+        blackListToken(token)
+      }
+      res.clearCookie("adminToken", opts);
+
       return res.status(HttpStatus.OK).json({message:"Logged out successfully"});
     },   
     
-   getUser:async(req,res)=>{
+    getUser:async(req,res)=>{
       try{
-        // Read token from Authorization header: "Bearer <token>"
-        const authHeader = req.headers.authorization || "";
-        const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : null;
-
+        const token = req.cookies.adminToken;
+        // console.log("Token from request",token)
         if(!token) return res.status(HttpStatus.UNAUTHORIZED).json({message:"UNAUTHORIZED"})
         
           const decoded= verifyToken(token);
