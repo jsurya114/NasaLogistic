@@ -1,26 +1,23 @@
-import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { accessAdminUser } from "../../redux/slice/admin/adminSlice";
 
 function AdminPublicOnlyRoute() {
   const dispatch = useDispatch();
-  const location = useLocation();
   const navigate = useNavigate();
   const { isAuthenticated, loading } = useSelector((state) => state.admin);
 
   useEffect(() => {
-    dispatch(accessAdminUser());
-  }, []);
+    // Only call /admin/access-admin when auth state is unknown.
+    if (isAuthenticated === null) {
+      dispatch(accessAdminUser());
+    }
+  }, [dispatch, isAuthenticated]);
 
   useEffect(() => {
     if (!loading && isAuthenticated) {
-      // Cancel this navigation by going back if possible; otherwise, go to dashboard
-      // if (window.history.length > 1) {
-      //   navigate(-1);
-      // } else {
-        navigate("/admin/dashboard", { replace: true });
-      // }e
+      navigate("/admin/dashboard", { replace: true });
     }
   }, [loading, isAuthenticated, navigate]);
 
