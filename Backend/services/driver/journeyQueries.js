@@ -89,7 +89,7 @@ export const getTodayJourney = async (driver_id) => {
 };
 
 // ✅ Add Deliveries by Sequence Range
-export const addRangeOfSqeunceToDeliveries = async (driver_id, route_id, start_seq, end_seq) => {
+export const addRangeOfSqeunceToDeliveries = async (driver_id, route_id, start_seq, end_seq, dashboard_data_id) => {
   try {
     const query = `
       INSERT INTO deliveries (
@@ -97,20 +97,22 @@ export const addRangeOfSqeunceToDeliveries = async (driver_id, route_id, start_s
           driver_set_date,
           route_id,
 		  sequence_number,
-		  seq_route_code
+		  seq_route_code,
+          dashboard_data_id
       )
       SELECT
           $1 AS driver_id,
           CURRENT_DATE AS driver_set_date,
           r.id AS route_id,
           seq AS sequence_number,
-          seq || '-' || r.route_code_in_string AS seq_route_code
+          seq || '-' || r.route_code_in_string AS seq_route_code,
+          $5 AS dashboard_data_id
       FROM generate_series($3::int, $4::int) AS seq
       JOIN routes r ON r.id = $2
       RETURNING *;
     `;
 
-    const values = [Number(driver_id), Number(route_id), Number(start_seq), Number(end_seq)];
+    const values = [Number(driver_id), Number(route_id), Number(start_seq), Number(end_seq), Number(dashboard_data_id)];
     const result = await pool.query(query, values);
     return result.rows;
 

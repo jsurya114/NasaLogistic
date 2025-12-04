@@ -95,7 +95,8 @@ const adminJourneyController = {
                 journey_date
             })
 
-            const sequence = await addRangeOfSqeunceToDeliveries(driver_id,route_id,start_seq,end_seq)
+            
+            const sequence = await addRangeOfSqeunceToDeliveries(driver_id,route_id,start_seq,end_seq,newJourney.id)
             res.status(HttpStatus.CREATED).json({success:true,data:newJourney})
       } catch (error) {
          res
@@ -103,7 +104,8 @@ const adminJourneyController = {
         .json({ success: false, message: error.message });
       }
     },
-updateJourney: async (req, res) => {
+
+  updateJourney: async (req, res) => {
     try {
       const journey_id = req.params.journey_id;
       const { start_seq, end_seq, route_id, driver_id } = req.body;
@@ -157,7 +159,7 @@ updateJourney: async (req, res) => {
           success: false,
           errors: { general: "Journey not found" }
         });
-      }
+      } 
 
       const journey_date = currentJourneyResult.rows[0].journey_date;
 
