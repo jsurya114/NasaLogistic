@@ -5,40 +5,25 @@ import 'react-toastify/dist/ReactToastify.css';
 import Header from "../../reuse/Header";
 import Nav from "../../reuse/Nav";
 import { fetchRoutes, addRoute, toggleRouteStatus, deleteRoute, updateRoute } from "../../redux/slice/admin/routeSlice";
-import { fetchAllCities } from "../../redux/slice/admin/jobSlice";
+import { fetchAllCities } from "../../redux/slice/admin/jobSlice"; // Import the new action
 import Pagination from "../../reuse/Pagination.jsx";
 import SearchBar from "../../reuse/Search.jsx";
 
-// Constants
-const DEBOUNCE_MS = 300;
-const ITEMS_PER_PAGE = 4;
-
-// Initial form state
-const INITIAL_FORM_STATE = {
-  route: "",
-  job: "",
-  companyRoutePrice: 0,
-  driverRoutePrice: 0,
-  companyDoubleStopPrice: 0,
-  driverDoubleStopPrice: 0,
-  routeCodeInString: "",
-  enabled: false,
-};
-
 export default function RoutesForm() {
   const dispatch = useDispatch();
-  
-  // ✅ Use custom selector for current page routes
-  const routes = useSelector(state => {
-    const entities = state.routes.entities;
-    return state.routes.currentPageIds.map(id => entities[id]).filter(Boolean);
-  });
-  
-  const { status: routesStatus, error: routesError, page, totalPages } = useSelector((state) => state.routes);
-  const { allCities, allCitiesStatus, error: jobsError } = useSelector((state) => state.jobs);
+  const { routes, status: routesStatus, error: routesError, page, totalPages, limit } = useSelector((state) => state.routes);
+  const { allCities, allCitiesStatus, error: jobsError } = useSelector((state) => state.jobs); // Use allCities
 
-  // State
-  const [formData, setFormData] = useState(INITIAL_FORM_STATE);
+  const [formData, setFormData] = useState({
+    route: "",
+    job: "",
+    companyRoutePrice: 0,
+    driverRoutePrice: 0,
+    companyDoubleStopPrice: 0,
+    driverDoubleStopPrice: 0,
+    routeCodeInString: "",
+    enabled: false,
+  });
   const [editingId, setEditingId] = useState(null);
   const [submitError, setSubmitError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -52,13 +37,10 @@ export default function RoutesForm() {
   const isEditing = editingId !== null;
   const loading = routesStatus === "loading";
 
-  // ✅ Fetch cities only once (with caching check)
+  // Fetch ALL cities (not paginated) only once on mount
   useEffect(() => {
-    if (!citiesFetchedRef.current && allCitiesStatus === "idle") {
-      dispatch(fetchAllCities());
-      citiesFetchedRef.current = true;
-    }
-  }, [dispatch, allCitiesStatus]);
+    dispatch(fetchAllCities());
+  }, [dispatch]);
 
   // ✅ Fetch routes with debouncing and abort controller
   const fetchRoutesData = useCallback(async (params = {}) => {
@@ -96,9 +78,12 @@ export default function RoutesForm() {
     };
   }, [currentPage, searchTerm, fetchRoutesData]);
 
-  // ✅ Memoized enabled jobs
+  // Memoized enabled jobs - allCities already contains only enabled cities
   const enabledJobs = useMemo(() => {
-    return Array.isArray(allCities) ? allCities : [];
+    if (Array.isArray(allCities) && allCities.length > 0) {
+      return allCities; // allCities already returns only enabled cities from backend
+    }
+    return [];
   }, [allCities]);
 
   // ✅ Memoized validation
@@ -281,7 +266,7 @@ export default function RoutesForm() {
                   <option disabled>No jobs available</option>
                 )}
               </select>
-              {isJobsLoading && (
+              {allCitiesStatus === "loading" && (
                 <div className="flex items-center mt-1">
                   <svg className="animate-spin h-5 w-5 mr-2 text-purple-600" viewBox="0 0 24 24">
                     <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
@@ -291,7 +276,7 @@ export default function RoutesForm() {
                 </div>
               )}
               {allCitiesStatus === "failed" && (
-                <p className="text-red-500 text-sm mt-1">Error: {jobsError || "Failed to load jobs"}</p>
+                <p className="text-red-500 mt-1">Error loading jobs: {jobsError || "Unknown error"}</p>
               )}
             </div>
 
@@ -467,3 +452,4 @@ export default function RoutesForm() {
     </div>
   );
 }
+  
