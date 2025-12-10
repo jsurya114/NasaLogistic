@@ -52,9 +52,9 @@ const Login = () => {
         });
         console.log('login suc, navigate to dashboard')
 
-        // Use window.location for iOS Safari compatibility
-        // iOS Safari blocks async navigation not tied to user events
-        window.location.href = "/admin/dashboard";
+      // ✅ Fixed
+navigate("/admin/dashboard");
+
       }
     } catch (err) {
       if (err.status === 403 || err.errors?.general) {
