@@ -65,7 +65,8 @@ export const saveJourney = async (req, res) => {
       driver_id,
       route_id,
       start_seq,
-      end_seq
+      end_seq,
+      journey.id
     );
 
     if (sequence.success === false) {
